@@ -45,6 +45,28 @@ npx skills add phoben/agent-skills
 
 See the [skill's SKILL.md](./skills/claude-to-trae/SKILL.md) for full documentation.
 
+### [`xquik-x-data`](./skills/xquik-x-data/SKILL.md)
+
+Build and review Xquik REST API, remote MCP, and webhook integrations for X data
+workflows. The skill requires agents to source-check Xquik docs, OpenAPI, and
+MCP manifest before writing code or examples.
+
+**Install:**
+
+```bash
+# Via npx skills (recommended, indexed by skills.sh)
+npx skills add phoben/agent-skills
+
+# Or manually: copy skills/xquik-x-data/ to your agent's skills directory
+```
+
+**Trigger examples:**
+- "Build an Xquik API integration"
+- "Review this Xquik webhook handler"
+- "Set up Xquik remote MCP"
+
+See the [skill's SKILL.md](./skills/xquik-x-data/SKILL.md) for full documentation.
+
 ## Skill Format
 
 Each skill is a directory containing a `SKILL.md` with YAML frontmatter:
