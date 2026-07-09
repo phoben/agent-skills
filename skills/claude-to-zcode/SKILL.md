@@ -1,775 +1,532 @@
 ---
 name: claude-to-zcode
-description: |
-  当需要把 Claude Code 的工程化配置（skills/commands/hooks/agents/templates/config）迁移或适配到 ZCode 时使用此 Skill。适用于任何项目。
-
-  触发场景：
-  - 需要把 .claude/skills 迁移到 .zcode/skills（任何项目通用）
-  - 需要把 Claude hooks 适配为 ZCode 的严格 JSON 协议
-  - 需要为 ZCode 配置 .zcode/config.json（hooks/mcp 等）
-  - 现有 .zcode 配置不生效、hook 失败、需要诊断
-  - 从零搭建 ZCode 工程化目录结构
-  - 需要理解 Claude Code 与 ZCode 的协议差异
-
-  触发词：claude转zcode、迁移到zcode、zcode迁移、适配zcode、.claude转.zcode、ZCode配置、hook协议不兼容、ZCode hooks失败、additionalContext、工具配置迁移、Claude Code to ZCode、zcode hooks不触发
+description: >
+  当需要把 `.claude`、已有 `.zcode`、或 `.claude-plugin/.codex-plugin/.zcode-plugin`
+  的工程化配置迁移为符合 ZCode 规范的工作区资源或插件包时使用此技能。适用于自动盘点来源、
+  比较现有 `.zcode` 差异、迁移 skills/commands/hooks/mcp/agents/templates/scripts，
+  并处理 ZCode plugin manifest、hook JSON 协议、命令覆盖、MCP schema 等兼容问题。
+when_to_use: >
+  用户要求从 Claude Code 或兼容目录迁移到 ZCode；要求检测 `.claude` 与 `.zcode`
+  的差异；要求把现有配置整理成 `.zcode/*` 或 `.zcode-plugin/plugin.json`；或遇到
+  ZCode plugin、hooks、commands、mcp 配置不生效时。
 ---
 
-# Claude Code → ZCode 工程化迁移指南
+# Claude Code / Plugin → ZCode 迁移指南
 
 ## 概述
 
-把一个项目从 Claude Code 切到 ZCode（或同时支持两者），需要把 `.claude/` 下的工程化配置迁移到 `.zcode/`，并**适配协议差异**——不是简单复制目录就能跑通。
+这个技能不再把任务简化成“把 `.claude` 复制到 `.zcode`”。标准做法是四步：
 
-ZCode 与 Claude Code 的**资源类型相同**（都是 skills/commands/hooks/agents/templates 五种），但**协议不同**：
+1. **检测来源**：确认项目里到底有哪些工作区目录和插件目录。
+2. **比较现状**：先看现有 `.zcode` / `.zcode-plugin` 与源配置是否已一致、是否有冲突。
+3. **选择目标**：决定输出到工作区 `.zcode/*`、插件包 `.zcode-plugin/*`，还是两者并存。
+4. **按规范迁移**：对可以直接复制的资源直接迁移，对 hooks / mcp / plugin manifest 这类结构敏感资源做协议转换。
 
-- skills/commands/agents/templates：格式基本一致，直接复制可用
-- **hooks：协议差异巨大**，是最容易踩坑的地方（Claude 的纯文本 stdout 在 ZCode 会全部失败）
+本技能适用于两类目标：
 
-本技能覆盖**全部 5 种资源**的迁移规则、配置文件转换、标准流程、诊断验证和 12 个常见陷阱。
+* **工作区迁移**：输出到 `.zcode/skills`、`.zcode/commands`、`.zcode/agents`、`.zcode/templates`、`.zcode/hooks`、`.zcode/config.json`
+* **插件迁移**：输出到 `.zcode-plugin/plugin.json` 与插件根目录内的组件/辅助资源
 
-### 与官方技能的关系
+### 边界
 
-| 官方技能 | 关系 | 用途 |
-|---------|------|------|
-| `zcode-guide:zcode-configuration-guide` | 互补 | 提供 ZCode 配置地图（资源位置、合并规则、优先级） |
-| `zcode-guide:diagnosing-hooks` | 互补 | 提供深度 hook 诊断流程（本技能引用其 12 个陷阱） |
-| `skill-creator` | 互补 | 教你**创建**新技能；本技能教**迁移**已有配置 |
+* ✅ 管：工程化资源迁移、目录识别、差异分析、ZCode 规范适配、插件清单设计
+* ❌ 不管：业务代码迁移、框架升级、功能重写
 
-### 本技能的边界
+### 配套资源
 
-- ✅ **管**：工具配置迁移（`.claude/*` → `.zcode/*` 协议适配）
-- ❌ **不管**：业务代码迁移（如包名重构、框架切换）——那是项目特定任务
+遇到复杂迁移时，优先引用同目录下的辅助资源：
 
----
-
-## 核心差异速查表
-
-### 5 种资源 × 3 个工具的格式差异
-
-| 资源 | Claude Code | Codex | ZCode | 迁移难度 |
-|------|-------------|-------|-------|---------|
-| **Skills** | `.claude/skills/foo/SKILL.md`（YAML frontmatter） | `.codex/skills/foo/SKILL.md`（同） | `.zcode/skills/foo/SKILL.md`（同） | 🟢 低（直接复制） |
-| **Commands** | `.claude/commands/foo.md`（裸 md，无 frontmatter） | `.codex/skills/foo/SKILL.md`（**必须加** frontmatter，Codex 不支持项目级 prompts） | `.zcode/commands/foo.md`（裸 md，**与 Claude 相同**） | 🟢 低（直接复制） |
-| **Agents** | `.claude/agents/foo.md`（+ frontmatter） | `.codex/agents/foo.toml`（TOML 格式） | `.zcode/agents/foo.md`（**与 Claude 相同**） | 🟢 低（直接复制） |
-| **Templates** | `.claude/templates/foo.md`（纯文本） | （通常不同步） | `.zcode/templates/foo.md`（同） | 🟢 低（直接复制） |
-| **Hooks** | `.claude/hooks/*.cjs` + `.claude/settings.json` | `.codex/hooks/*.cjs` + `.codex/hooks.json` | `.zcode/hooks/*.cjs` + `.zcode/config.json` | 🔴 **高**（协议差异大） |
-
-### Hook 协议差异（最关键，必读）
-
-| 维度 | Claude Code | ZCode |
-|------|-------------|-------|
-| **配置位置** | `.claude/settings.json` 的 `hooks` 键 | `.zcode/config.json` → `hooks.events.<Event>` |
-| **启用开关** | 无需 | **必须 `hooks.enabled: true`**（默认禁用！） |
-| **支持事件** | 较多（含 Notification/SubagentStop/PreCompact 等） | **仅 7 个**：`SessionStart`、`UserPromptSubmit`、`PreToolUse`、`PermissionRequest`、`PostToolUse`、`PostToolUseFailure`、`Stop` |
-| **stdout 协议** | **纯文本自动注入** | **严格 JSON**（非 JSON 直接判失败） |
-| **模板变量** | `$CLAUDE_PROJECT_DIR` | `${ZCODE_PROJECT_DIR}`、`${ZCODE_SESSION_ID}` |
-| **Matcher** | 工具名 | 工具名（**大小写敏感正则**），`Task↔Agent`、`Write/Edit←ApplyPatch` 有别名 |
-| **超时** | 毫秒 | 秒（command 类型）/ 毫秒（process 类型） |
-
-> **⚠️ 最致命的差异**：Claude 的 `console.log(markdownText)` 在 ZCode 会直接失败——ZCode 把 stdout 按严格 JSON Schema 校验，非 JSON 输出会被丢弃并标记 `hook.run.failed`。这是迁移中最常踩的坑。
+* `references/source-discovery-and-diff.md`
+* `references/workspace-and-plugin-mapping.md`
+* `references/zcode-plugin-spec.md`
+* `templates/zcode-config.example.json`
+* `templates/zcode-plugin.plugin.json`
+* `scripts/inventory-zcode-sources.js`
+* `scripts/analyze-zcode-diff.js`
 
 ---
 
-## 资源迁移规则
+## 先做检测，不要先复制
 
-### 3.1 Skills 迁移
+### 必查来源
 
-Skills 的格式在 Claude 和 ZCode 间完全一致（都是 `SKILL.md` + YAML frontmatter），**直接复制目录**即可。
+在任何迁移开始前，先检查这些目录是否存在：
 
-```bash
-cp -r .claude/skills/foo .zcode/skills/foo
+* 工作区来源：
+  * `.claude/`
+  * `.zcode/`
+* 插件来源：
+  * `.claude-plugin/`
+  * `.codex-plugin/`
+  * `.zcode-plugin/`
+* 共享资源：
+  * `.agents/skills/`
+
+如果可以运行辅助脚本，优先执行：
+
+```powershell
+node .\skills\claude-to-zcode\scripts\inventory-zcode-sources.js .
 ```
 
-**注意事项**：
+如果不能运行脚本，就按下面的 PowerShell 方式手工盘点：
 
-- **软链 vs 独立文件**：`.zcode/skills/` 可以是软链指向 `.claude/skills/`（省空间、自动同步），或独立文件复制（跨机稳定、可独立提交 git）。**推荐独立文件**，便于版本控制和团队协作。
-- **软链陷阱**：如果你的 `.claude/skills/foo` 本身是指向 `.agents/skills/foo` 的软链，复制时要用 `cp -rL`（跟随软链）或 `cp -r --dereference`，否则 `.zcode` 下会得到无效软链。
-- **跨工具共享层**：如果想 skills 在 Claude/Codex/ZCode 三端共享，放到 `.agents/skills/`（标准跨工具位置），各工具会自动发现。但同名 skill 在 `.zcode/skills/` 优先级更高，可用来覆盖。
+```powershell
+$paths = @(
+  ".claude",
+  ".zcode",
+  ".claude-plugin",
+  ".codex-plugin",
+  ".zcode-plugin",
+  ".agents\\skills"
+)
 
-**检查清单**：
-- [ ] 每个 skill 目录都有 `SKILL.md`
-- [ ] YAML frontmatter 含 `name`（kebab-case，与目录名一致）和 `description`
-- [ ] 无软链残留（`find .zcode/skills -type l` 应为空）
-
-### 3.2 Commands 迁移
-
-ZCode 原生支持项目级 `.zcode/commands/*.md`，格式与 Claude Code 完全相同（裸 markdown，**无 frontmatter**）。
-
-```bash
-cp .claude/commands/foo.md .zcode/commands/foo.md
+foreach ($path in $paths) {
+  [pscustomobject]@{
+    Path = $path
+    Exists = Test-Path $path
+  }
+}
 ```
 
-**注意**：Codex 不支持项目级 prompts，所以 Codex 把 command 包装成带 frontmatter 的 skill（`.codex/skills/foo/SKILL.md`）。ZCode 不需要这套变通，直接用裸 md。
+### 检测结论必须包含什么
 
-**检查清单**：
-- [ ] `.zcode/commands/` 下的 .md 文件与 `.claude/commands/` 一致
-- [ ] 文件名即为命令名（`foo.md` → `/foo`）
-- [ ] 嵌套目录用冒号（`review/code.md` → `/review:code`）
+无论是脚本输出还是手工盘点，结论里至少要说明：
 
-### 3.3 Hooks 迁移（最复杂）
-
-Hooks 是迁移工作的核心。**业务逻辑保留，仅改输出协议**。下面是关键转换规则：
-
-#### 规则 1：纯文本输出 → JSON 包装
-
-```javascript
-// ❌ Claude 写法（ZCode 会失败）
-console.log('## 提醒\n注意分支保护');
-process.exit(0);
-
-// ✅ ZCode 写法
-process.stdout.write(JSON.stringify({
-  additionalContext: '## 提醒\n注意分支保护'
-}));
-process.exit(0);
-```
-
-#### 规则 2：字段名映射
-
-| Claude 字段 | ZCode 字段 | 说明 |
-|------------|-----------|------|
-| `{ continue: true, systemMessage: '...' }` | `{ additionalContext: '...' }` | 警告类注入 |
-| `{ systemMessage: '...' }` | `{ additionalContext: '...' }` | 同上 |
-| `{ decision: 'block', reason: '...' }` | `{ decision: 'deny', reason: '...' }` | 阻断工具调用 |
-| `{ continue: true }`（无消息） | `{}` 或空输出 | 通过且不注入 |
-
-#### 规则 3：PreToolUse 的 decision 取值
-
-ZCode 的 PreToolUse 支持 `decision: 'allow' | 'ask' | 'deny'`：
-
-```javascript
-// 放行
-process.stdout.write(JSON.stringify({}));           // 空 = 通过
-// 或
-process.stdout.write(JSON.stringify({ decision: 'allow' }));
-
-// 阻断
-process.stdout.write(JSON.stringify({
-  decision: 'deny',
-  reason: '🚫 危险命令被阻止：rm -rf /'
-}));
-
-// 交由用户确认
-process.stdout.write(JSON.stringify({
-  decision: 'ask',
-  reason: '即将执行 force push，是否继续？'
-}));
-```
-
-#### 规则 4：副作用类 hook（无输出）
-
-纯副作用的 hook（如清理临时文件、写状态文件）**保持空输出**即可：
-
-```javascript
-// ✅ ZCode 完全兼容：空 stdout + exit 0 = 通过且不注入
-function doCleanup() { /* ... */ }
-doCleanup();
-process.exit(0);
-```
-
-#### 规则 5：模板变量替换
-
-```bash
-# Claude
-node $CLAUDE_PROJECT_DIR/.claude/hooks/foo.cjs
-
-# ZCode（注意 ${} 而非 $，且变量名不同）
-node "${ZCODE_PROJECT_DIR}/.zcode/hooks/foo.cjs"
-```
-
-#### 规则 6：stdin 字段名兼容
-
-ZCode 的 stdin JSON 可能用驼峰（`toolName`/`toolInput`），Claude 用下划线（`tool_name`/`tool_input`）。**脚本应同时兼容两种**：
-
-```javascript
-const toolName = input.toolName || input.tool_name || '';
-const toolInput = input.toolInput || input.tool_input || {};
-```
-
-#### 规则 7：matcher 必须正确
-
-ZCode 的 matcher 是**大小写敏感正则**，匹配工具名：
-
-```json
-// ❌ 错误：小写不匹配（工具名是 Bash，大写 B）
-"matcher": "bash"
-
-// ✅ 正确
-"matcher": "Bash"
-"matcher": "Bash|Write|Edit|ApplyPatch"
-```
-
-省略 matcher = 匹配所有工具（适用于 UserPromptSubmit 等）。
-
-#### 规则 8：严格 JSON Schema（陷阱最高频）
-
-ZCode 对 stdout 按**严格 schema** 校验，多余 key 也会失败：
-
-```javascript
-// ❌ 错误：含未知 key
-process.stdout.write(JSON.stringify({ foo: 'bar' }));
-
-// ❌ 错误：混合 Claude 和 ZCode key
-process.stdout.write(JSON.stringify({ continue: true, additionalContext: '...' }));
-
-// ✅ 正确：只用 ZCode 认可的 key
-process.stdout.write(JSON.stringify({ additionalContext: '...' }));
-```
-
-各事件认可的有效 key：
-
-| 事件 | 注入类 key | 决策类 key |
-|------|-----------|-----------|
-| SessionStart | `additionalContext` | — |
-| UserPromptSubmit | `additionalContext` | — |
-| PreToolUse | `additionalContext` | `decision` (allow/ask/deny) + `reason` |
-| PermissionRequest | `additionalContext` | `decision` + `reason` |
-| PostToolUse | `additionalContext` | — |
-| PostToolUseFailure | `additionalContext` | — |
-| Stop | `additionalContext` | 可请求继续（最多 3 次） |
-
-**检查清单**：
-- [ ] 所有 `console.log(text)` 改为 `process.stdout.write(JSON.stringify({additionalContext: text}))`
-- [ ] 移除 Claude 专属 key（`continue`、`systemMessage`、`decision:'block'`）
-- [ ] stdin 解析同时兼容驼峰和下划线字段名
-- [ ] 路径用 `${ZCODE_PROJECT_DIR}` 而非 `$CLAUDE_PROJECT_DIR`
-
-### 3.4 Agents 迁移
-
-ZCode 的 agents 格式与 Claude Code 完全相同（`.md` + frontmatter），**直接复制**：
-
-```bash
-cp .claude/agents/*.md .zcode/agents/
-```
-
-**注意**：Codex 用 `.toml` 格式，不能直接复制到 ZCode。从 Codex 迁移 agents 需要把 TOML 转回 markdown frontmatter。
-
-**frontmatter 字段**（Claude/ZCode 通用）：
-- `name`：agent 名称
-- `description`：何时触发
-- `model`：使用的模型（如 `opus`、`sonnet`）
-- `tools`：可用工具列表（逗号分隔）
-
-### 3.5 Templates 迁移
-
-纯文本模板，直接复制：
-
-```bash
-cp -r .claude/templates/* .zcode/templates/
-```
+* 发现了哪些来源目录
+* 每类资源数量（skills / commands / hooks / mcp / agents / templates / scripts）
+* 现有 `.zcode` 是否为空、是否已有同名资源
+* 现有 `.zcode-plugin/plugin.json` 是否存在
+* 哪些资源可直接迁移，哪些必须转换
 
 ---
 
-## 配置文件转换
+## 工作区迁移还是插件迁移
+
+### 优先走工作区 `.zcode/*` 的场景
+
+满足以下任一条件时，优先迁移到工作区资源：
+
+* 目标是当前仓库内直接生效
+* 资源本身需要随着项目版本一起维护
+* 需要使用 `.zcode/agents/*.md`
+* 只是迁移 `.claude/*` 到当前项目，而不是要分发插件
+
+### 优先走插件包 `.zcode-plugin/*` 的场景
+
+满足以下任一条件时，优先产出插件包：
+
+* 需要跨项目复用
+* 需要通过 marketplace 或本地插件目录安装
+* 资源天然是插件组件：`skills` / `commands` / `hooks` / `mcpServers`
+* 希望把配置与辅助脚本封装在单独插件根目录里
+
+### 两者都要的场景
+
+以下情况通常要双轨输出：
+
+* 项目内已有 `.zcode/*`，但同时需要整理成可分发插件
+* 运行时能力希望由 plugin 提供，而项目内仍保留本地 agents 或模板
+* 需要先落地项目，再提炼成可复用插件
+
+### 一个关键限制
+
+根据 ZCode 的插件规范，plugin manifest 真正执行的组件是：
+
+* `skills`
+* `commands`
+* `hooks`
+* `mcpServers`
+
+`agents` 在 plugin manifest 中目前只是**记录字段，不会作为可执行组件运行**。所以：
+
+* 如果 agent 需要在项目中真正生效，优先落到 `.zcode/agents/*.md`
+* 如果 agent 只是给插件使用者参考，可以在插件中保留说明，但不要把它当成“插件已完成 agent 迁移”
+
+---
+
+## 先比对现有 `.zcode`，不要盲目覆盖
+
+对每一类资源，都先把来源与目标分成以下五类：
+
+* **可直接迁移**：目标不存在，或目标只是旧副本
+* **内容一致**：可跳过
+* **需协议转换**：如 hooks、mcp、plugin manifest
+* **存在冲突**：同名目标已被本地修改
+* **需人工确认**：无法可靠判断语义等价
+
+如果可以运行差异分析脚本，优先执行：
+
+```powershell
+node .\skills\claude-to-zcode\scripts\analyze-zcode-diff.js .
+```
+
+如果手工执行，最少要按这个顺序比：
+
+1. `.claude/*` vs `.zcode/*`
+2. `.claude-plugin` / `.codex-plugin` vs `.zcode-plugin`
+3. `.agents/skills/*` 是否与工作区 `.zcode/skills/*` 同名冲突
+
+同名资源处理原则：
+
+* 完全一致：跳过
+* 仅源端更新：迁移
+* 两端都改过：停止自动覆盖，输出冲突说明并请求确认
+
+---
+
+## 资源迁移总规则
+
+详细矩阵见 `references/workspace-and-plugin-mapping.md`。这里先给执行级规则。
+
+### 1. Skills
+
+* 工作区目标：`.zcode/skills/<name>/SKILL.md`
+* 插件目标：plugin root 下的 `skills/` 目录，并在 `plugin.json` 中声明
+* 迁移难度：低
+
+规则：
+
+* Claude 与 ZCode 的 `SKILL.md` 基本兼容，可直接复制目录
+* 但要检查 frontmatter：
+  * `name` 存在
+  * `description` 存在
+  * `description` 不宜过长
+* 若同名 skill 同时出现在 `.agents/skills/` 与 `.zcode/skills/`，`.zcode` 优先
+
+### 2. Commands
+
+* 工作区目标：`.zcode/commands/**/*.md`
+* 插件目标：plugin root 下的 `commands/` 目录，并在 `plugin.json` 中声明
+* 迁移难度：低
+
+规则：
+
+* ZCode command 是裸 markdown 文件，不要误加 frontmatter
+* 嵌套路径在命令名中映射为 `:`
+* 同名 command 按发现顺序 first match wins，已有更高优先级命令时不要假设新文件会生效
+
+### 3. Hooks
+
+* 工作区目标：`.zcode/hooks/*` + `.zcode/config.json`
+* 插件目标：plugin root 下的 `hooks/` 目录 + `plugin.json` 中的 `hooks`
+* 迁移难度：高
+
+核心原则：**保留业务逻辑，重写协议适配**
+
+必须同时处理：
+
+* 事件名：只能使用 7 个合法事件
+* `matcher`：大小写敏感，工具名按 ZCode 真实名称匹配
+* stdout：必须是严格 JSON
+* `decision`：`allow` / `ask` / `deny`
+* 工作区 hooks：必须 `hooks.enabled: true`
+
+纯文本输出必须改写为：
+
+```javascript
+process.stdout.write(JSON.stringify({
+  additionalContext: "这里放注入内容"
+}));
+```
+
+不要继续输出 Claude 风格字段：
+
+* `continue`
+* `systemMessage`
+* `decision: "block"`
+
+### 4. MCP
+
+* 工作区目标：`.zcode/config.json` → `mcp.servers`
+* 插件目标：`plugin.json` → `mcpServers`
+* 迁移难度：中高
+
+规则：
+
+* 工作区配置使用 `mcp.servers`
+* schema 严格，未知字段可能导致 server 被丢弃
+* 配置文件里的 `${...}` 模板不展开，不要把 plugin 变量写进工作区 `mcp.servers`
+* `command` 必须是字符串，`args` 必须是字符串数组
+
+### 5. Agents
+
+* 工作区目标：`.zcode/agents/*.md`
+* 插件目标：仅可作为记录性资源保留，不视为已插件化执行
+* 迁移难度：中
+
+规则：
+
+* Claude 与 ZCode 工作区 agent 结构兼容，可迁移为 `.md + frontmatter`
+* 若来源是 `.codex/agents/*.toml`，先转换为 markdown frontmatter，再进入 `.zcode/agents`
+* 不把 plugin manifest 里的 `agents` 当成运行保障
+
+### 6. Templates
+
+* 工作区目标：`.zcode/templates/*`
+* 插件目标：plugin 根目录下的辅助文件
+* 迁移难度：低
+
+规则：
+
+* 模板不是 plugin manifest 的一等可执行组件
+* 在插件中保留时，应由 skill / command / hook 通过相对路径引用
+
+### 7. Scripts
+
+* 工作区目标：`.zcode/scripts/*`（如项目需要）
+* 插件目标：plugin 根目录下的 `scripts/` 或同类辅助目录
+* 迁移难度：中
+
+规则：
+
+* script 不是 plugin manifest 的顶级执行组件
+* 需要被 hooks / commands / skills 显式调用
+* 在 Windows 项目中优先给出 PowerShell 或 Node.js 调用示例
+
+---
+
+## 配置转换重点
 
 ### `.claude/settings.json` → `.zcode/config.json`
 
-#### 关键差异
+关键差异：
 
-| 维度 | Claude Code | ZCode |
-|------|-------------|-------|
-| 文件 | `.claude/settings.json` | `.zcode/config.json` |
-| hooks 启用 | 无需 | **必须 `hooks.enabled: true`** |
-| hooks 结构 | 顶层 `hooks.UserPromptSubmit` 等 | **嵌套 `hooks.events.UserPromptSubmit`** |
-| MCP 结构 | 顶层 `mcpServers` | **嵌套 `mcp.servers`** |
-| 模板变量 | `$CLAUDE_PROJECT_DIR` | `${ZCODE_PROJECT_DIR}` |
+| 项 | Claude | ZCode |
+|---|---|---|
+| Hooks 开关 | 无需显式开启 | 必须 `hooks.enabled: true` |
+| Hooks 结构 | 顶层 `hooks.<Event>` | `hooks.events.<Event>` |
+| MCP 结构 | 顶层 `mcpServers` | `mcp.servers` |
+| Hook 输出 | 纯文本可注入 | 严格 JSON |
+| 变量 | `$CLAUDE_PROJECT_DIR` | `${ZCODE_PROJECT_DIR}` |
 
-#### 转换示例
+优先复用模板：
 
-**Claude 的 `settings.json`**：
+* `templates/zcode-config.example.json`
 
-```json
-{
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          { "type": "command", "command": "node $CLAUDE_PROJECT_DIR/.claude/hooks/foo.cjs" }
-        ]
-      }
-    ]
-  },
-  "mcpServers": {
-    "postgres": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres"] }
-  }
-}
+Windows / PowerShell 示例：
+
+```powershell
+Copy-Item .\.claude\settings.json .\.zcode\config.json -ErrorAction SilentlyContinue
 ```
 
-**ZCode 的 `config.json`（转换后）**：
+但复制后必须继续做结构转换，不能把它当成最终结果。
+
+### 插件 manifest 迁移
+
+当来源是 `.claude-plugin/plugin.json`、`.codex-plugin/plugin.json` 或已有 `.zcode-plugin/plugin.json` 时：
+
+1. 先看 manifest 位置和命名是否符合 ZCode 要求
+2. 校对 `name`
+3. 校对组件路径是否都在 plugin root 内部
+4. 只把真正可执行的组件字段写入默认示例：
+   * `skills`
+   * `commands`
+   * `hooks`
+   * `mcpServers`
+5. 对 `agents`、`templates`、`scripts` 写清“辅助资产 / 文档资产”的角色
+
+优先复用模板：
+
+* `templates/zcode-plugin.plugin.json`
+
+详细规则见：
+
+* `references/zcode-plugin-spec.md`
+
+---
+
+## 推荐执行流程
+
+### 阶段 1：盘点来源
+
+* 运行 `scripts/inventory-zcode-sources.js`
+* 或手工确认 `.claude` / `.zcode` / 各类 plugin 目录
+
+### 阶段 2：分析差异
+
+* 运行 `scripts/analyze-zcode-diff.js`
+* 把结果分为：
+  * 直接迁移
+  * 需协议转换
+  * 内容冲突
+  * 需人工确认
+
+### 阶段 3：决定输出路径
+
+* 若目标是项目内直接生效：优先工作区 `.zcode/*`
+* 若目标是可分发复用：优先 `.zcode-plugin/*`
+* 若两者都要：先工作区落地，再抽取 plugin
+
+### 阶段 4：逐类迁移
+
+建议顺序：
+
+1. skills
+2. commands
+3. agents
+4. templates / scripts
+5. hooks
+6. mcp
+7. plugin manifest
+
+原因：前四类更稳定，后面三类更依赖结构与协议。
+
+### 阶段 5：验证
+
+至少验证：
+
+* `SKILL.md` frontmatter 可加载
+* command 名与嵌套路径正确
+* hooks 事件名、matcher、stdout schema 正确
+* `mcp.servers` / `mcpServers` 字段正确
+* plugin 组件路径全部位于 plugin root 内
+* agent 如果需要运行，必须已经落到 `.zcode/agents/*.md`
+
+---
+
+## 高风险点
+
+### 1. Hooks 输出不是 JSON
+
+症状：
+
+* hook 执行但效果丢失
+* 日志里出现 `hook.run.failed`
+
+修复：
+
+* 改为 `process.stdout.write(JSON.stringify(...))`
+
+### 2. `hooks.enabled` 漏掉
+
+症状：
+
+* 工作区 hooks 完全不触发
+
+修复：
+
+* 在 `.zcode/config.json` 中加入：
 
 ```json
 {
   "hooks": {
     "enabled": true,
-    "events": {
-      "UserPromptSubmit": [
-        {
-          "matcher": "",
-          "hooks": [
-            { "type": "command", "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/foo.cjs\"" }
-          ]
-        }
-      ]
-    }
-  },
-  "mcp": {
-    "servers": {
-      "postgres": { "command": "npx", "args": ["-y", "@modelcontextprotocol/server-postgres"], "type": "stdio" }
-    }
+    "events": {}
   }
 }
 ```
 
-#### 完整 config.json 模板
+### 3. 把 plugin `agents` 当成可执行组件
 
-```json
-{
-  "hooks": {
-    "enabled": true,
-    "events": {
-      "SessionStart": [
-        {
-          "matcher": "startup",
-          "hooks": [
-            { "type": "command", "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/session-start.cjs\"", "timeout": 10 }
-          ]
-        }
-      ],
-      "UserPromptSubmit": [
-        {
-          "hooks": [
-            { "type": "command", "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/skill-eval.cjs\"" }
-          ]
-        }
-      ],
-      "PreToolUse": [
-        {
-          "matcher": "Bash|Write|Edit|ApplyPatch",
-          "hooks": [
-            { "type": "command", "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/pre-tool.cjs\"", "timeout": 5 }
-          ]
-        }
-      ],
-      "PostToolUse": [
-        {
-          "matcher": "Write|Edit|ApplyPatch",
-          "hooks": [
-            { "type": "command", "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/post-tool.cjs\"", "timeout": 5 }
-          ]
-        }
-      ],
-      "Stop": [
-        {
-          "hooks": [
-            { "type": "command", "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/stop.cjs\"", "timeout": 10 }
-          ]
-        }
-      ]
-    }
-  },
-  "mcp": {
-    "servers": {}
-  }
-}
-```
+症状：
 
-> **关于 timeout 单位**：`type: "command"` 时 `timeout` 是**秒**；`type: "process"` 时 `timeoutMs` 是**毫秒**。容易混淆，务必注意。
+* plugin 安装成功，但 agent 在会话中不可用
+
+修复：
+
+* 把真正需要运行的 agent 迁移到 `.zcode/agents/*.md`
+
+### 4. MCP 字段名沿用旧格式
+
+症状：
+
+* server 丢失
+* Settings -> MCP 中状态异常
+
+修复：
+
+* 工作区用 `mcp.servers`
+* 避免在配置文件中使用未知 key
+* `command` 用字符串，`args` 用数组
+
+### 5. Windows 上沿用 POSIX shell 示例
+
+症状：
+
+* hooks / commands 在 Windows 中无法执行
+
+修复：
+
+* 优先使用 PowerShell 或 `type: "process"`
+* 必要时通过 `node script.js` 显式调用
 
 ---
 
-## 标准迁移流程（5 步法）
-
-### 步骤 1：扫描源 `.claude/` 资源清单
-
-```bash
-echo "=== 资源清点 ==="
-echo "skills: $(ls .claude/skills 2>/dev/null | wc -l) 个"
-echo "commands: $(ls .claude/commands 2>/dev/null | wc -l) 个"
-echo "agents: $(ls .claude/agents 2>/dev/null | wc -l) 个"
-echo "templates: $(ls .claude/templates 2>/dev/null | wc -l) 个"
-echo "hooks: $(ls .claude/hooks/*.cjs 2>/dev/null | wc -l) 个"
-echo ""
-echo "=== settings.json 的 hooks 配置 ==="
-cat .claude/settings.json | grep -E '"(UserPromptSubmit|PreToolUse|PostToolUse|Stop|SessionStart)"' 
-```
-
-记录清单，决定哪些资源要迁移、哪些要丢弃。
-
-### 步骤 2：创建 `.zcode/` 目录骨架 + 配置 `.gitignore`
-
-```bash
-mkdir -p .zcode/{skills,commands,agents,templates,hooks,scripts}
-```
-
-**`.gitignore` 放行规则**（关键，否则团队拉不到配置）：
-
-```gitignore
-# ZCode 目录：放行共享配置，忽略含密钥的 config.json
-/.zcode/*
-!/.zcode/skills/
-!/.zcode/commands/
-!/.zcode/agents/
-!/.zcode/templates/
-!/.zcode/hooks/
-!/.zcode/scripts/
-!/.zcode/config.example.json
-/.zcode/config.json
-```
-
-> `config.json` 通常含 MCP 数据库口令，必须忽略；同时提供 `config.example.json` 模板进 git。
-
-### 步骤 3：复制静态资源
-
-skills / commands / agents / templates 直接复制：
-
-```bash
-cp -rL .claude/skills/* .zcode/skills/    # -L 跟随软链，避免无效软链
-cp .claude/commands/*.md .zcode/commands/
-cp .claude/agents/*.md .zcode/agents/
-cp -r .claude/templates/* .zcode/templates/ 2>/dev/null
-```
-
-### 步骤 4：重写 hooks + 生成 config.json
-
-这一步按"资源迁移规则 → 3.3 Hooks 迁移"逐个改写脚本，并按"配置文件转换"生成 `.zcode/config.json`。
-
-**建议**：把 `.zcode/config.example.json`（模板，进 git）和 `.zcode/config.json`（真实，忽略）分别维护，让别人 clone 后 `cp config.example.json config.json` 即可。
-
-### 步骤 5：逐个手测 hook + 查日志验证
-
-见下一章"诊断与验证"。
-
----
-
-## 诊断与验证
-
-### 手测脚本（最重要）
-
-每个 hook 都要单独手测，确认输出是有效 JSON：
-
-```bash
-# UserPromptSubmit 类 hook
-echo '{"prompt":"测试开发功能","cwd":"'$(pwd)'"}' | node .zcode/hooks/skill-eval.cjs
-# 期望：{"additionalContext":"..."}
-# 退出码：0
-
-# PreToolUse 类 hook（安全命令应空输出或 {decision:"allow"}）
-echo '{"toolName":"Bash","toolInput":{"command":"ls -la"}}' | node .zcode/hooks/pre-tool.cjs
-# 期望：空输出（通过）或 {}
-
-# PreToolUse 类 hook（危险命令应 deny）
-echo '{"toolName":"Bash","toolInput":{"command":"rm -rf /"}}' | node .zcode/hooks/pre-tool.cjs
-# 期望：{"decision":"deny","reason":"..."}
-
-# Stop 类 hook（副作用类，应空输出）
-echo '{"cwd":"'$(pwd)'"}' | node .zcode/hooks/stop.cjs
-# 期望：空输出 + exit 0
-```
-
-**JSON 有效性验证**（Python 一行）：
-
-```bash
-echo "$output" | python -c "import sys,json; json.loads(sys.stdin.read()); print('✓ 有效 JSON')" 2>/dev/null \
-  || echo "✗ 无效 JSON"
-```
-
-### 查 ZCode 日志
-
-ZCode 把 hook 执行记录写到 `~/.zcode/cli/log/zcode-YYYY-MM-DD.jsonl`。统计失败：
-
-```bash
-python -c "
-import json, os, glob
-from collections import Counter
-path = sorted(glob.glob(os.path.expanduser('~/.zcode/cli/log/*.jsonl')))[-1]
-c = Counter()
-with open(path, encoding='utf-8') as f:
-    for line in f:
-        try:
-            d = json.loads(line)
-            if d.get('module') == 'core.hooks':
-                c[d.get('event','?')] += 1
-        except Exception:
-            pass
-print('今日 hook 事件统计:')
-for k, v in c.most_common():
-    print(f'  {v}x  {k}')
-print('（hook.run.failed 应为 0 或仅来自修复前的历史会话）')
-"
-```
-
-**查最新失败详情**：
-
-```bash
-python -c "
-import json, os, glob
-path = sorted(glob.glob(os.path.expanduser('~/.zcode/cli/log/*.jsonl')))[-1]
-with open(path, encoding='utf-8') as f:
-    for line in f:
-        try:
-            d = json.loads(line)
-            if d.get('event') == 'hook.run.failed':
-                ctx = d.get('context', {})
-                print(d.get('timestamp',''), ctx.get('hookEventName',''), '#'+str(ctx.get('hookIndex',-1)), ctx.get('source',''))
-        except Exception:
-            pass
-"
-```
-
-### 12 个常见陷阱（按优先级）
-
-> 来自官方 `zcode-guide:diagnosing-hooks` + 实战经验总结。
-
-#### 陷阱 1：未设 `hooks.enabled: true`（最高频）
-
-**症状**：所有 hook 都不触发
-**原因**：ZCode 默认禁用配置文件 hooks，必须显式启用
-**修复**：在 `.zcode/config.json` 加 `"hooks": { "enabled": true, ... }`
-
-#### 陷阱 2：stdout 非 JSON（最致命）
-
-**症状**：hook 执行了但效果被丢弃，日志标记 `hook.run.failed`
-**原因**：脚本用 `console.log(markdownText)` 输出纯文本，ZCode 按严格 JSON 校验直接判失败
-**修复**：改为 `process.stdout.write(JSON.stringify({additionalContext: text}))`
-
-#### 陷阱 3：JSON 含未知 key
-
-**症状**：同陷阱 2
-**原因**：输出 `{continue: true, systemMessage: '...'}` 等 Claude 专属字段，ZCode schema 不认
-**修复**：只用 ZCode 认可的 key（见"规则 8"）
-
-#### 陷阱 4：事件名拼错
-
-**症状**：hook 永不触发
-**原因**：用了 ZCode 不支持的事件名（如 `Notification`、`SubagentStop`、`PreCompact`）
-**修复**：只使用 7 个合法事件之一
-
-#### 陷阱 5：matcher 不匹配
-
-**症状**：hook 注册了但对该工具永不触发
-**原因**：matcher 是**大小写敏感正则**，`"bash"` 不匹配 `Bash`
-**修复**：用正确大小写，或省略 matcher 匹配所有
-
-#### 陷阱 6：模板变量未替换
-
-**症状**：命令行里出现字面 `${...}` 或空路径
-**原因**：用了 Claude 变量 `$CLAUDE_PROJECT_DIR`，ZCode 不识别
-**修复**：改用 `${ZCODE_PROJECT_DIR}`
-
-#### 陷阱 7：超时单位混淆
-
-**症状**：hook 被杀，日志显示 timed-out
-**原因**：`type:"command"` 的 `timeout` 是**秒**，`type:"process"` 的 `timeoutMs` 是**毫秒**，写错单位
-**修复**：command 用秒、process 用毫秒
-
-#### 陷阱 8：command/process 字段混用
-
-**症状**：hook 被丢弃
-**原因**：process 类型用了 `timeout`（应为 `timeoutMs`），或 command 类型用了 `args`
-**修复**：核对字段——command 接受 `command`/`shell`/`timeout`/`timeoutMs`；process 接受 `command`/`args`/`timeoutMs`
-
-#### 陷阱 9：脚本无执行权限（Linux/macOS）
-
-**症状**：permission denied
-**原因**：脚本没有可执行位
-**修复**：`chmod +x script.cjs`，或通过 `node script.cjs` 调用（绕过执行位）
-
-#### 陷阱 10：跨平台失败
-
-**症状**：在 macOS 正常，Windows 失败
-**原因**：command 类型走 shell，POSIX 语法在 Windows 失败
-**修复**：优先用 `type:"process"`（参数数组，不走 shell），或写跨平台 wrapper
-
-#### 陷阱 11：hook 误阻断会话
-
-**症状**：工具被拒绝或会话卡住
-**原因**：hook 返回了 `decision:"deny"` 或退出码 2
-**修复**：检查退出码——0 通过、2 阻断、其他错误。只在确需拦截时返回 deny
-
-#### 陷阱 12：配置改动后旧会话不生效
-
-**症状**：改了 config.json 但 hook 还是老行为
-**原因**：ZCode 进程在启动时缓存 config，旧会话不会重载
-**修复**：**新开 ZCode 会话**才会用新配置。诊断时注意区分"修复前会话"和"修复后会话"
-
----
-
-## 同步脚本模板
-
-下面是一个通用版 `sync-from-claude.cjs`，复制到 `.zcode/scripts/` 即可使用。支持全量同步、单技能同步、一致性检查三种模式。
-
-```javascript
-#!/usr/bin/env node
-/**
- * 通用 Claude → ZCode skills 同步脚本
- *
- * 用法：
- *   node sync-from-claude.cjs              # 同步全部 skills
- *   node sync-from-claude.cjs foo bar      # 只同步指定 skills
- *   node sync-from-claude.cjs --check      # 只检查一致性
- *   node sync-from-claude.cjs --help       # 帮助
- */
-
-const fs = require('fs');
-const path = require('path');
-
-// 自动定位项目根：从脚本位置向上找 .claude/skills
-const projectRoot = path.resolve(__dirname, '..', '..');
-const sourceDir = path.join(projectRoot, '.claude', 'skills');
-const targetDir = path.join(projectRoot, '.zcode', 'skills');
-
-const args = process.argv.slice(2);
-const isCheckOnly = args.includes('--check');
-const specificSkills = args.filter(a => !a.startsWith('--'));
-
-// 读取 skills 列表（兼容软链：用 statSync 而非 isDirectory）
-function readSkills(dir) {
-  if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir, { withFileTypes: true })
-    .filter(e => {
-      if (!e.isDirectory() && !e.isSymbolicLink()) return false;
-      try {
-        return fs.statSync(path.join(dir, e.name)).isDirectory();
-      } catch { return false; }
-    })
-    .map(e => e.name)
-    .filter(n => fs.existsSync(path.join(dir, n, 'SKILL.md')));
-}
-
-function filesEqual(a, b) {
-  try {
-    const ba = fs.readFileSync(a), bb = fs.readFileSync(b);
-    return ba.length === bb.length && ba.equals(bb);
-  } catch { return false; }
-}
-
-function copySkill(name) {
-  const src = path.join(sourceDir, name, 'SKILL.md');
-  const tgtDir = path.join(targetDir, name);
-  if (!fs.existsSync(tgtDir)) fs.mkdirSync(tgtDir, { recursive: true });
-  fs.copyFileSync(src, path.join(tgtDir, 'SKILL.md'));
-}
-
-const sources = readSkills(sourceDir);
-const targets = readSkills(targetDir);
-const toProcess = specificSkills.length > 0 ? specificSkills : sources;
-
-if (specificSkills.length > 0) {
-  const missing = specificSkills.filter(s => !sources.includes(s));
-  if (missing.length > 0) {
-    console.error('✗ 在 .claude/skills 中找不到: ' + missing.join(', '));
-    process.exit(2);
-  }
-}
-
-console.log(`源: ${sources.length} 个，目标: ${targets.length} 个，本次处理: ${toProcess.length} 个\n`);
-
-let synced = 0, inSync = 0, missing = 0;
-for (const name of toProcess) {
-  const tgt = path.join(targetDir, name, 'SKILL.md');
-  if (!fs.existsSync(tgt)) {
-    if (isCheckOnly) { console.log(`  ✗ ${name}: 缺失`); missing++; }
-    else { copySkill(name); console.log(`  + ${name}: 新增`); synced++; }
-  } else if (filesEqual(path.join(sourceDir, name, 'SKILL.md'), tgt)) {
-    if (!isCheckOnly) console.log(`  ✓ ${name}: 一致`);
-    inSync++;
-  } else {
-    if (isCheckOnly) { console.log(`  ✗ ${name}: 不一致`); missing++; }
-    else { copySkill(name); console.log(`  → ${name}: 更新`); synced++; }
-  }
-}
-
-console.log(`\n${isCheckOnly ? '检查' : '同步'}完成：${synced} 复制，${inSync} 一致，${missing} 待处理`);
-process.exit(isCheckOnly && missing > 0 ? 1 : 0);
-```
+## 与官方技能协作
+
+| 场景 | 优先使用 |
+|---|---|
+| 需要看 ZCode 资源发现顺序、优先级、配置落点 | `zcode-configuration-guide` |
+| Hook 不触发、JSON 输出失败、matcher 不匹配 | `diagnosing-hooks` |
+| `/command` 不出现、参数不替换、命令重名被覆盖 | `diagnosing-commands` |
+| MCP 服务器不连接、字段不合法、超时 | `diagnosing-mcp` |
+| plugin 不显示、manifest 不合法、组件路径越界 | `diagnosing-plugins` |
+| skill 不触发、description 不合规、被同名覆盖 | `diagnosing-skills` |
 
 ---
 
 ## 完整检查清单
 
-迁移完成后逐项确认：
+### 来源识别
 
-### 目录结构
-- [ ] `.zcode/skills/`、`.zcode/commands/`、`.zcode/agents/`、`.zcode/templates/`、`.zcode/hooks/` 都存在
-- [ ] `.zcode/scripts/` 存放同步脚本（可选）
+- [ ] 已扫描 `.claude`
+- [ ] 已扫描 `.zcode`
+- [ ] 已扫描 `.claude-plugin`
+- [ ] 已扫描 `.codex-plugin`
+- [ ] 已扫描 `.zcode-plugin`
+- [ ] 已识别 `.agents/skills` 是否参与共享或覆盖
 
-### 配置文件
-- [ ] `.zcode/config.json` 含 `"hooks": { "enabled": true, ... }`
-- [ ] `.zcode/config.example.json` 作为模板进 git
-- [ ] `.zcode/config.json` 被 `.gitignore` 忽略（含密钥）
-- [ ] hooks.events 下的事件名都是 7 个合法名之一
-- [ ] PreToolUse/PostToolUse 的 matcher 正确（大小写、覆盖工具名）
+### 差异分析
 
-### 资源完整性
-- [ ] skills 数量与 `.claude/skills` 一致（`node .zcode/scripts/sync-from-claude.cjs --check` 全部一致）
-- [ ] 无软链残留（`find .zcode -type l` 为空）
-- [ ] commands 是裸 md（无 frontmatter）
-- [ ] agents 是 .md + frontmatter（不是 .toml）
+- [ ] 已对比 `.claude/*` 与 `.zcode/*`
+- [ ] 已对比 plugin 来源与 `.zcode-plugin/*`
+- [ ] 同名资源已分类为“一致 / 可迁移 / 冲突 / 需确认”
 
-### Hooks 协议
-- [ ] 每个 hook 手测输出有效 JSON（`echo '...' | node xxx.cjs` 通过 `python -c "json.loads(...)"`）
-- [ ] 无 `console.log(text)` 纯文本输出（全部改为 `JSON.stringify({additionalContext})`）
-- [ ] 无 Claude 专属 key（`continue`、`systemMessage`、`decision:'block'`）
-- [ ] stdin 解析兼容驼峰和下划线字段名
-- [ ] 路径用 `${ZCODE_PROJECT_DIR}`
+### 工作区迁移
+
+- [ ] `.zcode/skills/*/SKILL.md` frontmatter 可用
+- [ ] `.zcode/commands/**/*.md` 命令名与路径匹配
+- [ ] `.zcode/agents/*.md` 仅放真正需要运行的 agent
+- [ ] `.zcode/config.json` 含 `hooks.enabled: true`
+- [ ] `mcp.servers` 字段符合 ZCode schema
+
+### 插件迁移
+
+- [ ] `.zcode-plugin/plugin.json` 位置正确
+- [ ] `name` 合法
+- [ ] 组件路径都在 plugin root 内
+- [ ] `skills` / `commands` / `hooks` / `mcpServers` 已正确声明
+- [ ] `agents` 已明确标注为记录性资源或迁移到工作区
+- [ ] `templates` / `scripts` 已作为辅助资产保留并有引用路径
 
 ### 验证
-- [ ] 新开 ZCode 会话后，查 `~/.zcode/cli/log/*.jsonl` 中 `hook.run.failed` = 0
-- [ ] 至少一次真实触发验证（如 UserPromptSubmit hook 在提问后确实注入了上下文）
+
+- [ ] hooks 输出为有效 JSON
+- [ ] command / skill / plugin 描述未因格式错误被加载器丢弃
+- [ ] Windows 环境示例命令可执行
 
 ---
 
-## 实战案例参考
+## 快速参考
 
-本技能的规则来自一次真实迁移实战，关键数据：
+```text
+先检测，再比对，再分流，再迁移。
 
-- **5 种资源**全部迁移：skills（67 个）、commands（22 个）、agents（3 个）、templates（3 个）、hooks（7 个，含 6 个重写 + 1 个新增）
-- **核心陷阱**：迁移后所有 hook 都失败（日志 7 次 `hook.run.failed`），根因是 Claude 的 `console.log(markdown)` 在 ZCode 直接判失败
-- **修复后**：本会话期间零新增失败，hook 真实触发并注入上下文
-- **配置文件**：补全 matcher（`Bash|Write|Edit|ApplyPatch`）、加 SessionStart 事件、用 `${ZCODE_PROJECT_DIR}`
+工作区迁移：
+  .claude/* -> .zcode/*
 
-通用规则如何应用于真实场景：
+插件迁移：
+  .claude-plugin/.codex-plugin/.zcode-plugin -> .zcode-plugin/*
 
-1. 静态资源（skills/commands/agents/templates）直接 `cp -r` 即可
-2. hooks 必须逐个重写输出协议（参考"规则 1-8"）
-3. config.json 要补 `hooks.enabled: true` 和嵌套结构
-4. gitignore 要放行共享目录、忽略 config.json
+可直接进 plugin.json 的默认组件：
+  skills / commands / hooks / mcpServers
 
----
+不要误判为已插件化可执行的内容：
+  agents
 
-## 与官方技能的协作
-
-遇到具体问题时，配合官方技能使用：
-
-| 场景 | 用本技能 | 配合官方技能 |
-|------|---------|-------------|
-| 不知道 ZCode 支持哪些配置 | 先看本技能"核心差异速查表" | 再查 `zcode-guide:zcode-configuration-guide`（配置地图） |
-| Hook 失败需要深度诊断 | 看本技能"12 个陷阱" | 加载 `zcode-guide:diagnosing-hooks`（深度诊断流程） |
-| 迁移后想新增 ZCode 专属技能 | — | 用 `skill-creator`（官方技能创作指南） |
-| MCP 服务器连不上 | 本技能不覆盖 | 加载 `zcode-guide:diagnosing-mcp` |
-| `/command` 不生效 | 看本技能"3.2 Commands" | 加载 `zcode-guide:diagnosing-commands` |
-
----
-
-## 快速参考卡片
-
-```
-迁移难度：skills/commands/agents/templates = 🟢 直接复制
-         hooks = 🔴 必须改协议
-         config.json = 🟡 改结构（enabled:true + events 嵌套 + mcp.servers 嵌套）
-
-Hook 协议转换口诀：
-  console.log(text) → JSON.stringify({additionalContext:text})
-  {systemMessage} → {additionalContext}
-  {decision:'block'} → {decision:'deny',reason}
-  {continue:true} → {}（空）
-  $CLAUDE_PROJECT_DIR → ${ZCODE_PROJECT_DIR}
-
-5 步迁移法：
-  1. 扫描 .claude 资源
-  2. 建 .zcode 骨架 + gitignore
-  3. 复制静态资源
-  4. 重写 hooks + 生成 config.json
-  5. 手测 + 查日志验证
+常见高风险项：
+  hooks.enabled 漏掉
+  hook stdout 不是 JSON
+  mcp 字段名不规范
+  Windows 仍使用 POSIX shell
 ```

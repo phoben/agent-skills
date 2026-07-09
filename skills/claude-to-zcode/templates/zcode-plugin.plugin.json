@@ -1,0 +1,25 @@
+{
+  "name": "example-zcode-plugin",
+  "version": "0.1.0",
+  "description": "用于演示 Claude/Codex/ZCode 资源迁移后的 ZCode 插件清单",
+  "skills": "skills",
+  "commands": "commands",
+  "hooks": "hooks",
+  "mcpServers": {
+    "example-server": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "scripts/example-mcp.js"
+      ]
+    }
+  },
+  "userConfig": {
+    "workspaceRoot": {
+      "type": "directory",
+      "title": "工作区根目录",
+      "description": "当插件需要定位工作区资源时使用。",
+      "required": false
+    }
+  }
+}

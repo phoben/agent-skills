@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "enabled": true,
+    "events": {
+      "UserPromptSubmit": [
+        {
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/user-prompt-submit.cjs\"",
+              "timeout": 10
+            }
+          ]
+        }
+      ],
+      "PreToolUse": [
+        {
+          "matcher": "Bash|Write|Edit|ApplyPatch",
+          "hooks": [
+            {
+              "type": "command",
+              "command": "node \"${ZCODE_PROJECT_DIR}/.zcode/hooks/pre-tool-use.cjs\"",
+              "timeout": 10
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "mcp": {
+    "servers": {
+      "example-server": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@example/zcode-mcp-server"
+        ],
+        "env": {
+          "EXAMPLE_API_KEY": "replace-me"
+        },
+        "timeoutMs": 30000
+      }
+    }
+  }
+}
