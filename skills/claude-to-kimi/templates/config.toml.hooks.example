@@ -1,0 +1,23 @@
+[[hooks]]
+event = "UserPromptSubmit"
+matcher = ".*"
+command = "node ./hooks/inject-project-context.mjs"
+timeout = 5
+
+[[hooks]]
+event = "PreToolUse"
+matcher = "Bash"
+command = "node ./hooks/block-dangerous-bash.mjs"
+timeout = 5
+
+[[hooks]]
+event = "SubagentStop"
+matcher = ".*"
+command = "node ./hooks/report-subagent-result.mjs"
+timeout = 5
+
+[[hooks]]
+event = "Notification"
+matcher = "task\\.completed"
+command = "node ./hooks/notify-task-complete.mjs"
+timeout = 5

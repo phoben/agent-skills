@@ -45,6 +45,27 @@ npx skills add phoben/agent-skills
 
 See the [skill's SKILL.md](./skills/claude-to-trae/SKILL.md) for full documentation.
 
+### [`claude-to-kimi`](./skills/claude-to-kimi/SKILL.md)
+
+Migrate Claude workspace resources and Claude/Codex plugins into Kimi's official structures, including `.kimi-code/skills`, `.kimi-code/mcp.json`, `AGENTS.md`, and `kimi.plugin.json`. Covers source detection, diff analysis, manifest conversion, hook protocol rewrites, MCP migration, and explicit fallback rules for `agents`.
+
+**Install:**
+
+```bash
+# Via npx skills (recommended, indexed by skills.sh)
+npx skills add phoben/agent-skills
+
+# Or manually: copy skills/claude-to-kimi/ to your agent's skills directory
+```
+
+**Trigger examples:**
+- "Migrate this `.claude-plugin` to a Kimi plugin"
+- "Compare `.claude-plugin` with existing `.kimi-code` before migrating"
+- "Help me convert Claude hooks and MCP settings to Kimi"
+- "Where should these Claude agents land in Kimi, Skill or `AGENTS.md`?"
+
+See the [skill's SKILL.md](./skills/claude-to-kimi/SKILL.md) for full documentation.
+
 ## Skill Format
 
 Each skill is a directory containing a `SKILL.md` with YAML frontmatter:

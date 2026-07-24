@@ -1,0 +1,27 @@
+{
+  "name": "example-kimi-plugin",
+  "version": "0.1.0",
+  "description": "用于演示 Claude Plugin 迁移后的 Kimi 插件清单",
+  "skills": "./skills/",
+  "commands": "./commands/",
+  "sessionStart": {
+    "skill": "using-example-kimi-plugin"
+  },
+  "skillInstructions": "当用户调用本插件提供的 Skill 时，优先遵循插件内的迁移规则与参考资料。",
+  "mcpServers": {
+    "example-server": {
+      "command": "node",
+      "args": [
+        "./scripts/example-mcp.js"
+      ]
+    }
+  },
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "matcher": "Bash",
+      "command": "node ./hooks/block-dangerous-bash.mjs",
+      "timeout": 5
+    }
+  ]
+}

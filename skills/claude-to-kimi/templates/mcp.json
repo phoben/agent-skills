@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "example-stdio-server": {
+      "command": "node",
+      "args": ["./scripts/example-mcp.js"],
+      "env": {
+        "EXAMPLE_API_KEY": "${EXAMPLE_API_KEY}"
+      },
+      "startupTimeoutMs": 30000,
+      "toolTimeoutMs": 30000
+    },
+    "example-http-server": {
+      "url": "https://example.com/mcp",
+      "bearerTokenEnvVar": "EXAMPLE_HTTP_TOKEN",
+      "enabled": false
+    }
+  }
+}
