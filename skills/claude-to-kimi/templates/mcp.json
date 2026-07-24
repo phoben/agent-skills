@@ -2,9 +2,7 @@
   "mcpServers": {
     "example-stdio-server": {
       "command": "node",
-      "args": [
-        "./scripts/example-mcp.js"
-      ],
+      "args": ["./scripts/example-mcp.js"],
       "env": {
         "EXAMPLE_API_KEY": "${EXAMPLE_API_KEY}"
       },

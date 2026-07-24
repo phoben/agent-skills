@@ -13,10 +13,7 @@
       "command": "node",
       "args": [
         "./scripts/example-mcp.js"
-      ],
-      "env": {
-        "EXAMPLE_TOKEN": "${EXAMPLE_TOKEN}"
-      }
+      ]
     }
   },
   "hooks": [
@@ -26,9 +23,5 @@
       "command": "node ./hooks/block-dangerous-bash.mjs",
       "timeout": 5
     }
-  ],
-  "interface": {
-    "displayName": "Example Kimi Plugin",
-    "shortDescription": "Claude Plugin 迁移后的 Kimi 插件示例"
-  }
+  ]
 }

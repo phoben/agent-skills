@@ -1,10 +1,4 @@
 [[hooks]]
-event = "SessionStart"
-matcher = "startup|resume"
-command = "node ./scripts/session-context.js"
-timeout = 5
-
-[[hooks]]
 event = "UserPromptSubmit"
 matcher = ".*"
 command = "node ./hooks/inject-project-context.mjs"
@@ -14,6 +8,12 @@ timeout = 5
 event = "PreToolUse"
 matcher = "Bash"
 command = "node ./hooks/block-dangerous-bash.mjs"
+timeout = 5
+
+[[hooks]]
+event = "SubagentStop"
+matcher = ".*"
+command = "node ./hooks/report-subagent-result.mjs"
 timeout = 5
 
 [[hooks]]
