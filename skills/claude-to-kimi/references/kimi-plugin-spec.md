@@ -68,11 +68,11 @@ plugin id 必须匹配：
 
 这些字段是 Claude Plugin 迁移到 Kimi Plugin 时的主要承载点。
 
-## 5. 未公开支持或不应假定可执行的内容
+## 5. 不是 plugin manifest 字段的内容
 
-以下内容不应被迁移程序当作 Kimi Plugin 的已知一等组件：
+以下内容不应被迁移程序写入 `kimi.plugin.json`：
 
-- Claude 风格 `agents`
+- 自定义 `agents`
 - `tools`
 - `apps`
 - `inject`
@@ -80,8 +80,8 @@ plugin id 必须匹配：
 
 对这些字段的处理原则：
 
-- 能映射到 Skill、MCP、hooks、`AGENTS.md` 的，就按最近似能力转换
-- 不能映射的，输出 diagnostics 风险说明
+- `agents` 若来源是 Agent 文件，优先迁移到 `.agents/agents/` 或 `.kimi-code/agents/`
+- 其他无法映射到 Skill、MCP、hooks 或 `AGENTS.md` 的字段，输出 diagnostics 风险说明
 
 ## 6. `skills` 字段
 
@@ -187,5 +187,5 @@ plugin 可以声明 hooks，并且：
 把来源 plugin 迁移到 Kimi 时，结论应明确写成以下三类之一：
 
 - **已完成插件化**：`skills`、`commands`、`mcpServers`、`hooks` 已完成合法迁移
-- **部分插件化**：核心能力已迁移，但 `agents` 等内容只能转为 Skill、`AGENTS.md` 或说明文档
-- **待人工确认**：manifest 字段、路径、hooks 语义、agents 落点仍存在风险
+- **部分插件化**：核心能力已迁移，但来源 `agents` 需落到 `.agents/agents`、`.kimi-code/agents` 或说明文档
+- **待人工确认**：manifest 字段、路径、hooks 语义、Agent frontmatter 或目标落点仍存在风险
