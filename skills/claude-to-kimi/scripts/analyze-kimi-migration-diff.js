@@ -98,6 +98,10 @@ function listFiles(baseDir, predicate) {
   return map;
 }
 
+function listAgentFiles(baseDir) {
+  return listFiles(baseDir, (filePath) => filePath.endsWith(".md"));
+}
+
 function compareMaps(options) {
   const {
     category,
@@ -196,7 +200,7 @@ function compareManifest(sourcePluginDir, groups) {
   }
 }
 
-function addAgentWarnings(groups) {
+function addAgentReviewWarnings(groups) {
   const sources = [
     ".claude/agents",
     ".claude-plugin/agents",
@@ -204,17 +208,39 @@ function addAgentWarnings(groups) {
   ];
 
   for (const source of sources) {
-    const fullPath = path.join(rootDir, source);
-    if (!exists(fullPath)) {
-      continue;
-    }
+    const sourceMap = listAgentFiles(path.join(rootDir, source));
+    for (const [relativePath, fullPath] of sourceMap.entries()) {
+      const content = readText(fullPath) || "";
+      const normalizedSource = path.join(source, relativePath).replace(/\\/g, "/");
 
-    groups.needsManualConfirmation.push({
-      category: "agents",
-      source,
-      target: ".kimi-code/AGENTS.md or Skill",
-      reason: "Kimi 公开 plugin 规范中没有 Claude 风格 agents 的对等组件，需要人工判定落点。"
-    });
+      if (!content.startsWith("---")) {
+        groups.needsManualConfirmation.push({
+          category: "agent-review",
+          source: normalizedSource,
+          target: ".agents/agents or .kimi-code/agents",
+          reason: "来源 Agent 缺少 frontmatter，需要人工确认是否为合法 Kimi Agent 文件。"
+        });
+        continue;
+      }
+
+      if (!/^\s*description:/m.test(content)) {
+        groups.needsManualConfirmation.push({
+          category: "agent-review",
+          source: normalizedSource,
+          target: ".agents/agents or .kimi-code/agents",
+          reason: "来源 Agent 缺少 `description` 字段，需要人工补齐后再迁移。"
+        });
+      }
+
+      if (/\b(tools|disallowedTools|subagents|override)\s*:/m.test(content)) {
+        groups.needsManualConfirmation.push({
+          category: "agent-review",
+          source: normalizedSource,
+          target: ".agents/agents or .kimi-code/agents",
+          reason: "来源 Agent 含工具权限或覆盖配置，建议人工确认 `tools`、`subagents`、`override` 语义。"
+        });
+      }
+    }
   }
 }
 
@@ -266,10 +292,10 @@ const groups = {
 compareMaps({
   category: "workspace-skills",
   sourceLabel: ".claude/skills",
-  targetLabel: ".kimi-code/skills",
-  targetBase: path.join(rootDir, ".kimi-code", "skills"),
+  targetLabel: ".agents/skills",
+  targetBase: path.join(rootDir, ".agents", "skills"),
   sourceMap: listSkillFiles(path.join(rootDir, ".claude", "skills")),
-  targetMap: listSkillFiles(path.join(rootDir, ".kimi-code", "skills")),
+  targetMap: listSkillFiles(path.join(rootDir, ".agents", "skills")),
   groups,
   forceRewrite: false
 });
@@ -277,10 +303,21 @@ compareMaps({
 compareMaps({
   category: "shared-skills",
   sourceLabel: ".agents/skills",
-  targetLabel: ".kimi-code/skills",
-  targetBase: path.join(rootDir, ".kimi-code", "skills"),
+  targetLabel: ".agents/skills",
+  targetBase: path.join(rootDir, ".agents", "skills"),
   sourceMap: listSkillFiles(path.join(rootDir, ".agents", "skills")),
-  targetMap: listSkillFiles(path.join(rootDir, ".kimi-code", "skills")),
+  targetMap: listSkillFiles(path.join(rootDir, ".agents", "skills")),
+  groups,
+  forceRewrite: false
+});
+
+compareMaps({
+  category: "workspace-agents",
+  sourceLabel: ".claude/agents",
+  targetLabel: ".agents/agents",
+  targetBase: path.join(rootDir, ".agents", "agents"),
+  sourceMap: listAgentFiles(path.join(rootDir, ".claude", "agents")),
+  targetMap: listAgentFiles(path.join(rootDir, ".agents", "agents")),
   groups,
   forceRewrite: false
 });
@@ -331,6 +368,17 @@ for (const sourcePlugin of [".claude-plugin", ".codex-plugin"]) {
     groups,
     forceRewrite: false
   });
+
+  compareMaps({
+    category: `${sourcePlugin}-agents`,
+    sourceLabel: `${sourcePlugin}/agents`,
+    targetLabel: ".agents/agents",
+    targetBase: path.join(rootDir, ".agents", "agents"),
+    sourceMap: listAgentFiles(path.join(rootDir, sourcePlugin, "agents")),
+    targetMap: listAgentFiles(path.join(rootDir, ".agents", "agents")),
+    groups,
+    forceRewrite: false
+  });
 }
 
 if (exists(path.join(rootDir, ".claude", "settings.json"))) {
@@ -342,7 +390,7 @@ if (exists(path.join(rootDir, ".claude", "settings.json"))) {
   });
 }
 
-addAgentWarnings(groups);
+addAgentReviewWarnings(groups);
 addUnsupportedFieldWarnings(groups);
 
 const payload = {
