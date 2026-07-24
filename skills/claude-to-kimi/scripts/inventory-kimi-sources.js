@@ -107,6 +107,7 @@ function summarizePlugin(name) {
     resources: {
       skills: listSkillNames(path.join(baseDir, "skills")),
       commands: relativeList(path.join(baseDir, "commands"), (filePath) => filePath.endsWith(".md")),
+      agents: relativeList(path.join(baseDir, "agents"), (filePath) => filePath.endsWith(".md")),
       hooks: relativeList(path.join(baseDir, "hooks"), () => true),
       scripts: relativeList(path.join(baseDir, "scripts"), () => true),
       templates: relativeList(path.join(baseDir, "templates"), () => true)
@@ -115,34 +116,50 @@ function summarizePlugin(name) {
 }
 
 function summarizeKimiTargets() {
-  const kimiCodeDir = path.join(rootDir, ".kimi-code");
   return {
-    path: kimiCodeDir,
-    exists: exists(kimiCodeDir),
-    skills: listSkillNames(path.join(kimiCodeDir, "skills")),
-    mcpJson: exists(path.join(kimiCodeDir, "mcp.json")),
-    agentsMd: exists(path.join(kimiCodeDir, "AGENTS.md")),
+    sharedSkillsPath: path.join(rootDir, ".agents", "skills"),
+    workspaceSkillsPath: path.join(rootDir, ".kimi-code", "skills"),
+    sharedAgentsPath: path.join(rootDir, ".agents", "agents"),
+    workspaceAgentsPath: path.join(rootDir, ".kimi-code", "agents"),
+    workspacePath: path.join(rootDir, ".kimi-code"),
+    sharedSkillsExists: exists(path.join(rootDir, ".agents", "skills")),
+    workspaceExists: exists(path.join(rootDir, ".kimi-code")),
+    skillsShared: listSkillNames(path.join(rootDir, ".agents", "skills")),
+    skillsWorkspace: listSkillNames(path.join(rootDir, ".kimi-code", "skills")),
+    agentsShared: relativeList(path.join(rootDir, ".agents", "agents"), (filePath) => filePath.endsWith(".md")),
+    agentsWorkspace: relativeList(path.join(rootDir, ".kimi-code", "agents"), (filePath) => filePath.endsWith(".md")),
+    mcpJson: exists(path.join(rootDir, ".kimi-code", "mcp.json")),
+    workspaceAgentsMd: exists(path.join(rootDir, ".kimi-code", "AGENTS.md")),
     rootAgentsMd: exists(path.join(rootDir, "AGENTS.md")),
     pluginManifest: exists(path.join(rootDir, "kimi.plugin.json")),
     hiddenPluginManifest: exists(path.join(rootDir, ".kimi-plugin", "plugin.json"))
   };
 }
 
-function summarizeSharedSkills() {
-  const baseDir = path.join(rootDir, ".agents", "skills");
+function summarizeSharedResources() {
+  const skillsBaseDir = path.join(rootDir, ".agents", "skills");
+  const agentsBaseDir = path.join(rootDir, ".agents", "agents");
   return {
-    path: baseDir,
-    exists: exists(baseDir),
-    skills: listSkillNames(baseDir)
+    skillsPath: skillsBaseDir,
+    agentsPath: agentsBaseDir,
+    exists: exists(path.join(rootDir, ".agents")),
+    skillsExists: exists(skillsBaseDir),
+    agentsExists: exists(agentsBaseDir),
+    skills: listSkillNames(skillsBaseDir),
+    agents: relativeList(agentsBaseDir, (filePath) => filePath.endsWith(".md"))
   };
 }
 
-function makeSuggestions(claudeWorkspace, plugins, kimiTargets, sharedSkills) {
+function makeSuggestions(claudeWorkspace, plugins, kimiTargets, sharedResources) {
   const suggestions = [];
   const sourcePlugins = plugins.filter((item) => item.exists);
+  const sourceAgentCount = claudeWorkspace.resources.agents.length
+    + plugins.reduce((total, item) => total + item.resources.agents.length, 0);
+  const sourceSkillCount = claudeWorkspace.resources.skills.length
+    + plugins.reduce((total, item) => total + item.resources.skills.length, 0);
 
-  if (claudeWorkspace.exists && !kimiTargets.exists) {
-    suggestions.push("发现 `.claude` 但未发现 `.kimi-code`，建议优先规划项目级迁移。");
+  if (sourceSkillCount > 0 && !kimiTargets.sharedSkillsExists) {
+    suggestions.push("发现 Claude skills，但未发现 `.agents/skills`，建议优先规划共享 Skill 迁移。");
   }
 
   if (sourcePlugins.length > 0 && !kimiTargets.pluginManifest && !kimiTargets.hiddenPluginManifest) {
@@ -153,8 +170,16 @@ function makeSuggestions(claudeWorkspace, plugins, kimiTargets, sharedSkills) {
     suggestions.push("已存在 Kimi plugin manifest，建议先做差异分析，不要直接覆盖。");
   }
 
-  if (sharedSkills.exists && sharedSkills.skills.length > 0) {
-    suggestions.push("发现 `.agents/skills`，迁移时需检查与 `.kimi-code/skills` 的同名覆盖关系。");
+  if (sourceAgentCount > 0) {
+    suggestions.push("发现来源 agents，建议优先判断是否可直接迁移到 `.agents/agents` 或 `.kimi-code/agents`。");
+  }
+
+  if (sharedResources.skillsExists && sharedResources.skills.length > 0) {
+    suggestions.push("已存在 `.agents/skills`，迁移时需检查共享 Skill 的同名覆盖关系。");
+  }
+
+  if (sharedResources.agentsExists && sharedResources.agents.length > 0) {
+    suggestions.push("已存在 `.agents/agents`，迁移 Agent 时需检查同名文件是否需要覆盖或合并。");
   }
 
   if (sourcePlugins.some((item) => item.resources.hooks.length > 0)) {
@@ -171,7 +196,7 @@ function makeSuggestions(claudeWorkspace, plugins, kimiTargets, sharedSkills) {
 const claudeWorkspace = summarizeWorkspace(".claude");
 const plugins = [".claude-plugin", ".codex-plugin"].map(summarizePlugin);
 const kimiTargets = summarizeKimiTargets();
-const sharedSkills = summarizeSharedSkills();
+const sharedResources = summarizeSharedResources();
 
 const payload = {
   rootDir,
@@ -179,8 +204,8 @@ const payload = {
   claudeWorkspace,
   plugins,
   kimiTargets,
-  sharedSkills,
-  suggestions: makeSuggestions(claudeWorkspace, plugins, kimiTargets, sharedSkills)
+  sharedResources,
+  suggestions: makeSuggestions(claudeWorkspace, plugins, kimiTargets, sharedResources)
 };
 
 if (summaryOnly) {
@@ -189,10 +214,12 @@ if (summaryOnly) {
   console.log(`.claude: ${claudeWorkspace.exists ? "存在" : "不存在"}`);
   console.log(`.claude-plugin: ${plugins[0].exists ? "存在" : "不存在"}`);
   console.log(`.codex-plugin: ${plugins[1].exists ? "存在" : "不存在"}`);
-  console.log(`.kimi-code: ${kimiTargets.exists ? "存在" : "不存在"}`);
+  console.log(`.kimi-code: ${kimiTargets.workspaceExists ? "存在" : "不存在"}`);
   console.log(`kimi.plugin.json: ${kimiTargets.pluginManifest ? "存在" : "不存在"}`);
   console.log(`.kimi-plugin/plugin.json: ${kimiTargets.hiddenPluginManifest ? "存在" : "不存在"}`);
-  console.log(`.agents/skills: ${sharedSkills.exists ? "存在" : "不存在"}`);
+  console.log(`.agents/skills: ${kimiTargets.sharedSkillsExists ? "存在" : "不存在"}`);
+  console.log(`.agents/agents: ${kimiTargets.agentsShared.length > 0 ? "存在" : "不存在或为空"}`);
+  console.log(`.kimi-code/agents: ${kimiTargets.agentsWorkspace.length > 0 ? "存在" : "不存在或为空"}`);
   console.log("");
   console.log("建议动作:");
   for (const item of payload.suggestions) {
