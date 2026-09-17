@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  html,body{margin:0;padding:0;width:512px;height:512px;background:transparent;overflow:hidden}
+  svg{display:block}
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0" stop-color="#2B6CFF"/>
+      <stop offset="1" stop-color="#16A5F0"/>
+    </linearGradient>
+    <linearGradient id="sheet" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#F2F7FF"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#0B3AA8" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <rect x="0" y="0" width="512" height="512" rx="112" ry="112" fill="url(#bg)"/>
+
+  <!-- document sheet with folded corner -->
+  <g filter="url(#soft)">
+    <path d="M123 82 H317 L389 154 V430 a0 0 0 0 1 0 0 H123 a22 22 0 0 1 -22 -22 V104 a22 22 0 0 1 22 -22 Z"
+          transform="translate(22,0)" fill="url(#sheet)"/>
+  </g>
+  <path d="M317 82 L389 154 H317 Z" transform="translate(22,0)" fill="#B9D0FB"/>
+
+  <!-- text bars -->
+  <g transform="translate(22,0)" fill="#2B6CFF">
+    <rect x="160" y="196" width="176" height="20" rx="10"/>
+    <rect x="160" y="246" width="150" height="20" rx="10" opacity="0.85"/>
+    <rect x="160" y="296" width="164" height="20" rx="10" opacity="0.72"/>
+    <rect x="160" y="346" width="96" height="20" rx="10" opacity="0.45"/>
+  </g>
+
+  <!-- magnifying glass -->
+  <g transform="translate(0,0)">
+    <circle cx="336" cy="348" r="70" fill="none" stroke="#0F4FD8" stroke-width="26"/>
+    <circle cx="336" cy="348" r="70" fill="#2B6CFF" fill-opacity="0.22"/>
+    <circle cx="336" cy="348" r="70" fill="none" stroke="#FFFFFF" stroke-width="14"/>
+    <path d="M388 400 L438 450" stroke="#0F4FD8" stroke-width="34" stroke-linecap="round"/>
+    <path d="M388 400 L438 450" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round"/>
+  </g>
+</svg>
+</body>
+</html>
