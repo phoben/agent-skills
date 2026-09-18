@@ -144,22 +144,39 @@ try {
     if ($null -eq $database) { throw "数据库不存在或当前账户不可见：$databaseName" }
     $database.Refresh()
 
-    $options = New-Object Microsoft.SqlServer.Management.Smo.ScriptingOptions
-    $options.ScriptSchema = $true
-    $options.ScriptData = $false
-    $options.SchemaQualify = $true
-    $options.IncludeHeaders = $false
-    $options.IncludeIfNotExists = $false
-    $options.ScriptOwner = $false
-    $options.Permissions = $false
-    $options.NoFileGroup = $true
-    $options.DriAll = $true
-    $options.Indexes = $true
-    $options.Triggers = $false
-    $options.ExtendedProperties = $true
+    # 表需要完整的约束和索引；视图、存储程序等对象使用轻量选项，避免触发无关元数据查询。
+    $tableOptions = New-Object Microsoft.SqlServer.Management.Smo.ScriptingOptions
+    $tableOptions.ScriptSchema = $true
+    $tableOptions.ScriptData = $false
+    $tableOptions.SchemaQualify = $true
+    $tableOptions.IncludeHeaders = $false
+    $tableOptions.IncludeIfNotExists = $false
+    $tableOptions.ScriptOwner = $false
+    $tableOptions.Permissions = $false
+    $tableOptions.NoFileGroup = $true
+    $tableOptions.DriAll = $true
+    $tableOptions.Indexes = $true
+    $tableOptions.Triggers = $false
+    $tableOptions.ExtendedProperties = $true
 
-    $scripter = New-Object Microsoft.SqlServer.Management.Smo.Scripter($server)
-    $scripter.Options = $options
+    $objectOptions = New-Object Microsoft.SqlServer.Management.Smo.ScriptingOptions
+    $objectOptions.ScriptSchema = $true
+    $objectOptions.ScriptData = $false
+    $objectOptions.SchemaQualify = $true
+    $objectOptions.IncludeHeaders = $false
+    $objectOptions.IncludeIfNotExists = $false
+    $objectOptions.ScriptOwner = $false
+    $objectOptions.Permissions = $false
+    $objectOptions.NoFileGroup = $true
+    $objectOptions.DriAll = $false
+    $objectOptions.Indexes = $false
+    $objectOptions.Triggers = $false
+    $objectOptions.ExtendedProperties = $false
+
+    $tableScripter = New-Object Microsoft.SqlServer.Management.Smo.Scripter($server)
+    $tableScripter.Options = $tableOptions
+    $objectScripter = New-Object Microsoft.SqlServer.Management.Smo.Scripter($server)
+    $objectScripter.Options = $objectOptions
 
     if (Test-TypeSelected -ObjectType 'schema') {
         Set-ExportStage -Stage '导出 schema'
@@ -172,46 +189,46 @@ try {
 
     Set-ExportStage -Stage '导出 table 与表级 trigger'
     foreach ($table in @($database.Tables | Where-Object { -not $_.IsSystemObject })) {
-        Add-SmoRecord -Object $table -ObjectType 'table' -Schema $table.Schema -Name $table.Name -Identity "$($table.Schema).$($table.Name)" -Scripter $scripter
+        Add-SmoRecord -Object $table -ObjectType 'table' -Schema $table.Schema -Name $table.Name -Identity "$($table.Schema).$($table.Name)" -Scripter $tableScripter
         foreach ($trigger in @($table.Triggers | Where-Object { -not $_.IsSystemObject })) {
-            Add-SmoRecord -Object $trigger -ObjectType 'trigger' -Schema $table.Schema -Name "$($table.Name).$($trigger.Name)" -Identity "$($table.Schema).$($table.Name).$($trigger.Name)" -Scripter $scripter
+            Add-SmoRecord -Object $trigger -ObjectType 'trigger' -Schema $table.Schema -Name "$($table.Name).$($trigger.Name)" -Identity "$($table.Schema).$($table.Name).$($trigger.Name)" -Scripter $objectScripter
         }
     }
     Set-ExportStage -Stage '导出 view'
     foreach ($view in @($database.Views | Where-Object { -not $_.IsSystemObject })) {
-        Add-SmoRecord -Object $view -ObjectType 'view' -Schema $view.Schema -Name $view.Name -Identity "$($view.Schema).$($view.Name)" -Scripter $scripter
+        Add-SmoRecord -Object $view -ObjectType 'view' -Schema $view.Schema -Name $view.Name -Identity "$($view.Schema).$($view.Name)" -Scripter $objectScripter
     }
     Set-ExportStage -Stage '导出 function'
     foreach ($function in @($database.UserDefinedFunctions | Where-Object { -not $_.IsSystemObject })) {
-        Add-SmoRecord -Object $function -ObjectType 'function' -Schema $function.Schema -Name $function.Name -Identity "$($function.Schema).$($function.Name)" -Scripter $scripter
+        Add-SmoRecord -Object $function -ObjectType 'function' -Schema $function.Schema -Name $function.Name -Identity "$($function.Schema).$($function.Name)" -Scripter $objectScripter
     }
     Set-ExportStage -Stage '导出 procedure'
     foreach ($procedure in @($database.StoredProcedures | Where-Object { -not $_.IsSystemObject })) {
-        Add-SmoRecord -Object $procedure -ObjectType 'procedure' -Schema $procedure.Schema -Name $procedure.Name -Identity "$($procedure.Schema).$($procedure.Name)" -Scripter $scripter
+        Add-SmoRecord -Object $procedure -ObjectType 'procedure' -Schema $procedure.Schema -Name $procedure.Name -Identity "$($procedure.Schema).$($procedure.Name)" -Scripter $objectScripter
     }
     Set-ExportStage -Stage '导出数据库级 trigger'
     foreach ($trigger in @($database.Triggers | Where-Object { -not $_.IsSystemObject })) {
-        Add-SmoRecord -Object $trigger -ObjectType 'trigger' -Schema '' -Name $trigger.Name -Identity "database.$($trigger.Name)" -Scripter $scripter
+        Add-SmoRecord -Object $trigger -ObjectType 'trigger' -Schema '' -Name $trigger.Name -Identity "database.$($trigger.Name)" -Scripter $objectScripter
     }
     if ($database.PSObject.Properties.Name -contains 'Sequences') {
         Set-ExportStage -Stage '导出 sequence'
         foreach ($sequence in @($database.Sequences)) {
-            Add-SmoRecord -Object $sequence -ObjectType 'sequence' -Schema $sequence.Schema -Name $sequence.Name -Identity "$($sequence.Schema).$($sequence.Name)" -Scripter $scripter
+            Add-SmoRecord -Object $sequence -ObjectType 'sequence' -Schema $sequence.Schema -Name $sequence.Name -Identity "$($sequence.Schema).$($sequence.Name)" -Scripter $objectScripter
         }
     }
     if ($database.PSObject.Properties.Name -contains 'Synonyms') {
         Set-ExportStage -Stage '导出 synonym'
         foreach ($synonym in @($database.Synonyms)) {
-            Add-SmoRecord -Object $synonym -ObjectType 'synonym' -Schema $synonym.Schema -Name $synonym.Name -Identity "$($synonym.Schema).$($synonym.Name)" -Scripter $scripter
+            Add-SmoRecord -Object $synonym -ObjectType 'synonym' -Schema $synonym.Schema -Name $synonym.Name -Identity "$($synonym.Schema).$($synonym.Name)" -Scripter $objectScripter
         }
     }
     Set-ExportStage -Stage '导出用户定义类型'
     foreach ($dataType in @($database.UserDefinedDataTypes)) {
-        Add-SmoRecord -Object $dataType -ObjectType 'type' -Schema $dataType.Schema -Name $dataType.Name -Identity "$($dataType.Schema).$($dataType.Name)" -Scripter $scripter
+        Add-SmoRecord -Object $dataType -ObjectType 'type' -Schema $dataType.Schema -Name $dataType.Name -Identity "$($dataType.Schema).$($dataType.Name)" -Scripter $objectScripter
     }
     if ($database.PSObject.Properties.Name -contains 'UserDefinedTableTypes') {
         foreach ($tableType in @($database.UserDefinedTableTypes)) {
-            Add-SmoRecord -Object $tableType -ObjectType 'type' -Schema $tableType.Schema -Name $tableType.Name -Identity "$($tableType.Schema).$($tableType.Name)" -Scripter $scripter
+            Add-SmoRecord -Object $tableType -ObjectType 'type' -Schema $tableType.Schema -Name $tableType.Name -Identity "$($tableType.Schema).$($tableType.Name)" -Scripter $objectScripter
         }
     }
 
