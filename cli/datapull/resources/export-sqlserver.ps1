@@ -139,6 +139,12 @@ $server = New-Object Microsoft.SqlServer.Management.Smo.Server($serverConnection
 try {
     Set-ExportStage -Stage '连接目标数据库'
     $server.ConnectionContext.Connect()
+    # 过滤对象时会访问这些属性；预批量加载可避免高延迟连接上的逐对象往返查询。
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.Table], @('IsSystemObject', 'Schema', 'Name'))
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.View], @('IsSystemObject', 'Schema', 'Name'))
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.UserDefinedFunction], @('IsSystemObject', 'Schema', 'Name'))
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.StoredProcedure], @('IsSystemObject', 'Schema', 'Name'))
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.Trigger], @('IsSystemObject', 'Name'))
     Set-ExportStage -Stage '读取数据库元数据'
     $database = $server.Databases[$databaseName]
     if ($null -eq $database) { throw "数据库不存在或当前账户不可见：$databaseName" }
@@ -187,15 +193,19 @@ try {
         }
     }
 
-    Set-ExportStage -Stage '导出 table 与表级 trigger'
-    foreach ($table in @($database.Tables | Where-Object { -not $_.IsSystemObject })) {
+    Set-ExportStage -Stage '读取 table 清单'
+    $tables = @($database.Tables | Where-Object { -not $_.IsSystemObject })
+    Set-ExportStage -Stage "脚本化 table 与表级 trigger（$($tables.Count) 个 table）"
+    foreach ($table in $tables) {
         Add-SmoRecord -Object $table -ObjectType 'table' -Schema $table.Schema -Name $table.Name -Identity "$($table.Schema).$($table.Name)" -Scripter $tableScripter
         foreach ($trigger in @($table.Triggers | Where-Object { -not $_.IsSystemObject })) {
             Add-SmoRecord -Object $trigger -ObjectType 'trigger' -Schema $table.Schema -Name "$($table.Name).$($trigger.Name)" -Identity "$($table.Schema).$($table.Name).$($trigger.Name)" -Scripter $objectScripter
         }
     }
-    Set-ExportStage -Stage '导出 view'
-    foreach ($view in @($database.Views | Where-Object { -not $_.IsSystemObject })) {
+    Set-ExportStage -Stage '读取 view 清单'
+    $views = @($database.Views | Where-Object { -not $_.IsSystemObject })
+    Set-ExportStage -Stage "脚本化 view（$($views.Count) 个）"
+    foreach ($view in $views) {
         Add-SmoRecord -Object $view -ObjectType 'view' -Schema $view.Schema -Name $view.Name -Identity "$($view.Schema).$($view.Name)" -Scripter $objectScripter
     }
     Set-ExportStage -Stage '导出 function'
