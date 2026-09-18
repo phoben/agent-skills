@@ -29,12 +29,24 @@ export async function runProcess(
   };
   const result = await execa(command, args, execaOptions);
   if (result.exitCode !== 0) {
-    const detail = redact(`${result.stderr}\n${result.stdout}`.trim(), options.secrets ?? []);
+    const timedOut = result.timedOut === true;
+    const detail = redact(
+      [result.shortMessage, result.stderr, result.stdout]
+        .filter((value) => typeof value === "string" && value.trim().length > 0)
+        .join("\n"),
+      options.secrets ?? [],
+    );
     throw new DataPullError(
       "DATABASE_CLIENT_FAILED",
-      `${command} 执行失败。`,
+      timedOut ? `${command} 执行超时。` : `${command} 执行失败。`,
       1,
-      { command, exitCode: result.exitCode, detail },
+      {
+        command,
+        exitCode: result.exitCode,
+        timedOut,
+        ...(options.timeoutMs === undefined ? {} : { timeoutMs: options.timeoutMs }),
+        detail,
+      },
     );
   }
   return {

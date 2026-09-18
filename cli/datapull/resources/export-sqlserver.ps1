@@ -4,6 +4,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+$currentStage = '初始化'
+
+function Set-ExportStage {
+    param([string]$Stage)
+    $script:currentStage = $Stage
+    [Console]::Error.WriteLine("[datapull] SQL Server 导出阶段：$Stage")
+}
 
 function Get-RequiredEnvironmentValue {
     param([string]$Name)
@@ -83,6 +90,7 @@ function Add-SmoRecord {
     Add-Record -Ddl $ddl -ObjectType $ObjectType -Schema $Schema -Name $Name -Identity $Identity
 }
 
+Set-ExportStage -Stage '加载 SqlServer 模块'
 try {
     Import-Module SqlServer -ErrorAction Stop
 }
@@ -103,6 +111,12 @@ if (-not $encrypt) {
 
 $serverConnection = New-Object Microsoft.SqlServer.Management.Common.ServerConnection
 $serverConnection.ServerInstance = "$hostName,$port"
+if ($serverConnection.PSObject.Properties.Name -contains 'ConnectTimeout') {
+    $serverConnection.ConnectTimeout = 30
+}
+if ($serverConnection.PSObject.Properties.Name -contains 'StatementTimeout') {
+    $serverConnection.StatementTimeout = 120
+}
 if ($authentication -eq 'integrated') {
     $serverConnection.LoginSecure = $true
 }
@@ -123,7 +137,9 @@ elseif ($trustCertificate) {
 
 $server = New-Object Microsoft.SqlServer.Management.Smo.Server($serverConnection)
 try {
+    Set-ExportStage -Stage '连接目标数据库'
     $server.ConnectionContext.Connect()
+    Set-ExportStage -Stage '读取数据库元数据'
     $database = $server.Databases[$databaseName]
     if ($null -eq $database) { throw "数据库不存在或当前账户不可见：$databaseName" }
     $database.Refresh()
@@ -146,6 +162,7 @@ try {
     $scripter.Options = $options
 
     if (Test-TypeSelected -ObjectType 'schema') {
+        Set-ExportStage -Stage '导出 schema'
         $systemSchemas = @('dbo', 'guest', 'sys', 'INFORMATION_SCHEMA')
         foreach ($schemaObject in @($database.Schemas | Where-Object { $systemSchemas -notcontains $_.Name })) {
             $escapedSchema = $schemaObject.Name.Replace(']', ']]')
@@ -153,34 +170,42 @@ try {
         }
     }
 
+    Set-ExportStage -Stage '导出 table 与表级 trigger'
     foreach ($table in @($database.Tables | Where-Object { -not $_.IsSystemObject })) {
         Add-SmoRecord -Object $table -ObjectType 'table' -Schema $table.Schema -Name $table.Name -Identity "$($table.Schema).$($table.Name)" -Scripter $scripter
         foreach ($trigger in @($table.Triggers | Where-Object { -not $_.IsSystemObject })) {
             Add-SmoRecord -Object $trigger -ObjectType 'trigger' -Schema $table.Schema -Name "$($table.Name).$($trigger.Name)" -Identity "$($table.Schema).$($table.Name).$($trigger.Name)" -Scripter $scripter
         }
     }
+    Set-ExportStage -Stage '导出 view'
     foreach ($view in @($database.Views | Where-Object { -not $_.IsSystemObject })) {
         Add-SmoRecord -Object $view -ObjectType 'view' -Schema $view.Schema -Name $view.Name -Identity "$($view.Schema).$($view.Name)" -Scripter $scripter
     }
+    Set-ExportStage -Stage '导出 function'
     foreach ($function in @($database.UserDefinedFunctions | Where-Object { -not $_.IsSystemObject })) {
         Add-SmoRecord -Object $function -ObjectType 'function' -Schema $function.Schema -Name $function.Name -Identity "$($function.Schema).$($function.Name)" -Scripter $scripter
     }
+    Set-ExportStage -Stage '导出 procedure'
     foreach ($procedure in @($database.StoredProcedures | Where-Object { -not $_.IsSystemObject })) {
         Add-SmoRecord -Object $procedure -ObjectType 'procedure' -Schema $procedure.Schema -Name $procedure.Name -Identity "$($procedure.Schema).$($procedure.Name)" -Scripter $scripter
     }
+    Set-ExportStage -Stage '导出数据库级 trigger'
     foreach ($trigger in @($database.Triggers | Where-Object { -not $_.IsSystemObject })) {
         Add-SmoRecord -Object $trigger -ObjectType 'trigger' -Schema '' -Name $trigger.Name -Identity "database.$($trigger.Name)" -Scripter $scripter
     }
     if ($database.PSObject.Properties.Name -contains 'Sequences') {
+        Set-ExportStage -Stage '导出 sequence'
         foreach ($sequence in @($database.Sequences)) {
             Add-SmoRecord -Object $sequence -ObjectType 'sequence' -Schema $sequence.Schema -Name $sequence.Name -Identity "$($sequence.Schema).$($sequence.Name)" -Scripter $scripter
         }
     }
     if ($database.PSObject.Properties.Name -contains 'Synonyms') {
+        Set-ExportStage -Stage '导出 synonym'
         foreach ($synonym in @($database.Synonyms)) {
             Add-SmoRecord -Object $synonym -ObjectType 'synonym' -Schema $synonym.Schema -Name $synonym.Name -Identity "$($synonym.Schema).$($synonym.Name)" -Scripter $scripter
         }
     }
+    Set-ExportStage -Stage '导出用户定义类型'
     foreach ($dataType in @($database.UserDefinedDataTypes)) {
         Add-SmoRecord -Object $dataType -ObjectType 'type' -Schema $dataType.Schema -Name $dataType.Name -Identity "$($dataType.Schema).$($dataType.Name)" -Scripter $scripter
     }
@@ -190,8 +215,12 @@ try {
         }
     }
 
+    Set-ExportStage -Stage '写入对象清单'
     [object[]]$recordArray = $records
     Write-Utf8NoBom -Path (Join-Path $OutputDirectory 'objects.json') -Content ((ConvertTo-Json -InputObject $recordArray -Depth 5) + "`n")
+}
+catch {
+    throw "SQL Server 结构导出失败（阶段：$currentStage）。原始错误：$($_.Exception.Message)"
 }
 finally {
     if ($serverConnection.IsOpen) { $serverConnection.Disconnect() }
