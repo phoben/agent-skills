@@ -140,11 +140,13 @@ try {
     Set-ExportStage -Stage '连接目标数据库'
     $server.ConnectionContext.Connect()
     # 过滤对象时会访问这些属性；预批量加载可避免高延迟连接上的逐对象往返查询。
-    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.Table], @('IsSystemObject', 'Schema', 'Name'))
-    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.View], @('IsSystemObject', 'Schema', 'Name'))
-    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.UserDefinedFunction], @('IsSystemObject', 'Schema', 'Name'))
-    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.StoredProcedure], @('IsSystemObject', 'Schema', 'Name'))
-    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.Trigger], @('IsSystemObject', 'Name'))
+    [string[]]$schemaObjectFields = @('IsSystemObject', 'Schema', 'Name')
+    [string[]]$namedObjectFields = @('IsSystemObject', 'Name')
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.Table], $schemaObjectFields)
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.View], $schemaObjectFields)
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.UserDefinedFunction], $schemaObjectFields)
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.StoredProcedure], $schemaObjectFields)
+    $server.SetDefaultInitFields([Microsoft.SqlServer.Management.Smo.Trigger], $namedObjectFields)
     Set-ExportStage -Stage '读取数据库元数据'
     $database = $server.Databases[$databaseName]
     if ($null -eq $database) { throw "数据库不存在或当前账户不可见：$databaseName" }
