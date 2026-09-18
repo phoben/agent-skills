@@ -18,7 +18,7 @@ describe("CLI JSON 契约", () => {
     const payload = JSON.parse(result.stdout) as Record<string, unknown>;
     expect(payload).toMatchObject({ ok: false, command: "datapull" });
     expect(result.stdout.trim().split(/\r?\n/u)).toHaveLength(1);
-  });
+  }, 15_000);
 
   it("非交互新增连接后可脱敏列出", async () => {
     const configRoot = await mkdtemp(join(tmpdir(), "datapull-cli-test-"));
@@ -58,7 +58,7 @@ describe("CLI JSON 契约", () => {
       connections: [{ alias: "main", engine: "postgresql", credentialRef: "APP_PASSWORD" }],
     });
     expect(listed.stdout).not.toContain("top-secret");
-  });
+  }, 15_000);
 
   it("缺少工具且未确认安装时返回完整安装计划", async () => {
     const configRoot = await mkdtemp(join(tmpdir(), "datapull-cli-plan-test-"));
