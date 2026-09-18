@@ -1,0 +1,77 @@
+name: DataPull 兼容性验收
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 要执行的平台；hosted 只运行 GitHub 托管平台
+        required: true
+        default: hosted
+        type: choice
+        options:
+          - hosted
+          - macos
+          - ubuntu-lts
+          - windows-10-11
+          - debian-stable
+          - fedora-current
+          - all
+      install_missing:
+        description: 是否允许 DataPull 自动安装缺少的数据库工具
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    if: inputs.target == 'hosted' || inputs.target == 'macos' || inputs.target == 'all'
+    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    with:
+      platform: macos
+      runs_on: '"macos-15-intel"'
+      bootstrap: macos
+      install_missing: ${{ inputs.install_missing }}
+    secrets: inherit
+
+  ubuntu:
+    if: inputs.target == 'hosted' || inputs.target == 'ubuntu-lts' || inputs.target == 'all'
+    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    with:
+      platform: ubuntu-lts
+      runs_on: '"ubuntu-24.04"'
+      bootstrap: ubuntu
+      install_missing: ${{ inputs.install_missing }}
+    secrets: inherit
+
+  windows:
+    if: inputs.target == 'windows-10-11' || inputs.target == 'all'
+    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    with:
+      platform: windows-10-11
+      runs_on: '["self-hosted","Windows","X64","datapull-windows-10-11"]'
+      bootstrap: none
+      install_missing: ${{ inputs.install_missing }}
+    secrets: inherit
+
+  debian:
+    if: inputs.target == 'debian-stable' || inputs.target == 'all'
+    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    with:
+      platform: debian-stable
+      runs_on: '["self-hosted","Linux","X64","datapull-debian-stable"]'
+      bootstrap: none
+      install_missing: ${{ inputs.install_missing }}
+    secrets: inherit
+
+  fedora:
+    if: inputs.target == 'fedora-current' || inputs.target == 'all'
+    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    with:
+      platform: fedora-current
+      runs_on: '["self-hosted","Linux","X64","datapull-fedora-current"]'
+      bootstrap: none
+      install_missing: ${{ inputs.install_missing }}
+    secrets: inherit

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { DataPullError } from "../core/errors.js";
 import { runProcess } from "../process/runner.js";
 import type { DatabaseObject, ResolvedConnection } from "../types.js";
-import type { DatabaseExporter } from "./exporter.js";
+import type { DatabaseConnectionTest, DatabaseExporter } from "./exporter.js";
 
 interface SmoRecord {
   objectType: string;
@@ -28,8 +28,20 @@ export class SqlServerExporter implements DatabaseExporter {
       .filter(Boolean);
   }
 
-  async test(connection: ResolvedConnection, database?: string): Promise<void> {
-    await this.sqlcmd(connection, database ?? "master", "SET NOCOUNT ON; SELECT 1;");
+  async test(
+    connection: ResolvedConnection,
+    database?: string,
+  ): Promise<DatabaseConnectionTest> {
+    const value = await this.sqlcmd(
+      connection,
+      database ?? "master",
+      "SET NOCOUNT ON; SELECT CAST(SERVERPROPERTY('ProductVersion') AS nvarchar(128));",
+    );
+    const serverVersion = value.split(/\r?\n/u).map((line) => line.trim()).find(Boolean);
+    if (serverVersion === undefined) {
+      throw new DataPullError("DATABASE_CLIENT_FAILED", "SQL Server 未返回服务端版本。", 1);
+    }
+    return { serverVersion };
   }
 
   async exportObjects(

@@ -6,7 +6,7 @@ import { DataPullError } from "../core/errors.js";
 import { CredentialSecurity } from "../config/security.js";
 import { runProcess } from "../process/runner.js";
 import type { DatabaseObject, ResolvedConnection } from "../types.js";
-import type { DatabaseExporter } from "./exporter.js";
+import type { DatabaseConnectionTest, DatabaseExporter } from "./exporter.js";
 import { ensureStatement, quoteMysqlIdentifier, quoteSqlLiteral } from "./sql.js";
 
 export class MySqlExporter implements DatabaseExporter {
@@ -25,9 +25,17 @@ export class MySqlExporter implements DatabaseExporter {
     });
   }
 
-  async test(connection: ResolvedConnection, database?: string): Promise<void> {
-    await this.withOptionFile(connection, database, async (optionFile) => {
-      await this.query(optionFile, "SELECT 1", connection);
+  async test(
+    connection: ResolvedConnection,
+    database?: string,
+  ): Promise<DatabaseConnectionTest> {
+    return this.withOptionFile(connection, database, async (optionFile) => {
+      const rows = await this.query(optionFile, "SELECT VERSION()", connection);
+      const serverVersion = rows[0]?.[0];
+      if (serverVersion === undefined || serverVersion.length === 0) {
+        throw new DataPullError("DATABASE_CLIENT_FAILED", "MySQL 未返回服务端版本。", 1);
+      }
+      return { serverVersion };
     });
   }
 

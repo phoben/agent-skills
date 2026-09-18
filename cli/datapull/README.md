@@ -62,3 +62,5 @@ npm run skill:check
 ```
 
 `npm run release:check` 验证 `resources/compatibility-matrix.json` 是否已经包含三种数据库和五类操作系统的真实通过记录。开发包的空矩阵会阻止公开发布，不能用本地单元测试替代真实数据库、跨平台和 Agent 发现验收。
+
+跨平台验收使用仓库的“DataPull 兼容性验收”GitHub Actions 工作流。远程数据库、Actions Secrets、自托管运行器和取证步骤见 [兼容性 CI 说明](https://github.com/phoben/agent-skills/blob/main/cli/datapull/docs/release-ci.md)。

@@ -213,9 +213,14 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
       if (options.database !== undefined) validatePathSegment(options.database, "数据库名");
       const connection = await service.resolve(alias, options.database);
       await new ToolManager().ensure(connection.engine, false, false);
-      await exporterFor(connection.engine).test(connection, options.database);
+      const testResult = await exporterFor(connection.engine).test(connection, options.database);
       output(command, "connection test").success(
-        { connectionAlias: alias, database: options.database ?? null, reachable: true },
+        {
+          connectionAlias: alias,
+          database: options.database ?? null,
+          reachable: true,
+          serverVersion: testResult.serverVersion,
+        },
         `连接校验通过：${alias}${options.database === undefined ? "" : ` / ${options.database}`}`,
       );
     });

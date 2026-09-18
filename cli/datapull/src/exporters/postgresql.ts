@@ -1,7 +1,7 @@
 import { DataPullError } from "../core/errors.js";
 import { runProcess } from "../process/runner.js";
 import type { DatabaseObject, ResolvedConnection } from "../types.js";
-import type { DatabaseExporter } from "./exporter.js";
+import type { DatabaseConnectionTest, DatabaseExporter } from "./exporter.js";
 import { ensureStatement, quoteIdentifier } from "./sql.js";
 
 interface NamedRow {
@@ -23,8 +23,20 @@ export class PostgreSqlExporter implements DatabaseExporter {
     return rows;
   }
 
-  async test(connection: ResolvedConnection, database?: string): Promise<void> {
-    await this.queryJson<number>(connection, database ?? "postgres", "SELECT to_json(1)::text");
+  async test(
+    connection: ResolvedConnection,
+    database?: string,
+  ): Promise<DatabaseConnectionTest> {
+    const versions = await this.queryJson<string>(
+      connection,
+      database ?? "postgres",
+      "SELECT to_json(current_setting('server_version'))::text",
+    );
+    const serverVersion = versions[0];
+    if (serverVersion === undefined || serverVersion.length === 0) {
+      throw new DataPullError("DATABASE_CLIENT_FAILED", "PostgreSQL 未返回服务端版本。", 1);
+    }
+    return { serverVersion };
   }
 
   async exportObjects(
@@ -282,6 +294,7 @@ export class PostgreSqlExporter implements DatabaseExporter {
     return {
       ...process.env,
       ...(connection.password === undefined ? {} : { PGPASSWORD: connection.password }),
+      ...(connection.sslMode === undefined ? {} : { PGSSLMODE: connection.sslMode }),
     };
   }
 

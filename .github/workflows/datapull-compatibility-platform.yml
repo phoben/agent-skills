@@ -1,0 +1,101 @@
+name: DataPull 单平台兼容性验收
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+      runs_on:
+        required: true
+        type: string
+      bootstrap:
+        required: true
+        type: string
+      install_missing:
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: ${{ inputs.platform }}
+    runs-on: ${{ fromJSON(inputs.runs_on) }}
+    timeout-minutes: 60
+    steps:
+      - name: 检出固定提交
+        uses: actions/checkout@v6
+
+      - name: 安装 Node.js 最低支持版本
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.12.0
+          package-manager-cache: false
+
+      - name: 准备 macOS 数据库客户端
+        if: inputs.bootstrap == 'macos'
+        shell: bash
+        run: |
+          brew install mysql-client libpq sqlcmd
+          echo "$(brew --prefix mysql-client)/bin" >> "$GITHUB_PATH"
+          echo "$(brew --prefix libpq)/bin" >> "$GITHUB_PATH"
+          if ! command -v pwsh >/dev/null 2>&1; then
+            brew install --cask powershell
+          fi
+          pwsh -NoProfile -NonInteractive -Command 'Install-Module SqlServer -Scope CurrentUser -Force'
+
+      - name: 准备 Ubuntu 数据库客户端
+        if: inputs.bootstrap == 'ubuntu'
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl mysql-client postgresql-client
+          curl --fail --silent --show-error --location --output packages-microsoft-prod.deb \
+            https://packages.microsoft.com/config/ubuntu/24.04/packages-microsoft-prod.deb
+          sudo dpkg -i packages-microsoft-prod.deb
+          sudo apt-get update
+          sudo env ACCEPT_EULA=Y apt-get install -y mssql-tools18 powershell
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+          pwsh -NoProfile -NonInteractive -Command 'Install-Module SqlServer -Scope CurrentUser -Force'
+
+      - name: 安装项目依赖并执行本地门禁
+        working-directory: cli/datapull
+        run: npm ci --ignore-scripts
+
+      - name: 构建并测试发布包
+        working-directory: cli/datapull
+        run: npm run prepack
+
+      - name: 执行三数据库兼容性验收
+        working-directory: cli/datapull
+        env:
+          DATAPULL_CI_PLATFORM: ${{ inputs.platform }}
+          DATAPULL_CI_INSTALL_MISSING: ${{ inputs.install_missing }}
+          DATAPULL_CI_MYSQL_HOST: ${{ secrets.DATAPULL_CI_MYSQL_HOST }}
+          DATAPULL_CI_MYSQL_PORT: ${{ secrets.DATAPULL_CI_MYSQL_PORT }}
+          DATAPULL_CI_MYSQL_USERNAME: ${{ secrets.DATAPULL_CI_MYSQL_USERNAME }}
+          DATAPULL_CI_MYSQL_PASSWORD: ${{ secrets.DATAPULL_CI_MYSQL_PASSWORD }}
+          DATAPULL_CI_MYSQL_DATABASE: ${{ secrets.DATAPULL_CI_MYSQL_DATABASE }}
+          DATAPULL_CI_MYSQL_SSL_MODE: ${{ secrets.DATAPULL_CI_MYSQL_SSL_MODE }}
+          DATAPULL_CI_POSTGRESQL_HOST: ${{ secrets.DATAPULL_CI_POSTGRESQL_HOST }}
+          DATAPULL_CI_POSTGRESQL_PORT: ${{ secrets.DATAPULL_CI_POSTGRESQL_PORT }}
+          DATAPULL_CI_POSTGRESQL_USERNAME: ${{ secrets.DATAPULL_CI_POSTGRESQL_USERNAME }}
+          DATAPULL_CI_POSTGRESQL_PASSWORD: ${{ secrets.DATAPULL_CI_POSTGRESQL_PASSWORD }}
+          DATAPULL_CI_POSTGRESQL_DATABASE: ${{ secrets.DATAPULL_CI_POSTGRESQL_DATABASE }}
+          DATAPULL_CI_POSTGRESQL_SSL_MODE: ${{ secrets.DATAPULL_CI_POSTGRESQL_SSL_MODE }}
+          DATAPULL_CI_SQLSERVER_HOST: ${{ secrets.DATAPULL_CI_SQLSERVER_HOST }}
+          DATAPULL_CI_SQLSERVER_PORT: ${{ secrets.DATAPULL_CI_SQLSERVER_PORT }}
+          DATAPULL_CI_SQLSERVER_USERNAME: ${{ secrets.DATAPULL_CI_SQLSERVER_USERNAME }}
+          DATAPULL_CI_SQLSERVER_PASSWORD: ${{ secrets.DATAPULL_CI_SQLSERVER_PASSWORD }}
+          DATAPULL_CI_SQLSERVER_DATABASE: ${{ secrets.DATAPULL_CI_SQLSERVER_DATABASE }}
+        run: npm run ci:compatibility
+
+      - name: 上传脱敏验收证据
+        uses: actions/upload-artifact@v7
+        with:
+          name: datapull-compatibility-${{ inputs.platform }}
+          path: cli/datapull/ci-evidence/${{ inputs.platform }}.json
+          if-no-files-found: error
+          retention-days: 30
