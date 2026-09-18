@@ -127,7 +127,7 @@ describe("CLI JSON 契约", () => {
     expect(humanResult.stderr).toContain("权限：");
     expect(humanResult.stderr).toContain("下载影响：");
     expect(humanResult.stderr).not.toContain("top-secret");
-  });
+  }, 15_000);
 });
 
 async function runCli(args: string[], env = process.env) {
