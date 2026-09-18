@@ -1,4 +1,4 @@
 interface:
   display_name: "仓库用户操作手册"
   short_description: "从仓库创建或增量维护可按语言与角色筛选的最终用户手册"
-  default_prompt: "Use $repo-user-manual to create or incrementally update a Chinese end-user operation manual from this repository."
+  default_prompt: "使用 $user-manual，根据当前仓库创建或增量更新中文最终用户操作手册。"

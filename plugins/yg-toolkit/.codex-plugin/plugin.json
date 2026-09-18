@@ -1,0 +1,36 @@
+{
+  "name": "yg-toolkit",
+  "version": "0.1.0",
+  "description": "约格开源的 Codex 工作流工具集，覆盖工程配置迁移、用户操作手册和需求文档。",
+  "author": {
+    "name": "约格",
+    "url": "https://github.com/phoben"
+  },
+  "homepage": "https://github.com/phoben/agent-skills#readme",
+  "repository": "https://github.com/phoben/agent-skills",
+  "license": "MIT",
+  "keywords": [
+    "yg",
+    "codex",
+    "skills",
+    "documentation",
+    "migration"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "YG Toolkit",
+    "shortDescription": "约格开源的工程迁移与文档工作流工具集",
+    "longDescription": "为 Codex 提供工程配置迁移、最终用户操作手册和需求文档编写能力。",
+    "developerName": "约格",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Write"
+    ],
+    "defaultPrompt": [
+      "盘点当前项目的工程化配置并规划迁移。",
+      "根据当前仓库创建最终用户操作手册。",
+      "根据业务需求编写一份产品需求文档。"
+    ]
+  }
+}

@@ -1,6 +1,6 @@
 ---
-name: yg-document-writing
-description: 编写各类需求文档（BRD/PRD/TRD/SRS）。当用户提及"生成需求文档"、"编写需求文档"、"撰写需求文档"时触发。
+name: requirement-docs
+description: 创建 BRD、PRD、TRD 或 SRS 需求文档；适用于用户要求生成、编写或完善商业、产品、技术及软件需求规格文档，不适用于最终用户操作手册。
 ---
 
 # 文档编写
@@ -51,11 +51,11 @@ TRIGGER when: 用户提及以下关键词：
 
 ```bash
 # 交互式选择文档类型
-/yg-document-writing
+/requirement-docs
 
 # 直接指定文档类型
-/yg-document-writing prd
-/yg-document-writing brd
+/requirement-docs prd
+/requirement-docs brd
 ```
 
 ## 执行流程
@@ -489,7 +489,7 @@ Agent tool (general-purpose):
 ## 渐进式披露结构
 
 ```
-yg-document-writing/
+requirement-docs/
 ├── SKILL.md                    # 主文件
 ├── agents/                     # SubAgent 定义
 │   ├── chapter-writer.md       # 章节编写SubAgent

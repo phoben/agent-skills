@@ -1,9 +1,9 @@
 ---
-name: harness-cm
-description: Use when the user needs to inventory existing engineering configuration from project and user-level dot-directories such as .claude, .codex, .trae, .cursor, .zcode, .kimi, analyze skills/rules/mcp/agents/hooks/commands, and plan or execute migration into a target platform structure like claude, codex, trae, cursor, kimi, or zcode. Trigger on requests about Harness migration, config migration, platform conversion, engineering setup conversion, or when the user runs /harness-cm.
+name: config-migrate
+description: 盘点并迁移项目级或用户级的工程化配置，包括 skills、rules、MCP、agents、hooks 和 commands；适用于在 Claude、Codex、Cursor、Trae、ZCode、Kimi 等平台之间规划或执行配置迁移。
 ---
 
-# Harness 工程化迁移技能
+# 工程配置迁移
 
 ## 目标
 
@@ -19,7 +19,7 @@ description: Use when the user needs to inventory existing engineering configura
 默认按以下方式理解用户输入：
 
 ```text
-/harness-cm [target-platform] [migration-scope]
+/config-migrate [target-platform] [migration-scope]
 ```
 
 参数说明：
@@ -316,7 +316,7 @@ description: Use when the user needs to inventory existing engineering configura
 
 ## 触发示例
 
-- “用 `/harness-cm trae all` 扫描并迁移当前工程化配置到 Trae”
+- “用 `/config-migrate trae all` 扫描并迁移当前工程化配置到 Trae”
 - “帮我把这个项目里的 `.claude`、`.codex` 和 `.cursor` 配置转成 ZCode 支持的结构”
 - “先盘点当前环境，再告诉我这些 skills、hooks、mcp 能不能迁到 Kimi”
 - “把迁移范围限定为 `skills+mcp`，先出方案，我确认后再改”
