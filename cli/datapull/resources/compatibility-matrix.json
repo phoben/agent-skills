@@ -23,6 +23,293 @@
     "trae:user",
     "trae:project"
   ],
-  "verified": [],
-  "platformVerifications": []
+  "verified": [
+    {
+      "engine": "mysql",
+      "serverVersion": "8.4.11",
+      "clientTools": "mysql=mysql  Ver 26.7.0 for Win64 on x86_64 (MySQL Community Server - GPL)",
+      "platform": "windows-10-11",
+      "osVersion": "win32 x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T14:59:41.860Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "postgresql",
+      "serverVersion": "18.6",
+      "clientTools": "psql=psql (PostgreSQL) 18.3; pg_dump=pg_dump (PostgreSQL) 18.3",
+      "platform": "windows-10-11",
+      "osVersion": "win32 x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T14:59:47.825Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "sqlserver",
+      "serverVersion": "15.0.2000.5",
+      "clientTools": "sqlcmd=Microsoft (R) SQL Server Command Line Tool; pwsh=PowerShell 7.6.6; sqlserver-module=22.4.5.1",
+      "platform": "windows-10-11",
+      "osVersion": "win32 x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T14:59:58.184Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "mysql",
+      "serverVersion": "8.4.11",
+      "clientTools": "mysql=mysql  Ver 26.7.0 for macos14.8 on x86_64 (Homebrew)",
+      "platform": "macos",
+      "osVersion": "darwin x64 macos15",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:32:31.837Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "postgresql",
+      "serverVersion": "18.6",
+      "clientTools": "psql=psql (PostgreSQL) 18.6; pg_dump=pg_dump (PostgreSQL) 18.6",
+      "platform": "macos",
+      "osVersion": "darwin x64 macos15",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:33:11.039Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "sqlserver",
+      "serverVersion": "15.0.2000.5",
+      "clientTools": "sqlcmd=sqlcmd: Install/Create/Query SQL Server, Azure SQL, and Tools; pwsh=PowerShell 7.6.4; sqlserver-module=22.4.5.1",
+      "platform": "macos",
+      "osVersion": "darwin x64 macos15",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:34:19.252Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "mysql",
+      "serverVersion": "8.4.11",
+      "clientTools": "mysql=mysql  Ver 8.0.46-0ubuntu0.24.04.4 for Linux on x86_64 ((Ubuntu))",
+      "platform": "ubuntu-lts",
+      "osVersion": "linux x64 ubuntu24",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:31:37.703Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "postgresql",
+      "serverVersion": "18.6",
+      "clientTools": "psql=psql (PostgreSQL) 18.6 (Ubuntu 18.6-1.pgdg24.04+2); pg_dump=pg_dump (PostgreSQL) 18.6 (Ubuntu 18.6-1.pgdg24.04+2)",
+      "platform": "ubuntu-lts",
+      "osVersion": "linux x64 ubuntu24",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:32:29.546Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "sqlserver",
+      "serverVersion": "15.0.2000.5",
+      "clientTools": "sqlcmd=Microsoft (R) SQL Server Command Line Tool; pwsh=PowerShell 7.6.6; sqlserver-module=22.4.5.1",
+      "platform": "ubuntu-lts",
+      "osVersion": "linux x64 ubuntu24",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:33:59.284Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "mysql",
+      "serverVersion": "8.4.11",
+      "clientTools": "mysql=mysql  Ver 8.4.11 for Linux on x86_64 (MySQL Community Server - GPL)",
+      "platform": "debian-stable",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:23:52.618Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "postgresql",
+      "serverVersion": "18.6",
+      "clientTools": "psql=psql (PostgreSQL) 18.6 (Debian 18.6-1.pgdg13+2); pg_dump=pg_dump (PostgreSQL) 18.6 (Debian 18.6-1.pgdg13+2)",
+      "platform": "debian-stable",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:23:57.196Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "sqlserver",
+      "serverVersion": "15.0.2000.5",
+      "clientTools": "sqlcmd=sqlcmd: Install/Create/Query SQL Server, Azure SQL, and Tools; pwsh=PowerShell 7.6.6; sqlserver-module=22.4.5.1",
+      "platform": "debian-stable",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:24:10.099Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "mysql",
+      "serverVersion": "8.4.11",
+      "clientTools": "mysql=mysql  Ver 8.4.10 for Linux on x86_64 (Source distribution)",
+      "platform": "fedora-current",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:29:22.634Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "postgresql",
+      "serverVersion": "18.6",
+      "clientTools": "psql=psql (PostgreSQL) 18.6; pg_dump=pg_dump (PostgreSQL) 18.6",
+      "platform": "fedora-current",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:29:27.221Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "engine": "sqlserver",
+      "serverVersion": "15.0.2000.5",
+      "clientTools": "sqlcmd=sqlcmd: Install/Create/Query SQL Server, Azure SQL, and Tools; pwsh=PowerShell 7.6.6; sqlserver-module=22.4.5.1",
+      "platform": "fedora-current",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "installAdapterVersion": 1,
+      "verifiedAt": "2026-09-18T15:29:35.917Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    }
+  ],
+  "platformVerifications": [
+    {
+      "platform": "windows-10-11",
+      "osVersion": "win32 x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "npmInstall": true,
+      "skillTargets": [
+        "codex:user",
+        "codex:project",
+        "claude:user",
+        "claude:project",
+        "cursor:user",
+        "cursor:project",
+        "trae:user",
+        "trae:project"
+      ],
+      "agentDiscoveryVerified": false,
+      "agentDiscoveryNote": "CI 已验证 8 个用户级/项目级安装路径与回验；Windows 上 Codex 用户级和项目级实际发现通过。Claude Code 因当前账号返回 402 未完成，Cursor、Trae 因桌面自动化运行时不可用未完成，因此整个平台仍不标记为发现通过。",
+      "verifiedAt": "2026-09-18T14:59:58.840Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "platform": "macos",
+      "osVersion": "darwin x64 macos15",
+      "nodeVersion": "v22.12.0",
+      "npmInstall": true,
+      "skillTargets": [
+        "codex:user",
+        "codex:project",
+        "claude:user",
+        "claude:project",
+        "cursor:user",
+        "cursor:project",
+        "trae:user",
+        "trae:project"
+      ],
+      "agentDiscoveryVerified": false,
+      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "verifiedAt": "2026-09-18T15:34:20.175Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "platform": "ubuntu-lts",
+      "osVersion": "linux x64 ubuntu24",
+      "nodeVersion": "v22.12.0",
+      "npmInstall": true,
+      "skillTargets": [
+        "codex:user",
+        "codex:project",
+        "claude:user",
+        "claude:project",
+        "cursor:user",
+        "cursor:project",
+        "trae:user",
+        "trae:project"
+      ],
+      "agentDiscoveryVerified": false,
+      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "verifiedAt": "2026-09-18T15:33:59.877Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "platform": "debian-stable",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "npmInstall": true,
+      "skillTargets": [
+        "codex:user",
+        "codex:project",
+        "claude:user",
+        "claude:project",
+        "cursor:user",
+        "cursor:project",
+        "trae:user",
+        "trae:project"
+      ],
+      "agentDiscoveryVerified": false,
+      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "verifiedAt": "2026-09-18T15:24:10.429Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    },
+    {
+      "platform": "fedora-current",
+      "osVersion": "linux x64 self-hosted",
+      "nodeVersion": "v22.12.0",
+      "npmInstall": true,
+      "skillTargets": [
+        "codex:user",
+        "codex:project",
+        "claude:user",
+        "claude:project",
+        "cursor:user",
+        "cursor:project",
+        "trae:user",
+        "trae:project"
+      ],
+      "agentDiscoveryVerified": false,
+      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "verifiedAt": "2026-09-18T15:29:36.246Z",
+      "result": "passed",
+      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+    }
+  ]
 }
