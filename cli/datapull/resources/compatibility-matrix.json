@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "policy": "仅实际验证通过的组合可声明支持；空矩阵表示开发包尚未完成发布验收。",
+  "requiredPlatforms": [
+    "windows-10-11",
+    "macos",
+    "ubuntu-lts",
+    "debian-stable",
+    "fedora-current"
+  ],
+  "requiredEngines": [
+    "mysql",
+    "postgresql",
+    "sqlserver"
+  ],
+  "verified": []
+}

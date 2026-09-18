@@ -1,0 +1,67 @@
+{
+  "name": "@yg-toolkit/datapull",
+  "version": "0.1.0",
+  "description": "面向人类交互、同时支持 Agent 自动化的数据库结构文件拉取 CLI",
+  "type": "module",
+  "bin": {
+    "datapull": "dist/index.js"
+  },
+  "files": [
+    "dist",
+    "resources",
+    "skill",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc -p tsconfig.build.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "clean": "node scripts/clean.mjs",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "skill:sync": "node scripts/sync-skill.mjs",
+    "skill:check": "node scripts/check-skill-sync.mjs",
+    "prepack": "npm run check && npm test && npm run build && npm run skill:check",
+    "release:check": "node scripts/check-release-matrix.mjs",
+    "prepublishOnly": "npm run prepack && npm run release:check"
+  },
+  "keywords": [
+    "database",
+    "schema",
+    "ddl",
+    "mysql",
+    "postgresql",
+    "sqlserver",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "约格",
+  "homepage": "https://github.com/phoben/agent-skills#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phoben/agent-skills.git",
+    "directory": "cli/datapull"
+  },
+  "bugs": {
+    "url": "https://github.com/phoben/agent-skills/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "7.10.1",
+    "commander": "15.0.0",
+    "execa": "10.0.1",
+    "listr2": "10.1.1",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.5",
+    "tsx": "4.23.13",
+    "typescript": "7.0.2",
+    "vitest": "5.0.1"
+  }
+}

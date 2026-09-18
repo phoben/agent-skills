@@ -1,0 +1,6 @@
+interface:
+  display_name: "DataPull"
+  short_description: "安装并安全调用数据库结构文件拉取 CLI"
+  default_prompt: "使用 $datapull 检查环境，并指导我从已登记数据库连接拉取结构文件。"
+policy:
+  allow_implicit_invocation: true

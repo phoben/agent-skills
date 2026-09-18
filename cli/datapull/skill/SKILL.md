@@ -1,0 +1,34 @@
+---
+name: datapull
+description: 检查并指导安装 DataPull CLI，使用已登记连接拉取 MySQL、PostgreSQL 或 SQL Server 的结构文件；适用于环境诊断、连接选择、对象范围确认和 CLI 错误恢复，不替代 CLI 管理凭证或生成 DDL。
+---
+
+# DataPull
+
+把 DataPull CLI 作为唯一执行入口。本 Skill 负责环境检查、安装指导和安全调用，不实现连接管理、依赖安装或结构文件生成。
+
+## 环境门
+
+1. 检查 Node.js 是否为 `>=22.12`、NPM 是否可用、`datapull --version` 是否成功。
+2. CLI 缺失时，只向用户提供 `npm install --global @yg-toolkit/datapull`；由用户亲自执行，不代替用户进行全局安装。
+3. CLI 存在时执行 `datapull doctor --json`，依据退出码和 `error.code` 给出下一条恢复命令。环境门完成的标准是 CLI 可执行且诊断结果已被解释。
+
+## 调用流程
+
+优先使用带 `--json` 的命令模式：
+
+- `datapull connection list --json`：列出脱敏登记连接。
+- `datapull database list --connection <alias> --json`：读取收藏、最近使用和可访问数据库。
+- `datapull pull --connection <alias> --database <database> --include <types> --yes --json`：拉取结构文件。
+
+执行拉取前向用户说明连接别名、目标数据库、对象类型和当前项目根。任一值无法从用户请求或 CLI 脱敏结果唯一确定时，停在该步骤并请用户决定；不猜测连接、数据库或对象范围。
+
+当 CLI 返回缺少工具时，说明 `actionPlan.installation` 中的工具、来源、命令、权限与下载影响。只有用户明确要求执行该安装计划后，才在下一次 CLI 调用中加入 `--install-missing --yes`。
+
+## 秘密边界
+
+数据库密码或含秘密 URL 只由用户在 CLI 隐藏输入中填写，或手工更新 CLI 显示的 `credentials.env`。不要在聊天中索要、复述或传递秘密，不读取该文件内容，也不把秘密放入命令参数。
+
+## 完成标准
+
+只有在 CLI 退出码为零、JSON 中 `ok:true`，且 `outputPath`、`updatedTypes`、`preservedTypes` 与用户目标一致时，才报告拉取成功。失败时原样保留稳定 `error.code`，给出一条对应的恢复命令，并区分本地契约验证与真实数据库拉取结果。
