@@ -1,0 +1,4 @@
+interface:
+  display_name: "Database Schema"
+  short_description: "通过连接别名导出指定数据库的完整 DDL 结构快照"
+  default_prompt: "使用 $database-schema <连接别名> <数据库名> 导出当前项目指定数据库的结构快照。"

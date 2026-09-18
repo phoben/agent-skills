@@ -10,5 +10,13 @@ Thumbs.db
 # Logs
 *.log
 
+# Local environment secrets
+.env
+.env.local
+
+# Python cache
+__pycache__/
+*.py[cod]
+
 # Local worktrees
 .worktrees/

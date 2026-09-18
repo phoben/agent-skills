@@ -1,0 +1,31 @@
+{
+  "version": 2,
+  "connections": [
+    {
+      "enabled": false,
+      "alias": "example-postgres",
+      "engine": "postgresql",
+      "hostEnv": "DB_HOST",
+      "portEnv": "DB_PORT",
+      "usernameEnv": "DB_USER",
+      "passwordEnv": "DB_PASSWORD"
+    },
+    {
+      "enabled": false,
+      "alias": "example-mysql-url",
+      "engine": "mysql",
+      "urlEnv": "DATABASE_URL"
+    },
+    {
+      "enabled": false,
+      "alias": "example-sqlserver",
+      "engine": "sqlserver",
+      "host": "127.0.0.1",
+      "port": 1433,
+      "usernameEnv": "MSSQL_USER",
+      "passwordEnv": "MSSQL_PASSWORD",
+      "encrypt": true,
+      "trustServerCertificate": false
+    }
+  ]
+}

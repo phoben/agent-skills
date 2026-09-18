@@ -1,9 +1,9 @@
 {
   "name": "yg-toolkit",
-  "version": "0.1.0",
-  "description": "约格开源的 Codex 工作流工具集，覆盖工程配置迁移、用户操作手册和需求文档。",
+  "version": "0.1.1+codex.20260918054746",
+  "description": "\u7ea6\u683c\u5f00\u6e90\u7684 Codex \u5de5\u4f5c\u6d41\u5de5\u5177\u96c6\uff0c\u8986\u76d6\u5de5\u7a0b\u914d\u7f6e\u8fc1\u79fb\u3001\u6570\u636e\u5e93\u7ed3\u6784\u63d0\u53d6\u548c\u6587\u6863\u5de5\u4f5c\u3002",
   "author": {
-    "name": "约格",
+    "name": "\u7ea6\u683c",
     "url": "https://github.com/phoben"
   },
   "homepage": "https://github.com/phoben/agent-skills#readme",
@@ -14,23 +14,25 @@
     "codex",
     "skills",
     "documentation",
+    "database",
+    "ddl",
     "migration"
   ],
   "skills": "./skills/",
   "interface": {
     "displayName": "YG Toolkit",
-    "shortDescription": "约格开源的工程迁移与文档工作流工具集",
-    "longDescription": "为 Codex 提供工程配置迁移、最终用户操作手册和需求文档编写能力。",
-    "developerName": "约格",
+    "shortDescription": "\u7ea6\u683c\u5f00\u6e90\u7684\u5de5\u7a0b\u8fc1\u79fb\u3001\u6570\u636e\u5e93\u4e0e\u6587\u6863\u5de5\u4f5c\u6d41\u5de5\u5177\u96c6",
+    "longDescription": "\u4e3a Codex \u63d0\u4f9b\u5de5\u7a0b\u914d\u7f6e\u8fc1\u79fb\u3001\u6570\u636e\u5e93\u7ed3\u6784\u63d0\u53d6\u3001\u6700\u7ec8\u7528\u6237\u64cd\u4f5c\u624b\u518c\u548c\u9700\u6c42\u6587\u6863\u7f16\u5199\u80fd\u529b\u3002",
+    "developerName": "\u7ea6\u683c",
     "category": "Productivity",
     "capabilities": [
       "Interactive",
       "Write"
     ],
     "defaultPrompt": [
-      "盘点当前项目的工程化配置并规划迁移。",
-      "根据当前仓库创建最终用户操作手册。",
-      "根据业务需求编写一份产品需求文档。"
+      "\u76d8\u70b9\u5f53\u524d\u9879\u76ee\u7684\u5de5\u7a0b\u5316\u914d\u7f6e\u5e76\u89c4\u5212\u8fc1\u79fb\u3002",
+      "\u6839\u636e\u5f53\u524d\u4ed3\u5e93\u521b\u5efa\u6700\u7ec8\u7528\u6237\u64cd\u4f5c\u624b\u518c\u3002",
+      "\u6839\u636e\u4e1a\u52a1\u9700\u6c42\u7f16\u5199\u4e00\u4efd\u4ea7\u54c1\u9700\u6c42\u6587\u6863\u3002"
     ]
   }
 }
