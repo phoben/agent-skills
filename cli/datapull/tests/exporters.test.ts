@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { stripMysqlDefiner } from "../src/exporters/mysql.js";
 import { sanitizePgDump } from "../src/exporters/postgresql.js";
-import { sqlcmdTrustArguments } from "../src/exporters/sqlserver.js";
+import {
+  sqlcmdTrustArguments,
+  sqlServerExportTimeoutMs,
+} from "../src/exporters/sqlserver.js";
 
 describe("DDL 安全规范化", () => {
   it("移除 MySQL DEFINER 并改用调用者安全上下文", () => {
@@ -33,5 +36,11 @@ describe("DDL 安全规范化", () => {
         tls: { encrypt: true, trustServerCertificate: true },
       }),
     ).toEqual(["-C"]);
+  });
+
+  it("SQL Server 导出默认保留大库预算，并允许 CI 缩短诊断预算", () => {
+    expect(sqlServerExportTimeoutMs(undefined)).toBe(900_000);
+    expect(sqlServerExportTimeoutMs("180000")).toBe(180_000);
+    expect(() => sqlServerExportTimeoutMs("invalid")).toThrow(/必须是正整数/u);
   });
 });

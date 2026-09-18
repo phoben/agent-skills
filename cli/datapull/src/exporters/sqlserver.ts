@@ -72,7 +72,7 @@ export class SqlServerExporter implements DatabaseExporter {
             DATAPULL_SQLSERVER_TRUST_CERT:
               connection.tls?.trustServerCertificate === true ? "true" : "false",
           },
-          timeoutMs: 900_000,
+          timeoutMs: sqlServerExportTimeoutMs(process.env.DATAPULL_SQLSERVER_EXPORT_TIMEOUT_MS),
           secrets: [connection.password ?? "", connection.secretUrl ?? ""],
         },
       );
@@ -162,6 +162,17 @@ export function sqlcmdTrustArguments(
   connection: Pick<ResolvedConnection, "tls">,
 ): string[] {
   return connection.tls?.trustServerCertificate === true ? ["-C"] : [];
+}
+
+export function sqlServerExportTimeoutMs(value: string | undefined): number {
+  if (value === undefined || value.trim().length === 0) return 900_000;
+  const timeoutMs = Number(value);
+  if (Number.isSafeInteger(timeoutMs) && timeoutMs > 0) return timeoutMs;
+  throw new DataPullError(
+    "CONFIG_INVALID",
+    "DATAPULL_SQLSERVER_EXPORT_TIMEOUT_MS 必须是正整数毫秒值。",
+    3,
+  );
 }
 
 function required(value: string | undefined, label: string): string {
