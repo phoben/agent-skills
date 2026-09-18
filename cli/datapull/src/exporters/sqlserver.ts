@@ -69,7 +69,8 @@ export class SqlServerExporter implements DatabaseExporter {
             DATAPULL_SQLSERVER_PASSWORD: connection.password ?? "",
             DATAPULL_SQLSERVER_TYPES: JSON.stringify(objectTypes),
             DATAPULL_SQLSERVER_ENCRYPT: "true",
-            DATAPULL_SQLSERVER_TRUST_CERT: "false",
+            DATAPULL_SQLSERVER_TRUST_CERT:
+              connection.tls?.trustServerCertificate === true ? "true" : "false",
           },
           timeoutMs: 900_000,
           secrets: [connection.password ?? "", connection.secretUrl ?? ""],
@@ -124,6 +125,7 @@ export class SqlServerExporter implements DatabaseExporter {
       "-Q",
       query,
     ];
+    args.push(...sqlcmdTrustArguments(connection));
     if (connection.authMode === "integrated") args.push("-E");
     else args.push("-U", connection.username ?? "");
     try {
@@ -154,6 +156,12 @@ export class SqlServerExporter implements DatabaseExporter {
       throw error;
     }
   }
+}
+
+export function sqlcmdTrustArguments(
+  connection: Pick<ResolvedConnection, "tls">,
+): string[] {
+  return connection.tls?.trustServerCertificate === true ? ["-C"] : [];
 }
 
 function required(value: string | undefined, label: string): string {

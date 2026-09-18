@@ -13,6 +13,7 @@ export interface ConnectionInput {
   credentialRef?: string | undefined;
   urlRef?: string | undefined;
   sslMode?: string | undefined;
+  trustServerCertificate?: boolean | undefined;
 }
 
 export async function promptAndAddConnection(
@@ -101,7 +102,15 @@ export async function promptAndAddConnection(
     ...(credentialRef === undefined ? {} : { credentialRef }),
     ...(urlRef === undefined ? {} : { urlRef }),
     ...(initial.sslMode === undefined ? {} : { sslMode: initial.sslMode }),
+    ...(initial.trustServerCertificate === undefined
+      ? {}
+      : { trustServerCertificate: initial.trustServerCertificate }),
   });
+  if (connection.tls?.trustServerCertificate === true) {
+    process.stderr.write(
+      "警告：该连接将保持加密，但不会验证 SQL Server 的身份，可能受到中间人攻击。\n",
+    );
+  }
   const approved = await confirm({
     message: `确认登记连接 ${connection.alias}（${connection.engine} / ${connection.authMode}）？`,
     default: true,

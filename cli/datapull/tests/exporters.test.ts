@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { stripMysqlDefiner } from "../src/exporters/mysql.js";
 import { sanitizePgDump } from "../src/exporters/postgresql.js";
+import { sqlcmdTrustArguments } from "../src/exporters/sqlserver.js";
 
 describe("DDL 安全规范化", () => {
   it("移除 MySQL DEFINER 并改用调用者安全上下文", () => {
@@ -19,5 +20,18 @@ describe("DDL 安全规范化", () => {
     expect(result).not.toContain("OWNER TO");
     expect(result).not.toContain("GRANT SELECT");
     expect(result).not.toContain("CREATE TRIGGER");
+  });
+
+  it("仅在用户显式信任 SQL Server 证书时传递 sqlcmd -C", () => {
+    expect(
+      sqlcmdTrustArguments({
+        tls: { encrypt: true, trustServerCertificate: false },
+      }),
+    ).toEqual([]);
+    expect(
+      sqlcmdTrustArguments({
+        tls: { encrypt: true, trustServerCertificate: true },
+      }),
+    ).toEqual(["-C"]);
   });
 });

@@ -26,6 +26,12 @@ datapull pull --connection main --database app --include table,view --yes
 # Agent 友好的机器可读输出
 datapull pull --connection main --database app --include table,view --yes --json
 
+# 为使用自签名证书的 SQL Server 保存显式信任设置
+datapull connection update --alias sqlserver-dev --trust-server-certificate --yes
+
+# 恢复严格证书验证
+datapull connection update --alias sqlserver-dev --verify-server-certificate --yes
+
 # 诊断环境，不自动安装
 datapull doctor --json
 
@@ -44,6 +50,8 @@ datapull skill install --target codex:user --yes
 - Linux：`${XDG_CONFIG_HOME:-$HOME/.config}/datapull/`
 
 非秘密连接信息保存在 `config.json`，密码或完整含秘密 URL 保存在权限受限的 `credentials.env`。秘密只能通过交互式隐藏输入或用户手工编辑该文件写入；不要把密码放入命令参数。
+
+SQL Server 始终启用传输加密并默认严格验证服务器证书。自签名或内部 CA 环境可在用户明确确认后，仅本次使用 `--trust-server-certificate --yes`，或把该设置保存到登记连接。该模式不会关闭加密，但无法验证服务器身份，适合已确认风险的开发、测试或受控内网；生产连接优先安装可信 CA，并保持严格验证。
 
 ## 覆盖规则
 

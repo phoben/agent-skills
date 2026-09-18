@@ -6,7 +6,7 @@
 
 - 工作流仅支持手动触发，仓库权限固定为 `contents: read`。
 - 数据库运行账号应为专用只读账号；建库和执行种子脚本使用另一组管理员凭证。
-- SQL Server 必须提供受运行器信任的 TLS 证书；工作流不会启用 `trustServerCertificate`。
+- SQL Server 始终使用加密连接；验收库可显式启用 `trustServerCertificate`，该选择不代表生产环境建议。
 - 不要在 Issue、提交、工作流参数或聊天中传递秘密。数据库秘密只写入 GitHub Actions Secrets。
 - Windows、Debian、Fedora 自托管运行器必须是可重建的专用验收机，不得与开发者日常账号或生产网络共用。
 - CI 只验证八个 Skill 路径的安装和回验。四种 Agent 对 Skill 的实际发现仍需在专用桌面验收机上确认，证据中的 `agentDiscoveryVerified` 因此保持 `false`。
@@ -41,6 +41,10 @@ SQL Server 使用私有 CA 或自签名证书时，将签发服务器证书的�
 `DATAPULL_CI_SQLSERVER_CA_CERT`。macOS 与 Ubuntu 托管任务会在连接前把该 CA 加入系统信任库，
 但仍会校验证书有效期和主机名；证书的 SAN 必须包含配置中的 DNS 名称或 IP 地址。自托管运行器由
 维护者预先安装同一 CA，工作流不会修改其系统信任库。
+
+当前自动验收连接会明确保存 `trustServerCertificate=true`，用于兼容隔离测试库的自签名证书；
+连接仍然加密，但不验证服务器身份。若配置 `DATAPULL_CI_SQLSERVER_CA_CERT` 并希望验证证书链，
+应移除验收脚本中的 `--trust-server-certificate` 后运行。
 
 ## 运行器
 

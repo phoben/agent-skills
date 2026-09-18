@@ -50,6 +50,36 @@ describe("登记连接", () => {
       sslMode: "require",
     });
   });
+
+  it("SQL Server 默认验证证书并允许显式信任或单次覆盖", async () => {
+    const service = await serviceFixture();
+    await service.add(
+      createConnection({
+        alias: "sqlserver-main",
+        engine: "sqlserver",
+        authMode: "password",
+        host: "db.local",
+        username: "reader",
+        credentialRef: "MAIN_PASSWORD",
+        trustServerCertificate: true,
+      }),
+    );
+
+    expect((await service.get("sqlserver-main")).tls).toEqual({
+      encrypt: true,
+      trustServerCertificate: true,
+    });
+    expect(
+      (await service.resolve("sqlserver-main", undefined, {
+        trustServerCertificate: false,
+      })).tls,
+    ).toEqual({ encrypt: true, trustServerCertificate: false });
+
+    const updated = await service.update("sqlserver-main", {
+      tls: { encrypt: true, trustServerCertificate: false },
+    });
+    expect(updated.tls?.trustServerCertificate).toBe(false);
+  });
 });
 
 async function serviceFixture(): Promise<ConnectionService> {

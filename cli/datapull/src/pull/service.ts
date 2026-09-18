@@ -1,4 +1,4 @@
-import { ConnectionService } from "../connections/service.js";
+import { ConnectionService, connectionSecurityWarnings } from "../connections/service.js";
 import { DataPullError } from "../core/errors.js";
 import { exporterFor } from "../exporters/factory.js";
 import { OBJECT_TYPES } from "../exporters/objects.js";
@@ -13,6 +13,7 @@ export interface PullOptions {
   include?: readonly string[] | undefined;
   installMissing: boolean;
   confirmed: boolean;
+  trustServerCertificate?: boolean | undefined;
   projectRoot?: string | undefined;
   onStage?: ((stage: string) => void) | undefined;
 }
@@ -31,6 +32,13 @@ export class PullService {
   async execute(options: PullOptions): Promise<PullExecutionResult> {
     validatePathSegment(options.database, "数据库名");
     const connection = await this.connections.get(options.connectionAlias);
+    if (options.trustServerCertificate === true && connection.engine !== "sqlserver") {
+      throw new DataPullError(
+        "INVALID_ARGUMENT",
+        "--trust-server-certificate 只适用于 SQL Server。",
+        2,
+      );
+    }
     const supported = OBJECT_TYPES[connection.engine];
     const selected = options.include === undefined ? [...supported] : [...new Set(options.include)];
     if (selected.length === 0) {
@@ -52,7 +60,11 @@ export class PullService {
       options.confirmed,
     );
     options.onStage?.("解析连接并校验数据库");
-    const resolved = await this.connections.resolve(options.connectionAlias, options.database);
+    const resolved = await this.connections.resolve(options.connectionAlias, options.database, {
+      ...(options.trustServerCertificate === true
+        ? { trustServerCertificate: true }
+        : {}),
+    });
     const exporter = exporterFor(connection.engine);
     const projectRoot = options.projectRoot ?? (await discoverProjectRoot());
     const transaction = new OutputTransaction({
@@ -64,7 +76,7 @@ export class PullService {
     options.onStage?.("准备输出目录与事务锁");
     await transaction.acquire();
     let committed = false;
-    const warnings: string[] = [];
+    const warnings = connectionSecurityWarnings(resolved);
     let result: PullExecutionResult | undefined;
     try {
       await exporter.test(resolved, options.database);

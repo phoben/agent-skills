@@ -128,6 +128,61 @@ describe("CLI JSON 契约", () => {
     expect(humanResult.stderr).toContain("下载影响：");
     expect(humanResult.stderr).not.toContain("top-secret");
   }, 15_000);
+
+  it("可显式保存和恢复 SQL Server 证书验证策略", async () => {
+    const configRoot = await mkdtemp(join(tmpdir(), "datapull-cli-sqlserver-tls-test-"));
+    directories.push(configRoot);
+    const env = {
+      ...process.env,
+      DATAPULL_CONFIG_HOME: configRoot,
+      APP_PASSWORD: "top-secret",
+    };
+    const added = await runCli(
+      [
+        "connection",
+        "add",
+        "--alias",
+        "sqlserver-main",
+        "--engine",
+        "sqlserver",
+        "--auth-mode",
+        "password",
+        "--host",
+        "db.local",
+        "--username",
+        "reader",
+        "--credential-ref",
+        "APP_PASSWORD",
+        "--trust-server-certificate",
+        "--yes",
+        "--json",
+      ],
+      env,
+    );
+    expect(added.exitCode).toBe(0);
+    expect(JSON.parse(added.stdout)).toMatchObject({
+      tls: { encrypt: true, trustServerCertificate: true },
+      securityWarnings: [expect.stringContaining("不会验证 SQL Server 身份")],
+    });
+
+    const updated = await runCli(
+      [
+        "connection",
+        "update",
+        "--alias",
+        "sqlserver-main",
+        "--verify-server-certificate",
+        "--yes",
+        "--json",
+      ],
+      env,
+    );
+    expect(updated.exitCode).toBe(0);
+    expect(JSON.parse(updated.stdout)).toMatchObject({
+      tls: { encrypt: true, trustServerCertificate: false },
+    });
+    expect(JSON.parse(updated.stdout)).not.toHaveProperty("securityWarnings");
+  }, 15_000);
 });
 
 async function runCli(args: string[], env = process.env) {

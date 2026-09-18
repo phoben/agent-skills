@@ -1,7 +1,12 @@
 import { confirm, password } from "@inquirer/prompts";
 import { Command, Option } from "commander";
 import { createRequire } from "node:module";
-import { ConnectionService, createConnection, redactedConnection } from "../connections/service.js";
+import {
+  ConnectionService,
+  connectionSecurityWarnings,
+  createConnection,
+  redactedConnection,
+} from "../connections/service.js";
 import { ConfigStore } from "../config/store.js";
 import { DataPullError } from "../core/errors.js";
 import { Output } from "../core/output.js";
@@ -30,6 +35,7 @@ interface ConnectionOptions extends GlobalOptions, ConnectionInput {
   refreshCredential?: boolean;
   deleteCredential?: boolean;
   database?: string;
+  verifyServerCertificate?: boolean;
 }
 
 export function buildProgram(store = new ConfigStore()): Command {
@@ -79,6 +85,10 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
     .option("--credential-ref <name>", "密码变量名")
     .option("--url-ref <name>", "连接 URL 变量名")
     .option("--ssl-mode <mode>", "MySQL/PostgreSQL TLS 模式")
+    .option(
+      "--trust-server-certificate",
+      "保持加密但不验证 SQL Server 身份；仅用于明确接受风险的连接",
+    )
     .action(async (options: ConnectionOptions, command: Command) => {
       const global = globals(command);
       await initializeForWrite(store, global.yes === true);
@@ -107,7 +117,7 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
       }
       output(command, "connection add").success(
         redactedConnection(created),
-        `已登记连接：${created.alias}`,
+        successMessage(`已登记连接：${created.alias}`, created),
       );
     });
 
@@ -116,12 +126,18 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
     .description("列出脱敏连接")
     .action(async (_options, command) => {
       const service = new ConnectionService(store);
-      const connections = (await service.list()).map(redactedConnection);
+      const registered = await service.list();
+      const connections = registered.map(redactedConnection);
       output(command, "connection list").success(
         { connections },
         connections.length === 0
           ? "尚未登记数据库连接。"
-          : connections.map((item) => `${item.alias} · ${item.engine}`).join("\n"),
+          : registered
+              .map(
+                (item) =>
+                  `${item.alias} · ${item.engine}${connectionSecurityWarnings(item).length > 0 ? " · ⚠ 未验证服务器身份" : ""}`,
+              )
+              .join("\n"),
       );
     });
 
@@ -146,10 +162,27 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
     .option("--credential-ref <name>")
     .option("--url-ref <name>")
     .option("--ssl-mode <mode>")
+    .addOption(
+      new Option(
+        "--trust-server-certificate",
+        "保持加密但不验证 SQL Server 身份",
+      ).conflicts("verifyServerCertificate"),
+    )
+    .addOption(
+      new Option(
+        "--verify-server-certificate",
+        "恢复严格验证 SQL Server 证书",
+      ).conflicts("trustServerCertificate"),
+    )
     .option("--refresh-credential", "在交互终端隐藏输入新凭证")
     .action(async (options: ConnectionOptions, command) => {
       const global = globals(command);
-      await requireWriteConfirmation(global, "确认更新该登记连接？");
+      await requireWriteConfirmation(
+        global,
+        options.trustServerCertificate === true
+          ? "确认保存“信任服务器证书”？连接仍加密，但 SQL Server 身份不再验证。"
+          : "确认更新该登记连接？",
+      );
       const service = new ConnectionService(store);
       const alias = requiredString(options.alias, "--alias");
       const existing = await service.get(alias);
@@ -170,7 +203,7 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
           await password({ message: `更新 ${reference}（输入不会回显）：`, mask: "*" }),
         );
       }
-      const changes = compactConnectionChanges(options);
+      const changes = compactConnectionChanges(options, existing);
       if (Object.keys(changes).length === 0 && options.refreshCredential !== true) {
         throw new DataPullError("INVALID_ARGUMENT", "至少提供一个待修改选项。", 2);
       }
@@ -178,7 +211,10 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
         if (reference !== undefined) await store.resolveSecret(reference);
       }
       const updated = Object.keys(changes).length === 0 ? existing : await service.update(alias, changes);
-      output(command, "connection update").success(redactedConnection(updated), `已更新连接：${alias}`);
+      output(command, "connection update").success(
+        redactedConnection(updated),
+        successMessage(`已更新连接：${alias}`, updated),
+      );
     });
 
   connection
@@ -207,11 +243,30 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
     .description("只读校验连接或目标数据库")
     .requiredOption("--alias <alias>", "连接别名")
     .option("--database <database>", "目标数据库")
+    .option(
+      "--trust-server-certificate",
+      "仅本次保持加密但不验证 SQL Server 身份",
+    )
     .action(async (options: ConnectionOptions, command) => {
       const service = new ConnectionService(store);
       const alias = requiredString(options.alias, "--alias");
+      const configured = await service.get(alias);
+      if (options.trustServerCertificate === true && configured.engine !== "sqlserver") {
+        throw new DataPullError(
+          "INVALID_ARGUMENT",
+          "--trust-server-certificate 只适用于 SQL Server。",
+          2,
+        );
+      }
+      if (options.trustServerCertificate === true) {
+        await requireRiskConfirmation(globals(command));
+      }
       if (options.database !== undefined) validatePathSegment(options.database, "数据库名");
-      const connection = await service.resolve(alias, options.database);
+      const connection = await service.resolve(alias, options.database, {
+        ...(options.trustServerCertificate === true
+          ? { trustServerCertificate: true }
+          : {}),
+      });
       await new ToolManager().ensure(connection.engine, false, false);
       const testResult = await exporterFor(connection.engine).test(connection, options.database);
       output(command, "connection test").success(
@@ -220,8 +275,14 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
           database: options.database ?? null,
           reachable: true,
           serverVersion: testResult.serverVersion,
+          ...(connectionSecurityWarnings(connection).length === 0
+            ? {}
+            : { securityWarnings: connectionSecurityWarnings(connection) }),
         },
-        `连接校验通过：${alias}${options.database === undefined ? "" : ` / ${options.database}`}`,
+        successMessage(
+          `连接校验通过：${alias}${options.database === undefined ? "" : ` / ${options.database}`}`,
+          connection,
+        ),
       );
     });
 }
@@ -231,14 +292,39 @@ function registerDatabaseCommands(program: Command, store: ConfigStore): void {
   database
     .command("list")
     .requiredOption("--connection <alias>", "连接别名")
-    .action(async (options: { connection: string }, command) => {
+    .option(
+      "--trust-server-certificate",
+      "仅本次保持加密但不验证 SQL Server 身份",
+    )
+    .action(async (options: { connection: string; trustServerCertificate?: boolean }, command) => {
       const service = new ConnectionService(store);
       const connection = await service.get(options.connection);
+      if (options.trustServerCertificate === true && connection.engine !== "sqlserver") {
+        throw new DataPullError(
+          "INVALID_ARGUMENT",
+          "--trust-server-certificate 只适用于 SQL Server。",
+          2,
+        );
+      }
+      if (options.trustServerCertificate === true) {
+        await requireRiskConfirmation(globals(command));
+      }
+      const effectiveConnection =
+        options.trustServerCertificate === true
+          ? {
+              ...connection,
+              tls: { encrypt: true as const, trustServerCertificate: true },
+            }
+          : connection;
       let enumerated: string[] = [];
       let enumerationError: Record<string, string> | undefined;
       try {
         enumerated = await exporterFor(connection.engine).listDatabases(
-          await service.resolve(connection.alias),
+          await service.resolve(connection.alias, undefined, {
+            ...(options.trustServerCertificate === true
+              ? { trustServerCertificate: true }
+              : {}),
+          }),
         );
       } catch (error) {
         const normalized = error instanceof DataPullError ? error : new DataPullError("DATABASE_CLIENT_FAILED", String(error), 1);
@@ -255,9 +341,17 @@ function registerDatabaseCommands(program: Command, store: ConfigStore): void {
             enumerated: enumerated.includes(name),
           })),
           manualInputAllowed: true,
+          ...(connectionSecurityWarnings(effectiveConnection).length > 0
+            ? { securityWarnings: connectionSecurityWarnings(effectiveConnection) }
+            : {}),
           ...(enumerationError === undefined ? {} : { enumerationError }),
         },
-        values.length > 0 ? values.join("\n") : "未枚举到数据库，可在拉取时手工指定名称。",
+        successMessage(
+          values.length > 0
+            ? values.join("\n")
+            : "未枚举到数据库，可在拉取时手工指定名称。",
+          effectiveConnection,
+        ),
       );
     });
 
@@ -290,7 +384,11 @@ function registerPullCommand(program: Command, store: ConfigStore): void {
     .requiredOption("--database <database>", "目标数据库")
     .option("--include <types>", "逗号分隔的对象类型")
     .option("--install-missing", "安装缺少的官方数据库工具")
-    .action(async (options: { connection: string; database: string; include?: string; installMissing?: boolean }, command) => {
+    .option(
+      "--trust-server-certificate",
+      "仅本次保持加密但不验证 SQL Server 身份",
+    )
+    .action(async (options: { connection: string; database: string; include?: string; installMissing?: boolean; trustServerCertificate?: boolean }, command) => {
       const global = globals(command);
       if (global.yes !== true && options.installMissing === true) {
         const connection = await new ConnectionService(store).get(options.connection);
@@ -312,12 +410,19 @@ function registerPullCommand(program: Command, store: ConfigStore): void {
         include: options.include?.split(",").map((value) => value.trim()).filter(Boolean),
         installMissing: options.installMissing === true,
         confirmed: global.yes === true,
+        trustServerCertificate: options.trustServerCertificate === true,
         onStage: (stage) => {
           if (global.json === true) process.stderr.write(`${stage}\n`);
           else process.stdout.write(`• ${stage}\n`);
         },
       });
-      output(command, "pull").success(result, `结构文件已写入：${result.outputPath}`);
+      output(command, "pull").success(
+        result,
+        [
+          `结构文件已写入：${result.outputPath}`,
+          ...(result.warnings ?? []).map((warning) => `警告：${warning}`),
+        ].join("\n"),
+      );
     });
 }
 
@@ -502,6 +607,7 @@ function requireConnectionCreateOptions(options: ConnectionOptions): {
   credentialRef?: string | undefined;
   urlRef?: string | undefined;
   sslMode?: string | undefined;
+  trustServerCertificate?: boolean | undefined;
 } {
   const alias = requiredString(options.alias, "--alias");
   const engine = requiredString(options.engine, "--engine") as Engine;
@@ -512,6 +618,13 @@ function requireConnectionCreateOptions(options: ConnectionOptions): {
     requiredString(options.credentialRef, "--credential-ref");
   } else if (authMode === "url") requiredString(options.urlRef, "--url-ref");
   else requiredString(options.host, "--host");
+  if (options.trustServerCertificate === true && engine !== "sqlserver") {
+    throw new DataPullError(
+      "INVALID_ARGUMENT",
+      "--trust-server-certificate 只适用于 SQL Server。",
+      2,
+    );
+  }
   return {
     alias,
     engine,
@@ -522,21 +635,68 @@ function requireConnectionCreateOptions(options: ConnectionOptions): {
     ...(options.credentialRef === undefined ? {} : { credentialRef: options.credentialRef }),
     ...(options.urlRef === undefined ? {} : { urlRef: options.urlRef }),
     ...(options.sslMode === undefined ? {} : { sslMode: options.sslMode }),
+    ...(options.trustServerCertificate === undefined
+      ? {}
+      : { trustServerCertificate: options.trustServerCertificate }),
   };
 }
 
 function compactConnectionChanges(
   options: ConnectionOptions,
+  existing: ConnectionConfig,
 ): Partial<Omit<ConnectionConfig, "alias">> {
   const fields = ["engine", "authMode", "host", "port", "username", "credentialRef", "urlRef", "sslMode"] as const;
-  return Object.fromEntries(
+  const changes = Object.fromEntries(
     fields.flatMap((field) => (options[field] === undefined ? [] : [[field, options[field]]])),
   ) as Partial<Omit<ConnectionConfig, "alias">>;
+  const targetEngine = options.engine ?? existing.engine;
+  if (
+    (options.trustServerCertificate === true || options.verifyServerCertificate === true) &&
+    targetEngine !== "sqlserver"
+  ) {
+    throw new DataPullError(
+      "INVALID_ARGUMENT",
+      "服务器证书信任选项只适用于 SQL Server。",
+      2,
+    );
+  }
+  if (options.trustServerCertificate === true) {
+    changes.tls = { encrypt: true, trustServerCertificate: true };
+  } else if (options.verifyServerCertificate === true) {
+    changes.tls = { encrypt: true, trustServerCertificate: false };
+  }
+  return changes;
+}
+
+async function requireRiskConfirmation(global: GlobalOptions): Promise<void> {
+  if (global.yes === true) return;
+  const message =
+    "信任服务器证书会保留加密，但不验证 SQL Server 身份，可能受到中间人攻击。";
+  if (!process.stdin.isTTY || global.json === true) {
+    throw new DataPullError(
+      "CONFIRMATION_REQUIRED",
+      `${message} 如确认仅本次使用，请添加 --yes。`,
+      2,
+    );
+  }
+  if (!(await confirm({ message: `${message} 是否继续？`, default: false }))) {
+    throw new DataPullError("OPERATION_CANCELLED", "操作已取消。", 1);
+  }
 }
 
 function requiredString(value: string | undefined, option: string): string {
   if (value !== undefined && value.trim().length > 0) return value.trim();
   throw new DataPullError("INVALID_ARGUMENT", `缺少必需选项 ${option}。`, 2);
+}
+
+function successMessage(
+  message: string,
+  connection: Pick<ConnectionConfig, "engine" | "tls">,
+): string {
+  return [
+    message,
+    ...connectionSecurityWarnings(connection).map((warning) => `警告：${warning}`),
+  ].join("\n");
 }
 
 function numberParser(value: string): number {

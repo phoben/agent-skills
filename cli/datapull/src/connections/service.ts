@@ -14,6 +14,13 @@ const DEFAULT_PORTS: Record<Engine, number> = {
   sqlserver: 1433,
 };
 
+export const SQLSERVER_TRUST_WARNING =
+  "连接保持加密，但不会验证 SQL Server 身份，可能受到中间人攻击。";
+
+export interface ResolveConnectionOptions {
+  trustServerCertificate?: boolean | undefined;
+}
+
 export class ConnectionService {
   constructor(readonly store: ConfigStore) {}
 
@@ -117,7 +124,11 @@ export class ConnectionService {
     }
   }
 
-  async resolve(alias: string, database?: string): Promise<ResolvedConnection> {
+  async resolve(
+    alias: string,
+    database?: string,
+    options: ResolveConnectionOptions = {},
+  ): Promise<ResolvedConnection> {
     const connection = await this.get(alias);
     if (connection.authMode === "integrated" && process.platform !== "win32") {
       throw new DataPullError(
@@ -129,7 +140,7 @@ export class ConnectionService {
     if (connection.authMode === "url") {
       const value = await this.store.resolveSecret(required(connection.urlRef, "urlRef"));
       const url = parseConnectionUrl(connection.engine, value);
-      return {
+      return applyResolveOptions({
         ...connection,
         host: url.hostname,
         port: url.port.length > 0 ? Number(url.port) : DEFAULT_PORTS[connection.engine],
@@ -138,21 +149,21 @@ export class ConnectionService {
         sslMode: connection.sslMode ?? url.searchParams.get("sslmode") ?? undefined,
         secretUrl: value,
         ...(database === undefined ? {} : { database }),
-      };
+      }, options);
     }
     if (connection.authMode === "password") {
-      return {
+      return applyResolveOptions({
         ...connection,
         port: connection.port ?? DEFAULT_PORTS[connection.engine],
         password: await this.store.resolveSecret(required(connection.credentialRef, "credentialRef")),
         ...(database === undefined ? {} : { database }),
-      };
+      }, options);
     }
-    return {
+    return applyResolveOptions({
       ...connection,
       port: connection.port ?? DEFAULT_PORTS[connection.engine],
       ...(database === undefined ? {} : { database }),
-    };
+    }, options);
   }
 }
 
@@ -166,13 +177,20 @@ export function createConnection(input: {
   credentialRef?: string | undefined;
   urlRef?: string | undefined;
   sslMode?: string | undefined;
+  trustServerCertificate?: boolean | undefined;
 }): ConnectionConfig {
+  const { trustServerCertificate, ...connectionInput } = input;
   return normalizeConnection({
-    ...input,
+    ...connectionInput,
     recentDatabases: [],
     favoriteDatabases: [],
-    ...(input.engine === "sqlserver"
-      ? { tls: { encrypt: true as const, trustServerCertificate: false as const } }
+    ...(connectionInput.engine === "sqlserver"
+      ? {
+          tls: {
+            encrypt: true as const,
+            trustServerCertificate: trustServerCertificate ?? false,
+          },
+        }
       : {}),
   });
 }
@@ -192,9 +210,35 @@ function normalizeConnection(connection: ConnectionConfig): ConnectionConfig {
     delete parsed.credentialRef;
   }
   if (parsed.engine === "sqlserver") {
-    parsed.tls = { encrypt: true, trustServerCertificate: false };
+    parsed.tls = {
+      encrypt: true,
+      trustServerCertificate: parsed.tls?.trustServerCertificate ?? false,
+    };
   } else delete parsed.tls;
   return parsed;
+}
+
+function applyResolveOptions(
+  connection: ResolvedConnection,
+  options: ResolveConnectionOptions,
+): ResolvedConnection {
+  if (options.trustServerCertificate === undefined) {
+    return connection;
+  }
+  if (connection.engine !== "sqlserver") {
+    throw new DataPullError(
+      "INVALID_ARGUMENT",
+      "信任服务器证书只适用于 SQL Server。",
+      2,
+    );
+  }
+  return {
+    ...connection,
+    tls: {
+      encrypt: true,
+      trustServerCertificate: options.trustServerCertificate,
+    },
+  };
 }
 
 function parseConnectionUrl(engine: Engine, value: string): URL {
@@ -245,7 +289,19 @@ export function redactedConnection(connection: ConnectionConfig): Record<string,
     ...connection,
     credentialRef: connection.credentialRef,
     urlRef: connection.urlRef,
+    ...(connectionSecurityWarnings(connection).length === 0
+      ? {}
+      : { securityWarnings: connectionSecurityWarnings(connection) }),
   };
+}
+
+export function connectionSecurityWarnings(
+  connection: Pick<ConnectionConfig, "engine" | "tls">,
+): string[] {
+  return connection.engine === "sqlserver" &&
+    connection.tls?.trustServerCertificate === true
+    ? [SQLSERVER_TRUST_WARNING]
+    : [];
 }
 
 export function cloneConfig(config: GlobalConfig): GlobalConfig {

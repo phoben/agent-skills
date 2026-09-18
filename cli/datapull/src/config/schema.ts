@@ -23,7 +23,7 @@ export const connectionSchema = z
     tls: z
       .object({
         encrypt: z.literal(true),
-        trustServerCertificate: z.literal(false),
+        trustServerCertificate: z.boolean(),
       })
       .strict()
       .optional(),
@@ -44,13 +44,10 @@ export const connectionSchema = z
       context.addIssue({ code: "custom", message: "集成认证只支持 SQL Server。" });
     }
     if (connection.engine === "sqlserver") {
-      if (
-        connection.tls?.encrypt !== true ||
-        connection.tls.trustServerCertificate !== false
-      ) {
+      if (connection.tls?.encrypt !== true) {
         context.addIssue({
           code: "custom",
-          message: "SQL Server 必须启用加密并验证服务器证书。",
+          message: "SQL Server 必须启用加密。",
         });
       }
     }

@@ -18,8 +18,8 @@ export interface ConnectionConfig {
   favoriteDatabases: string[];
   tls?:
     | {
-    encrypt: true;
-    trustServerCertificate: false;
+        encrypt: true;
+        trustServerCertificate: boolean;
       }
     | undefined;
 }

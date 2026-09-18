@@ -25,10 +25,19 @@ export async function runWizard(store: ConfigStore): Promise<PullExecutionResult
   await promptSkillSetup(store);
 
   let connection = await chooseConnection(connections);
-  while (!(await validateConnectionWithRecovery(connections, connection))) {
+  let trustServerCertificateOnce = false;
+  while (true) {
+    const validation = await validateConnectionWithRecovery(connections, connection);
+    if (validation !== undefined) {
+      connection = validation.connection;
+      trustServerCertificateOnce = validation.trustServerCertificateOnce;
+      break;
+    }
     connection = await chooseConnection(connections);
   }
-  const resolved = await connections.resolve(connection.alias);
+  const resolved = await connections.resolve(connection.alias, undefined, {
+    ...(trustServerCertificateOnce ? { trustServerCertificate: true } : {}),
+  });
   const exporter = exporterFor(connection.engine);
   let enumerated: string[] = [];
   try {
@@ -39,7 +48,12 @@ export async function runWizard(store: ConfigStore): Promise<PullExecutionResult
   }
   const database = await chooseDatabase(connection, enumerated);
   validatePathSegment(database, "数据库名");
-  await exporter.test(await connections.resolve(connection.alias, database), database);
+  await exporter.test(
+    await connections.resolve(connection.alias, database, {
+      ...(trustServerCertificateOnce ? { trustServerCertificate: true } : {}),
+    }),
+    database,
+  );
 
   const common = new Set(commonObjectTypes(connection.engine));
   const selectedTypes = await checkbox<string>({
@@ -59,6 +73,9 @@ export async function runWizard(store: ConfigStore): Promise<PullExecutionResult
       `  数据库：${database}`,
       `  对象类型：${selectedTypes.join("、")}`,
       `  项目根：${projectRoot}`,
+      ...(connection.tls?.trustServerCertificate === true || trustServerCertificateOnce
+        ? ["  SQL Server TLS：连接已加密，但不验证服务器身份"]
+        : []),
       "  覆盖规则：所选类型整体更新；未选类型保留；任一所选类型失败则均不更新。",
     ].join("\n") + "\n",
   );
@@ -78,6 +95,7 @@ export async function runWizard(store: ConfigStore): Promise<PullExecutionResult
             include: selectedTypes,
             installMissing: true,
             confirmed: true,
+            trustServerCertificate: trustServerCertificateOnce,
             projectRoot,
             onStage: (stage) => {
               task.output = stage;
@@ -108,7 +126,7 @@ async function chooseConnection(service: ConnectionService): Promise<ConnectionC
     message: "选择登记连接：",
     choices: [
       ...connections.map((connection) => ({
-        name: `${connection.alias} · ${connection.engine}`,
+        name: `${connection.alias} · ${connection.engine}${connection.tls?.trustServerCertificate === true ? " · ⚠ 未验证服务器身份" : ""}`,
         value: connection.alias,
       })),
       { name: "＋ 添加新数据库连接", value: "__add__" },
@@ -120,11 +138,19 @@ async function chooseConnection(service: ConnectionService): Promise<ConnectionC
 async function validateConnectionWithRecovery(
   service: ConnectionService,
   connection: ConnectionConfig,
-): Promise<boolean> {
+): Promise<
+  | {
+      connection: ConnectionConfig;
+      trustServerCertificateOnce: boolean;
+    }
+  | undefined
+> {
   const tools = new ToolManager();
+  let current = connection;
+  let trustServerCertificateOnce = false;
   while (true) {
     try {
-      const missing = await tools.missing(connection.engine);
+      const missing = await tools.missing(current.engine);
       if (missing.length > 0) {
         const plans = tools.plans(missing);
         process.stdout.write("\n检测到缺少数据库工具：\n");
@@ -141,15 +167,50 @@ async function validateConnectionWithRecovery(
             4,
           );
         }
-        await tools.ensure(connection.engine, true, true);
+        await tools.ensure(current.engine, true, true);
       }
-      const resolved = await service.resolve(connection.alias);
-      await exporterFor(connection.engine).test(resolved);
-      process.stdout.write(`连接 ${connection.alias} 校验通过。\n`);
-      return true;
+      const resolved = await service.resolve(current.alias, undefined, {
+        ...(trustServerCertificateOnce ? { trustServerCertificate: true } : {}),
+      });
+      await exporterFor(current.engine).test(resolved);
+      process.stdout.write(`连接 ${current.alias} 校验通过。\n`);
+      return { connection: current, trustServerCertificateOnce };
     } catch (error) {
       const normalized = asDataPullError(error);
       process.stderr.write(`连接校验失败 [${normalized.code}]：${normalized.message}\n`);
+      if (
+        current.engine === "sqlserver" &&
+        normalized.code === "SQLSERVER_TLS_CERTIFICATE_UNTRUSTED"
+      ) {
+        const tlsAction = await select<"once" | "save" | "back" | "exit">({
+          message:
+            "服务器证书不受信任。信任后连接仍加密，但无法验证服务器身份，可能受到中间人攻击：",
+          choices: [
+            { name: "仅本次信任并继续", value: "once" },
+            { name: "保存到该连接并继续", value: "save" },
+            { name: "返回连接选择", value: "back" },
+            { name: "退出", value: "exit" },
+          ],
+        });
+        if (tlsAction === "once") {
+          trustServerCertificateOnce = true;
+          continue;
+        }
+        if (tlsAction === "save") {
+          const approved = await confirm({
+            message: "确认保存该风险设置？可稍后使用 connection update 恢复证书验证。",
+            default: false,
+          });
+          if (!approved) continue;
+          current = await service.update(current.alias, {
+            tls: { encrypt: true, trustServerCertificate: true },
+          });
+          trustServerCertificateOnce = false;
+          continue;
+        }
+        if (tlsAction === "back") return undefined;
+        throw new DataPullError("OPERATION_CANCELLED", "已退出向导。", 1);
+      }
       const action = await select<"retry" | "credential" | "back" | "exit">({
         message: "请选择恢复操作：",
         choices: [
@@ -160,9 +221,9 @@ async function validateConnectionWithRecovery(
         ],
       });
       if (action === "retry") continue;
-      if (action === "back") return false;
+      if (action === "back") return undefined;
       if (action === "exit") throw new DataPullError("OPERATION_CANCELLED", "已退出向导。", 1);
-      const reference = connection.authMode === "url" ? connection.urlRef : connection.credentialRef;
+      const reference = current.authMode === "url" ? current.urlRef : current.credentialRef;
       if (reference === undefined) {
         process.stderr.write("该连接没有可更新的凭证引用。\n");
         continue;

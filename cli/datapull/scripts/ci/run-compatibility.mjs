@@ -107,6 +107,7 @@ try {
         "--credential-ref",
         engine.passwordReference,
         ...(engine.sslMode === undefined ? [] : ["--ssl-mode", engine.sslMode]),
+        ...(engine.id === "sqlserver" ? ["--trust-server-certificate"] : []),
         "--yes",
         "--json",
       ],

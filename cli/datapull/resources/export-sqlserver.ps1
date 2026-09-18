@@ -97,8 +97,8 @@ $authentication = Get-RequiredEnvironmentValue -Name 'DATAPULL_SQLSERVER_AUTH'
 $encrypt = (Get-RequiredEnvironmentValue -Name 'DATAPULL_SQLSERVER_ENCRYPT') -eq 'true'
 $trustCertificate = (Get-RequiredEnvironmentValue -Name 'DATAPULL_SQLSERVER_TRUST_CERT') -eq 'true'
 
-if (-not $encrypt -or $trustCertificate) {
-    throw 'DataPull 首版要求 SQL Server 启用加密并验证服务器证书。'
+if (-not $encrypt) {
+    throw 'DataPull 要求 SQL Server 启用加密。'
 }
 
 $serverConnection = New-Object Microsoft.SqlServer.Management.Common.ServerConnection
@@ -115,7 +115,10 @@ if ($serverConnection.PSObject.Properties.Name -contains 'EncryptConnection') {
     $serverConnection.EncryptConnection = $true
 }
 if ($serverConnection.PSObject.Properties.Name -contains 'TrustServerCertificate') {
-    $serverConnection.TrustServerCertificate = $false
+    $serverConnection.TrustServerCertificate = $trustCertificate
+}
+elseif ($trustCertificate) {
+    throw '当前 PowerShell SqlServer 模块不支持 TrustServerCertificate，请升级模块后重试。'
 }
 
 $server = New-Object Microsoft.SqlServer.Management.Smo.Server($serverConnection)

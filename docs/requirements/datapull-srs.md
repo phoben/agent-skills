@@ -221,13 +221,13 @@ DataPull 不得实现 `datapull update` 或自行调用 NPM 修改全局包。NP
 
 密码只能通过隐藏输入或用户手工编辑 `credentials.env` 写入。CLI 不得把秘密写入 `config.json`、命令参数历史、stdout、stderr、日志、诊断、JSON 结果或项目目录。数据库凭证文件属于本机明文存储，无法抵御已取得当前用户权限的恶意程序；CLI 必须说明该边界，并在每次读取或写入前验证第 4.2 节的权限要求。权限不安全时必须失败关闭，不能通过普通确认继续。缺失、空值或解析失败的凭证是可恢复错误，报错只能显示引用变量名和修复路径。
 
-SQL Server 默认 `encrypt=true`、`trustServerCertificate=false`；不可信证书不得自动关闭加密或跳过验证。Agent 不得要求用户在聊天或命令参数中发送数据库凭证。
+SQL Server 固定 `encrypt=true`，默认 `trustServerCertificate=false`。证书不可信时不得自动关闭加密或跳过验证；交互模式必须说明身份验证缺失及中间人攻击风险，并提供安装可信 CA、仅本次信任、保存到该连接或取消。命令模式只有在用户显式提供 `--trust-server-certificate --yes` 时才能放宽验证，并应能通过 `--verify-server-certificate --yes` 恢复严格验证。Agent 不得替用户选择信任证书，也不得要求用户在聊天或命令参数中发送数据库凭证。
 
 ### 5.3 连接 CRUD 与校验
 
 引导模式与命令模式必须提供新增、查看、修改、删除、校验。新增收集别名、引擎、认证方式、非秘密连接参数、TLS 与隐藏凭证；别名冲突必须要求修改或明确更新。查看严格脱敏。修改只影响该连接元数据或凭证。删除必须在交互中显示影响并确认，且不得删除项目结构文件；仅在凭证变量未被其他连接引用且用户明确选择时删除未引用凭证。校验只读，不得修改数据库或结构文件。
 
-连接校验失败时，引导模式保留输入并提供重试、修改、返回连接选择、退出。网络不可达、认证失败、TLS 失败、工具缺失、权限不足必须分别呈现。
+连接校验失败时，引导模式保留输入并提供重试、修改、返回连接选择、退出。网络不可达、认证失败、TLS 失败、工具缺失、权限不足必须分别呈现。SQL Server 证书不受信任时，“仅本次信任”只影响当前引导会话，“保存到该连接”写入非秘密 TLS 配置；两者均不得关闭加密。
 
 ### 5.4 多目标数据库与偏好
 
@@ -338,7 +338,7 @@ DataPull 必须以 TypeScript/Node.js 独立编排，并以官方 CLI 或官方�
 
 MySQL 使用 `INFORMATION_SCHEMA` 和 `SHOW CREATE`；密码只能经仅当前用户可读的临时 option file 传递。该文件在客户端启动前必须按第 4.2 节同等强度设置并验证权限，验证失败不得启动 `mysql`；无论成功、失败或取消都必须删除。PostgreSQL 使用系统目录、`pg_get_*def` 或逐对象 `pg_dump --schema-only`；秘密仅注入子进程 `PGPASSWORD`。SQL Server 以 `sqlcmd` 预检、官方 SMO `Scripter` 生成 DDL；秘密仅注入 `SQLCMDPASSWORD`，不得使用 `-P`。三种引擎均不得将秘密放入命令行参数。
 
-SQL Server 必须固定使用 `encrypt=true`、`trustServerCertificate=false`。`sqlcmd` 预检与 SMO 提取必须映射为相同的严格 TLS 策略；证书不可信时返回 `SQLSERVER_TLS_CERTIFICATE_UNTRUSTED`，停止执行并给出安装可信 CA 链或修复服务器证书的指引。首版不提供命令参数、交互选项或连接配置来绕过证书验证，也不得关闭加密。
+SQL Server 必须固定使用 `encrypt=true`，并默认使用 `trustServerCertificate=false`。`sqlcmd` 预检与 SMO 提取必须映射为相同 TLS 策略；默认策略遇到不可信证书时返回 `SQLSERVER_TLS_CERTIFICATE_UNTRUSTED`。用户显式确认信任后，两条路径同时使用 `trustServerCertificate=true`，保持传输加密但跳过服务器身份验证；CLI 必须持续显示安全警告并允许恢复严格验证。
 
 ### 7.3 兼容、安全及排除
 
@@ -353,10 +353,11 @@ SQL Server 必须固定使用 `encrypt=true`、`trustServerCertificate=false`。
 | AC-07-01 | 三引擎选择表。 | 每表独立 UTF-8 SQL，含列、约束、索引。 |
 | AC-07-02 | MySQL 选择函数、过程、触发器、事件。 | 四类分别输出，命令和文件不含密码、`DEFINER`。 |
 | AC-07-03 | PostgreSQL 存在同名重载函数。 | 输出唯一、稳定且可读的文件。 |
-| AC-07-04 | SQL Server 使用不可信证书。 | 返回 TLS 错误且未自动关闭加密。 |
+| AC-07-04 | SQL Server 使用不可信证书且未明确放宽验证。 | 返回 TLS 错误，未自动关闭加密或跳过验证。 |
 | AC-07-05 | 某对象无读取权限。 | 本次所选类型不提交，旧文件保留。 |
 | AC-07-06 | 扫描产物和日志。 | 无业务数据、账户、角色、授权、所有者或秘密。 |
 | AC-07-07 | 无法把 MySQL 临时 option file 限制为仅当前用户可读。 | 不启动 `mysql`，返回凭证安全错误，并删除临时文件。 |
+| AC-07-08 | 用户明确选择仅本次或保存信任 SQL Server 证书。 | `sqlcmd` 与 SMO 均保持加密并跳过身份验证；仅本次不落盘，保存项可恢复为严格验证。 |
 
 ## 8. 项目目录与覆盖规则
 
@@ -436,10 +437,10 @@ datapull
 | `connection add` | `--alias`、`--engine`、`--auth-mode`，以及下述认证组合；写入需 `--yes` | TTY 可通过隐藏输入创建凭证；非 TTY 只能引用已经由用户写入安全秘密来源的变量。成功 JSON 含 `connectionAlias`、`engine`、`authMode`。 |
 | `connection list` | 无 | 只读返回脱敏连接列表；JSON 含 `connections` 数组。 |
 | `connection show` | `--alias` | 只读返回单条非秘密配置、最近使用和收藏信息。 |
-| `connection update` | `--alias` 和至少一个待修改的非秘密选项；写入需 `--yes` | TTY 可重新隐藏输入凭证；非 TTY 不接受秘密值，仅允许切换 `--credential-ref` 或 `--url-ref`。 |
+| `connection update` | `--alias` 和至少一个待修改的非秘密选项；写入需 `--yes` | TTY 可重新隐藏输入凭证；非 TTY 不接受秘密值；SQL Server 可显式保存或恢复证书验证策略。 |
 | `connection remove` | `--alias --yes` | 删除登记连接但不删除项目结构文件；JSON 含 `connectionAlias`、`removed`。 |
-| `connection test` | `--alias`，可选 `--database` | 只读校验服务器或指定目标数据库；JSON 含 `connectionAlias`、`database`、`reachable`。 |
-| `database list` | `--connection` | 返回收藏、最近使用及可枚举数据库，并标明来源；枚举失败仍返回可手工输入提示。 |
+| `connection test` | `--alias`，可选 `--database`、`--trust-server-certificate --yes` | 只读校验服务器或指定目标数据库；JSON 含 `connectionAlias`、`database`、`reachable`。 |
+| `database list` | `--connection`，可选 `--trust-server-certificate --yes` | 返回收藏、最近使用及可枚举数据库，并标明来源；枚举失败仍返回可手工输入提示。 |
 | `database favorite add/remove` | `--connection --database --yes` | 显式维护收藏；JSON 含 `connectionAlias`、`database`、`favorite`。 |
 
 `connection add/update` 的认证组合必须满足且仅满足下列一项：
@@ -448,17 +449,18 @@ datapull
 - 完整 URL 引用：`--auth-mode url --url-ref <variable>`；
 - Windows SQL Server 集成认证：`--engine sqlserver --auth-mode integrated --host <host> [--port <port>]`。
 
-MySQL/PostgreSQL 可以用 `--ssl-mode <mode>` 保存非秘密 TLS 策略；SQL Server 的严格加密和证书验证不可通过命令参数关闭。`--credential-ref` 与 `--url-ref` 只能是变量名：解析优先级为当前进程环境，其次为安全权限已验证的 `credentials.env`。引用缺失或为空时返回退出码 3，不得回显值。
+MySQL/PostgreSQL 可以用 `--ssl-mode <mode>` 保存非秘密 TLS 策略；SQL Server 始终加密，默认验证证书。`connection add/update` 可在 `--yes` 确认下使用 `--trust-server-certificate` 保存显式信任，并由 `connection update --verify-server-certificate --yes` 恢复验证。`--credential-ref` 与 `--url-ref` 只能是变量名：解析优先级为当前进程环境，其次为安全权限已验证的 `credentials.env`。引用缺失或为空时返回退出码 3，不得回显值。
 
 拉取命令统一为：
 
 ```text
 datapull pull --connection <alias> --database <database>
               [--include <type[,type...]>]
+              [--trust-server-certificate]
               [--install-missing] [--yes] [--json]
 ```
 
-`--connection` 精确匹配登记连接；`--database` 为安全单级名称；省略 `--include` 表示该引擎所有支持对象；`--install-missing` 只有同时带 `--yes` 才能实际修改环境。缺少工具且请求了 `--install-missing`、但未给 `--yes` 时，命令不得安装或拉取，必须以退出码 2、`CONFIRMATION_REQUIRED` 结束；JSON 结果必须包含 `actionPlan.installation`，逐项列出工具、来源、命令、权限与下载影响。给出 `--yes` 后，最终 JSON 必须包含 `installation` 数组，记录每项 `planned`、`installed`、`failed` 或 `manualRequired` 结果以及重检结论；不得在执行前向 stdout 另行输出一份计划 JSON。
+`--connection` 精确匹配登记连接；`--database` 为安全单级名称；省略 `--include` 表示该引擎所有支持对象；`--trust-server-certificate` 仅对本次 SQL Server 拉取生效并要求 `--yes`；`--install-missing` 只有同时带 `--yes` 才能实际修改环境。缺少工具且请求了 `--install-missing`、但未给 `--yes` 时，命令不得安装或拉取，必须以退出码 2、`CONFIRMATION_REQUIRED` 结束；JSON 结果必须包含 `actionPlan.installation`，逐项列出工具、来源、命令、权限与下载影响。给出 `--yes` 后，最终 JSON 必须包含 `installation` 数组，记录每项 `planned`、`installed`、`failed` 或 `manualRequired` 结果以及重检结论；不得在执行前向 stdout 另行输出一份计划 JSON。
 
 ### 9.2 Skill、配置与诊断命令
 
@@ -562,7 +564,7 @@ CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、
 | 包管理器 | 通过版本化适配目录调用 `winget`、Homebrew、`apt`、`dnf` 或 SQL Server 官方 PowerShell 安装路径。 | 先展示来源、命令、权限和下载影响；仅在用户确认或 `--yes` 后执行。 | 未知组合和失败均转为手工指引，不猜测命令，不切换非官方来源。 |
 | MySQL 客户端 | 使用 `mysql` 连接服务端、读取元数据和对象定义。 | 密码只经当前用户可读临时 option file；最小只读数据库权限。 | 客户端、认证、访问或对象读取错误映射为稳定错误代码。 |
 | PostgreSQL 客户端 | 使用 `psql`、`pg_dump` 连接服务端并读取定义。 | 凭证仅注入子进程环境；不得进入命令行、stdout 或日志。 | 客户端、认证、访问或对象读取错误映射为稳定错误代码。 |
-| SQL Server 工具链 | 使用 `sqlcmd`、PowerShell 7（需要时）和官方 `SqlServer` 模块。 | 凭证仅用 `SQLCMDPASSWORD`；固定加密并验证证书；不得提供绕过选项。 | TLS、模块、认证、访问或脚本错误映射为稳定错误代码。 |
+| SQL Server 工具链 | 使用 `sqlcmd`、PowerShell 7（需要时）和官方 `SqlServer` 模块。 | 凭证仅用 `SQLCMDPASSWORD`；固定加密、默认验证证书；仅在用户明确确认后允许两条路径同步信任服务器证书。 | TLS、模块、认证、访问或脚本错误映射为稳定错误代码。 |
 | 数据库网络 | 仅连接用户登记的主机、端口和目标数据库。 | 不建立 SSH 隧道、跳板或云身份会话；不得上传结构或诊断。 | 超时或不可达不得触发重试风暴，也不得修改正式文件。 |
 | Agent Skill 文件系统 | 按第 10.2 节硬编码目标写入用户级或项目级 Skill。 | 用户主动选择目标和范围；写前预览；用户修改默认受保护。 | 单目标失败不回滚其他已成功目标，结果逐项报告。 |
 
@@ -607,7 +609,7 @@ CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、
 | Debian Stable | 必测 | 必测 | 必测 | 必测 | 同上。 |
 | Fedora 当前稳定版 | 必测 | 必测 | 必测 | 必测 | 同上。 |
 
-安全验收至少覆盖秘密扫描、路径穿越、Shell 注入、符号链接逃逸、秘密文件权限降级、SQL Server 证书拒绝，以及输出中无业务数据、角色、授权、所有者或 `DEFINER`。
+安全验收至少覆盖秘密扫描、路径穿越、Shell 注入、符号链接逃逸、秘密文件权限降级、SQL Server 默认证书拒绝与显式信任后的加密连接，以及输出中无业务数据、角色、授权、所有者或 `DEFINER`。
 
 公开发布前，每种数据库引擎必须至少有一个完整通过的服务端/客户端组合；Windows、macOS、Ubuntu LTS、Debian Stable、Fedora 当前稳定版必须分别有一条通过记录。若单次组合无法同时覆盖这两个维度，可以由多条记录共同满足，但不得用静态检查替代真实安装、连接与拉取验证。
 

@@ -25,6 +25,14 @@ description: 检查并指导安装 DataPull CLI，使用已登记连接拉取 My
 
 当 CLI 返回缺少工具时，说明 `actionPlan.installation` 中的工具、来源、命令、权限与下载影响。只有用户明确要求执行该安装计划后，才在下一次 CLI 调用中加入 `--install-missing --yes`。
 
+当 SQL Server 返回 `SQLSERVER_TLS_CERTIFICATE_UNTRUSTED` 时，说明连接仍可保持加密，但信任服务器证书会失去服务器身份验证并带来中间人攻击风险。由用户在“安装可信 CA”“仅本次信任”“保存到该连接”中决定；只有用户明确选择后，才分别调用：
+
+- 仅本次：在 `connection test`、`database list` 或 `pull` 中加入 `--trust-server-certificate --yes`。
+- 保存：`datapull connection update --alias <alias> --trust-server-certificate --yes --json`。
+- 恢复验证：`datapull connection update --alias <alias> --verify-server-certificate --yes --json`。
+
+Agent 不替用户选择信任证书，也不把测试环境的放宽策略推广到其他连接。
+
 ## 秘密边界
 
 数据库密码或含秘密 URL 只由用户在 CLI 隐藏输入中填写，或手工更新 CLI 显示的 `credentials.env`。不要在聊天中索要、复述或传递秘密，不读取该文件内容，也不把秘密放入命令参数。
