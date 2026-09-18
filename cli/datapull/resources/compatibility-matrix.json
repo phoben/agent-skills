@@ -13,5 +13,16 @@
     "postgresql",
     "sqlserver"
   ],
-  "verified": []
+  "requiredSkillTargets": [
+    "codex:user",
+    "codex:project",
+    "claude:user",
+    "claude:project",
+    "cursor:user",
+    "cursor:project",
+    "trae:user",
+    "trae:project"
+  ],
+  "verified": [],
+  "platformVerifications": []
 }
