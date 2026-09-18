@@ -26,22 +26,22 @@ const engines = [
     id: "mysql",
     alias: `ci-${platform}-mysql`,
     host: required("DATAPULL_CI_MYSQL_HOST"),
-    port: process.env.DATAPULL_CI_MYSQL_PORT ?? "3306",
+    port: optional("DATAPULL_CI_MYSQL_PORT", "3306"),
     username: required("DATAPULL_CI_MYSQL_USERNAME"),
     passwordReference: "DATAPULL_CI_MYSQL_PASSWORD",
     database: required("DATAPULL_CI_MYSQL_DATABASE"),
-    sslMode: process.env.DATAPULL_CI_MYSQL_SSL_MODE ?? "REQUIRED",
+    sslMode: optional("DATAPULL_CI_MYSQL_SSL_MODE", "REQUIRED"),
     include: ["table", "view", "function", "procedure", "trigger", "event"],
   },
   {
     id: "postgresql",
     alias: `ci-${platform}-postgresql`,
     host: required("DATAPULL_CI_POSTGRESQL_HOST"),
-    port: process.env.DATAPULL_CI_POSTGRESQL_PORT ?? "5432",
+    port: optional("DATAPULL_CI_POSTGRESQL_PORT", "5432"),
     username: required("DATAPULL_CI_POSTGRESQL_USERNAME"),
     passwordReference: "DATAPULL_CI_POSTGRESQL_PASSWORD",
     database: required("DATAPULL_CI_POSTGRESQL_DATABASE"),
-    sslMode: process.env.DATAPULL_CI_POSTGRESQL_SSL_MODE ?? "verify-full",
+    sslMode: optional("DATAPULL_CI_POSTGRESQL_SSL_MODE", "verify-full"),
     include: [
       "schema",
       "extension",
@@ -59,7 +59,7 @@ const engines = [
     id: "sqlserver",
     alias: `ci-${platform}-sqlserver`,
     host: required("DATAPULL_CI_SQLSERVER_HOST"),
-    port: process.env.DATAPULL_CI_SQLSERVER_PORT ?? "1433",
+    port: optional("DATAPULL_CI_SQLSERVER_PORT", "1433"),
     username: required("DATAPULL_CI_SQLSERVER_USERNAME"),
     passwordReference: "DATAPULL_CI_SQLSERVER_PASSWORD",
     database: required("DATAPULL_CI_SQLSERVER_DATABASE"),
@@ -324,6 +324,11 @@ function required(name) {
   const value = process.env[name];
   if (value === undefined || value.length === 0) throw new Error(`缺少 CI 环境变量 ${name}。`);
   return value;
+}
+
+function optional(name, fallback) {
+  const value = process.env[name]?.trim();
+  return value ? value : fallback;
 }
 
 function redact(value) {
