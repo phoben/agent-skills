@@ -57,8 +57,17 @@ for (const platform of matrix.requiredPlatforms) {
       throw new Error(`平台验证 ${platform} 缺少字段 ${field}。`);
     }
   }
-  if (record.npmInstall !== true || record.agentDiscoveryVerified !== true) {
-    missingPlatformVerifications.push(`${platform}:NPM安装或Agent发现未通过`);
+  if (record.npmInstall !== true) {
+    missingPlatformVerifications.push(`${platform}:NPM安装未通过`);
+  }
+  if (typeof record.agentDiscoveryVerified !== "boolean") {
+    throw new Error(`平台验证 ${platform} 缺少 Agent 发现认证状态。`);
+  }
+  if (
+    record.agentDiscoveryVerified === false &&
+    (typeof record.agentDiscoveryNote !== "string" || record.agentDiscoveryNote.trim() === "")
+  ) {
+    throw new Error(`平台验证 ${platform} 的 Agent 发现尚未认证，必须记录原因。`);
   }
   const targets = Array.isArray(record.skillTargets) ? record.skillTargets : [];
   const missingTargets = matrix.requiredSkillTargets.filter((target) => !targets.includes(target));
@@ -75,5 +84,7 @@ if (missingCombinations.length > 0 || missingPlatformVerifications.length > 0) {
 }
 
 process.stdout.write(
-  `兼容矩阵发布门通过：${passed.length} 条数据库记录，${passedPlatforms.length} 条平台与Skill记录。\n`,
+  `兼容矩阵发布门通过：${passed.length} 条数据库记录，${passedPlatforms.length} 条平台安装与Skill路径记录；` +
+    `Agent发现认证 ${passedPlatforms.filter((record) => record.agentDiscoveryVerified === true).length}/${passedPlatforms.length}，` +
+    `未认证项不得声明支持。\n`,
 );
