@@ -70,6 +70,35 @@ jobs:
           echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
           pwsh -NoProfile -NonInteractive -Command 'Install-Module SqlServer -Scope CurrentUser -Force'
 
+      - name: 信任 SQL Server CA（macOS）
+        if: inputs.bootstrap == 'macos'
+        shell: bash
+        env:
+          DATAPULL_SQLSERVER_CA_CERT: ${{ secrets.DATAPULL_CI_SQLSERVER_CA_CERT }}
+        run: |
+          if [[ -z "$DATAPULL_SQLSERVER_CA_CERT" ]]; then
+            exit 0
+          fi
+          certificate="$RUNNER_TEMP/datapull-sqlserver-ca.pem"
+          printf '%s\n' "$DATAPULL_SQLSERVER_CA_CERT" > "$certificate"
+          sudo security add-trusted-cert -d -r trustRoot \
+            -k /Library/Keychains/System.keychain "$certificate"
+
+      - name: 信任 SQL Server CA（Ubuntu）
+        if: inputs.bootstrap == 'ubuntu'
+        shell: bash
+        env:
+          DATAPULL_SQLSERVER_CA_CERT: ${{ secrets.DATAPULL_CI_SQLSERVER_CA_CERT }}
+        run: |
+          if [[ -z "$DATAPULL_SQLSERVER_CA_CERT" ]]; then
+            exit 0
+          fi
+          certificate="$RUNNER_TEMP/datapull-sqlserver-ca.crt"
+          printf '%s\n' "$DATAPULL_SQLSERVER_CA_CERT" > "$certificate"
+          sudo install -m 0644 "$certificate" \
+            /usr/local/share/ca-certificates/datapull-sqlserver-ca.crt
+          sudo update-ca-certificates
+
       - name: 安装项目依赖并执行本地门禁
         working-directory: cli/datapull
         run: npm ci --ignore-scripts
