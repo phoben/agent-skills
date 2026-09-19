@@ -50,7 +50,21 @@ export class Output {
       return;
     }
     this.warn(`错误 [${error.code}]：${error.message}`);
+    this.writeClientDetails(error);
     this.writeInstallationGuidance(extra);
+  }
+
+  private writeClientDetails(error: DataPullError): void {
+    if (error.code !== "DATABASE_CLIENT_FAILED") return;
+    const detail = stringValue(error.details?.detail)?.trim();
+    if (detail === undefined) return;
+    const maximumLength = 4_000;
+    const rendered = detail.length > maximumLength
+      ? `${detail.slice(0, maximumLength)}\n……详情已截断，请使用 --json 获取完整结构化错误。`
+      : detail;
+    this.warn("客户端详情（已脱敏）：");
+    this.warn(rendered);
+    this.warn("可使用 --json 获取结构化错误信息；请勿在反馈中包含密码或完整连接 URL。");
   }
 
   private writeInstallationGuidance(extra: Record<string, unknown>): void {

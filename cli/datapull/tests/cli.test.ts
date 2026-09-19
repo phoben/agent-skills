@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { execa } from "execa";
 import { afterEach, describe, expect, it } from "vitest";
+import { databaseProviders } from "../src/providers/builtin.js";
 
 const directories: string[] = [];
 const packageRoot = resolve(import.meta.dirname, "..");
@@ -25,6 +26,10 @@ describe("CLI JSON 契约", () => {
     expect(addHelp.stdout).toContain("mysql.demo.example");
     expect(addHelp.stdout).toContain("目标数据库        shop_demo");
     expect(addHelp.stdout).toContain("非交互模式只登记连接");
+    for (const provider of databaseProviders.list()) {
+      expect(rootHelp.stdout).toContain(provider.manifest.displayName);
+      expect(addHelp.stdout).toContain(provider.manifest.id);
+    }
     expect(pullHelp.exitCode).toBe(0);
     expect(pullHelp.stdout).toContain("--include 时拉取当前数据库引擎支持的全部对象类型");
     expect(pullHelp.stdout).toContain(".database-schema/<连接别名>/<数据库名>/");

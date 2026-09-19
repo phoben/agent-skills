@@ -1,8 +1,8 @@
 import { ConnectionService, connectionSecurityWarnings } from "../connections/service.js";
 import { DataPullError } from "../core/errors.js";
-import { exporterFor } from "../exporters/factory.js";
-import { OBJECT_TYPES } from "../exporters/objects.js";
 import { OutputTransaction } from "../output/transaction.js";
+import { databaseProviders } from "../providers/builtin.js";
+import type { DatabaseProviderRegistry } from "../providers/registry.js";
 import { ToolManager, type InstallationResult } from "../tools/manager.js";
 import type { PullResult } from "../types.js";
 import { discoverProjectRoot, validatePathSegment } from "../utils/path.js";
@@ -26,20 +26,25 @@ export interface PullExecutionResult extends PullResult {
 export class PullService {
   constructor(
     readonly connections: ConnectionService,
-    readonly tools = new ToolManager(),
+    readonly providers: DatabaseProviderRegistry = databaseProviders,
+    readonly tools = new ToolManager(providers),
   ) {}
 
   async execute(options: PullOptions): Promise<PullExecutionResult> {
     validatePathSegment(options.database, "数据库名");
     const connection = await this.connections.get(options.connectionAlias);
-    if (options.trustServerCertificate === true && connection.engine !== "sqlserver") {
+    const provider = this.providers.get(connection.engine);
+    if (
+      options.trustServerCertificate === true &&
+      !provider.manifest.tls.trustServerCertificate
+    ) {
       throw new DataPullError(
         "INVALID_ARGUMENT",
-        "--trust-server-certificate 只适用于 SQL Server。",
+        `--trust-server-certificate 不适用于 ${provider.manifest.displayName}。`,
         2,
       );
     }
-    const supported = OBJECT_TYPES[connection.engine];
+    const supported = provider.manifest.objects.map((object) => object.id);
     const selected = options.include === undefined ? [...supported] : [...new Set(options.include)];
     if (selected.length === 0) {
       throw new DataPullError("INVALID_OBJECT_TYPE", "至少选择一种数据库对象。", 2);
@@ -65,7 +70,6 @@ export class PullService {
         ? { trustServerCertificate: true }
         : {}),
     });
-    const exporter = exporterFor(connection.engine);
     const projectRoot = options.projectRoot ?? (await discoverProjectRoot());
     const transaction = new OutputTransaction({
       projectRoot,
@@ -79,9 +83,17 @@ export class PullService {
     const warnings = connectionSecurityWarnings(resolved);
     let result: PullExecutionResult | undefined;
     try {
-      await exporter.test(resolved, options.database);
+      await provider.probeExportReadiness(resolved, {
+        database: options.database,
+        objectTypes: selected,
+      });
       options.onStage?.("读取元数据并生成 DDL");
-      const objects = await exporter.exportObjects(resolved, options.database, selected);
+      const objects = provider.exportObjects(
+        resolved,
+        options.database,
+        selected,
+        options.onStage,
+      );
       options.onStage?.("校验暂存结构文件");
       const objectCounts = await transaction.writeObjects(objects);
       options.onStage?.("提交所选对象类型");

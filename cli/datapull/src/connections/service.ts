@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
 import { DataPullError } from "../core/errors.js";
+import { databaseProviders } from "../providers/builtin.js";
+import type { DatabaseProviderRegistry } from "../providers/registry.js";
 import type {
   ConnectionConfig,
   Engine,
@@ -8,12 +10,6 @@ import type {
 } from "../types.js";
 import { validatePathSegment } from "../utils/path.js";
 import { ConfigStore } from "../config/store.js";
-
-const DEFAULT_PORTS: Record<Engine, number> = {
-  mysql: 3306,
-  postgresql: 5432,
-  sqlserver: 1433,
-};
 
 /**
  * 密码认证的凭证引用由连接别名确定，避免交互流程要求用户了解本地凭证文件结构。
@@ -60,7 +56,10 @@ export interface ResolveConnectionOptions {
 }
 
 export class ConnectionService {
-  constructor(readonly store: ConfigStore) {}
+  constructor(
+    readonly store: ConfigStore,
+    readonly providers: DatabaseProviderRegistry = databaseProviders,
+  ) {}
 
   async list(): Promise<ConnectionConfig[]> {
     return (await this.store.read()).connections;
@@ -177,11 +176,12 @@ export class ConnectionService {
     }
     if (connection.authMode === "url") {
       const value = await this.store.resolveSecret(required(connection.urlRef, "urlRef"));
-      const url = parseConnectionUrl(connection.engine, value);
+      const provider = this.providers.get(connection.engine);
+      const url = parseConnectionUrl(connection.engine, value, this.providers);
       return applyResolveOptions({
         ...connection,
         host: url.hostname,
-        port: url.port.length > 0 ? Number(url.port) : DEFAULT_PORTS[connection.engine],
+        port: url.port.length > 0 ? Number(url.port) : provider.manifest.defaultPort,
         username: decodeUrlComponent(url.username),
         password: decodeUrlComponent(url.password),
         sslMode: connection.sslMode ?? url.searchParams.get("sslmode") ?? undefined,
@@ -190,16 +190,18 @@ export class ConnectionService {
       }, options);
     }
     if (connection.authMode === "password") {
+      const provider = this.providers.get(connection.engine);
       return applyResolveOptions({
         ...connection,
-        port: connection.port ?? DEFAULT_PORTS[connection.engine],
+        port: connection.port ?? provider.manifest.defaultPort,
         password: await this.store.resolveSecret(required(connection.credentialRef, "credentialRef")),
         ...(database === undefined ? {} : { database }),
       }, options);
     }
+    const provider = this.providers.get(connection.engine);
     return applyResolveOptions({
       ...connection,
-      port: connection.port ?? DEFAULT_PORTS[connection.engine],
+      port: connection.port ?? provider.manifest.defaultPort,
       ...(database === undefined ? {} : { database }),
     }, options);
   }
@@ -218,11 +220,26 @@ export function createConnection(input: {
   trustServerCertificate?: boolean | undefined;
 }): ConnectionConfig {
   const { trustServerCertificate, ...connectionInput } = input;
+  const provider = databaseProviders.get(connectionInput.engine);
+  if (!provider.manifest.authModes.includes(connectionInput.authMode)) {
+    throw new DataPullError(
+      "CONFIG_INVALID",
+      `${provider.manifest.displayName} 不支持认证方式：${connectionInput.authMode}`,
+      3,
+    );
+  }
+  if (trustServerCertificate === true && !provider.manifest.tls.trustServerCertificate) {
+    throw new DataPullError(
+      "INVALID_ARGUMENT",
+      `信任服务器证书不适用于 ${provider.manifest.displayName}。`,
+      2,
+    );
+  }
   return normalizeConnection({
     ...connectionInput,
     recentDatabases: [],
     favoriteDatabases: [],
-    ...(connectionInput.engine === "sqlserver"
+    ...(provider.manifest.tls.trustServerCertificate
       ? {
           tls: {
             encrypt: true as const,
@@ -235,6 +252,14 @@ export function createConnection(input: {
 
 function normalizeConnection(connection: ConnectionConfig): ConnectionConfig {
   const parsed = structuredClone(connection);
+  const provider = databaseProviders.get(parsed.engine);
+  if (!provider.manifest.authModes.includes(parsed.authMode)) {
+    throw new DataPullError(
+      "CONFIG_INVALID",
+      `${provider.manifest.displayName} 不支持认证方式：${parsed.authMode}`,
+      3,
+    );
+  }
   if (parsed.authMode === "url") {
     delete parsed.host;
     delete parsed.port;
@@ -247,7 +272,7 @@ function normalizeConnection(connection: ConnectionConfig): ConnectionConfig {
     delete parsed.username;
     delete parsed.credentialRef;
   }
-  if (parsed.engine === "sqlserver") {
+  if (provider.manifest.tls.trustServerCertificate) {
     parsed.tls = {
       encrypt: true,
       trustServerCertificate: parsed.tls?.trustServerCertificate ?? false,
@@ -263,10 +288,11 @@ function applyResolveOptions(
   if (options.trustServerCertificate === undefined) {
     return connection;
   }
-  if (connection.engine !== "sqlserver") {
+  const provider = databaseProviders.get(connection.engine);
+  if (!provider.manifest.tls.trustServerCertificate) {
     throw new DataPullError(
       "INVALID_ARGUMENT",
-      "信任服务器证书只适用于 SQL Server。",
+      `信任服务器证书不适用于 ${provider.manifest.displayName}。`,
       2,
     );
   }
@@ -279,7 +305,11 @@ function applyResolveOptions(
   };
 }
 
-function parseConnectionUrl(engine: Engine, value: string): URL {
+function parseConnectionUrl(
+  engine: Engine,
+  value: string,
+  providers: DatabaseProviderRegistry = databaseProviders,
+): URL {
   let url: URL;
   try {
     url = new URL(value);
@@ -292,12 +322,10 @@ function parseConnectionUrl(engine: Engine, value: string): URL {
       error instanceof Error ? { cause: error } : undefined,
     );
   }
-  const allowed: Record<Engine, string[]> = {
-    mysql: ["mysql:"],
-    postgresql: ["postgres:", "postgresql:"],
-    sqlserver: ["sqlserver:", "mssql:"],
-  };
-  if (!allowed[engine].includes(url.protocol) || url.hostname.length === 0) {
+  if (
+    !providers.get(engine).manifest.urlProtocols.includes(url.protocol) ||
+    url.hostname.length === 0
+  ) {
     throw new DataPullError("CONFIG_INVALID", `连接 URL 与 ${engine} 不匹配。`, 3);
   }
   return url;
@@ -336,7 +364,7 @@ export function redactedConnection(connection: ConnectionConfig): Record<string,
 export function connectionSecurityWarnings(
   connection: Pick<ConnectionConfig, "engine" | "tls">,
 ): string[] {
-  return connection.engine === "sqlserver" &&
+  return databaseProviders.get(connection.engine).manifest.tls.trustServerCertificate &&
     connection.tls?.trustServerCertificate === true
     ? [SQLSERVER_TRUST_WARNING]
     : [];

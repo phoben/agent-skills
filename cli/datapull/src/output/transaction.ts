@@ -36,6 +36,14 @@ interface TransactionJournal {
   backupDirectory: string;
 }
 
+interface StagedObject {
+  directory: string;
+  name: string;
+  identity: string;
+  path: string;
+  keepHashedName: boolean;
+}
+
 export interface TransactionOptions {
   projectRoot: string;
   connectionAlias: string;
@@ -106,16 +114,10 @@ export class OutputTransaction {
     await this.recoverPendingTransactions();
   }
 
-  async writeObjects(objects: readonly DatabaseObject[]): Promise<Record<string, number>> {
+  async writeObjects(
+    source: Iterable<DatabaseObject> | AsyncIterable<DatabaseObject>,
+  ): Promise<Record<string, number>> {
     const selected = new Set(this.selectedTypes);
-    const invalid = objects.find((object) => !selected.has(object.type));
-    if (invalid !== undefined) {
-      throw new DataPullError(
-        "DATABASE_OBJECT_READ_FAILED",
-        `提取器返回了未选择的对象类型：${invalid.type}`,
-        1,
-      );
-    }
     await rm(this.stagingDirectory, { force: true, recursive: true });
     await mkdir(this.stagingDirectory, { recursive: true });
     for (const type of this.selectedTypes) {
@@ -125,12 +127,16 @@ export class OutputTransaction {
     const counts: Record<string, number> = Object.fromEntries(
       this.selectedTypes.map((type) => [type, 0]),
     );
-    const collisionCounts = new Map<string, number>();
-    for (const object of objects) {
-      const collisionKey = `${object.type}\0${object.schema ?? ""}\0${object.name}`;
-      collisionCounts.set(collisionKey, (collisionCounts.get(collisionKey) ?? 0) + 1);
-    }
-    for (const object of objects) {
+    const collisionGroups = new Map<string, StagedObject[]>();
+    let total = 0;
+    for await (const object of source) {
+      if (!selected.has(object.type)) {
+        throw new DataPullError(
+          "DATABASE_OBJECT_READ_FAILED",
+          `提取器返回了未选择的对象类型：${object.type}`,
+          1,
+        );
+      }
       const schema = object.schema === undefined ? undefined : validatePathSegment(object.schema, "schema");
       const directory = schema === undefined
         ? join(this.stagingDirectory, object.type)
@@ -138,18 +144,35 @@ export class OutputTransaction {
       await mkdir(directory, { recursive: true });
       const collisionKey = `${object.type}\0${schema ?? ""}\0${object.name}`;
       const identity = object.identity ?? `${object.type}.${schema ?? ""}.${object.name}`;
-      const fileName = safeFileName(
-        object.name,
-        identity,
-        (collisionCounts.get(collisionKey) ?? 0) > 1 || /\([^)]*\)/u.test(identity),
-      );
+      // 流式阶段先使用稳定哈希名；读取结束后，唯一且非重载的对象再恢复为可读文件名。
+      const fileName = safeFileName(object.name, identity, true);
       const target = join(directory, fileName);
       this.assertInsideStorage(target);
       const normalized = validateDdl(object.ddl, identity);
       await writeFile(target, normalized, { encoding: "utf8", flag: "wx" });
+      const group = collisionGroups.get(collisionKey) ?? [];
+      group.push({
+        directory,
+        name: object.name,
+        identity,
+        path: target,
+        keepHashedName: /\([^)]*\)/u.test(identity),
+      });
+      collisionGroups.set(collisionKey, group);
       counts[object.type] = (counts[object.type] ?? 0) + 1;
+      total += 1;
     }
-    await this.validateStaging(objects.length);
+    for (const group of collisionGroups.values()) {
+      const entry = group[0];
+      if (group.length !== 1 || entry === undefined || entry.keepHashedName) continue;
+      const readablePath = join(
+        entry.directory,
+        safeFileName(entry.name, entry.identity, false),
+      );
+      this.assertInsideStorage(readablePath);
+      await rename(entry.path, readablePath);
+    }
+    await this.validateStaging(total);
     return counts;
   }
 

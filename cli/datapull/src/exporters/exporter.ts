@@ -14,5 +14,6 @@ export interface DatabaseExporter {
     connection: ResolvedConnection,
     database: string,
     objectTypes: readonly string[],
+    onStage?: ((stage: string) => void) | undefined,
   ): Promise<DatabaseObject[]>;
 }

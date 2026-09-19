@@ -1,4 +1,6 @@
 import { z } from "zod";
+import { databaseProviders } from "../providers/builtin.js";
+import { DATABASE_PROVIDER_IDS } from "../providers/ids.js";
 
 const referenceSchema = z.string().regex(/^[A-Za-z_][A-Za-z0-9_]*$/u);
 const segmentSchema = z
@@ -10,7 +12,7 @@ const segmentSchema = z
 export const connectionSchema = z
   .object({
     alias: segmentSchema,
-    engine: z.enum(["mysql", "postgresql", "sqlserver"]),
+    engine: z.enum(DATABASE_PROVIDER_IDS),
     authMode: z.enum(["password", "url", "integrated"]),
     host: z.string().trim().min(1).optional(),
     port: z.number().int().min(1).max(65_535).optional(),
@@ -30,6 +32,13 @@ export const connectionSchema = z
   })
   .strict()
   .superRefine((connection, context) => {
+    const provider = databaseProviders.get(connection.engine);
+    if (!provider.manifest.authModes.includes(connection.authMode)) {
+      context.addIssue({
+        code: "custom",
+        message: `${provider.manifest.displayName} 不支持认证方式 ${connection.authMode}。`,
+      });
+    }
     if (connection.authMode === "url" && connection.urlRef === undefined) {
       context.addIssue({ code: "custom", message: "URL 认证需要 urlRef。" });
     }
@@ -40,10 +49,7 @@ export const connectionSchema = z
         }
       }
     }
-    if (connection.authMode === "integrated" && connection.engine !== "sqlserver") {
-      context.addIssue({ code: "custom", message: "集成认证只支持 SQL Server。" });
-    }
-    if (connection.engine === "sqlserver") {
+    if (provider.manifest.tls.trustServerCertificate) {
       if (connection.tls?.encrypt !== true) {
         context.addIssue({
           code: "custom",

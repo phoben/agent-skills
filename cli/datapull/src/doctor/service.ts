@@ -5,6 +5,8 @@ import { release } from "node:os";
 import { ConfigStore } from "../config/store.js";
 import { asDataPullError } from "../core/errors.js";
 import { MINIMUM_NODE_VERSION } from "../core/runtime.js";
+import { databaseProviders } from "../providers/builtin.js";
+import type { DatabaseProviderRegistry } from "../providers/registry.js";
 import { ToolManager } from "../tools/manager.js";
 import { INSTALL_ADAPTER_VERSION } from "../tools/catalog.js";
 import { discoverProjectRoot } from "../utils/path.js";
@@ -18,6 +20,7 @@ export interface DoctorCheck {
 export async function runDoctor(
   store: ConfigStore,
   tools = new ToolManager(),
+  providers: DatabaseProviderRegistry = databaseProviders,
 ): Promise<DoctorCheck[]> {
   const checks: DoctorCheck[] = [
     {
@@ -47,10 +50,10 @@ export async function runDoctor(
   } catch {
     checks.push({ name: "project", ok: false, detail: `项目根目录不可写：${root}` });
   }
-  for (const engine of ["mysql", "postgresql", "sqlserver"] as const) {
-    const statuses = await tools.inspect(engine);
+  for (const provider of providers.list()) {
+    const statuses = await tools.inspect(provider.manifest.id);
     checks.push({
-      name: `tools:${engine}`,
+      name: `tools:${provider.manifest.id}`,
       ok: statuses.every((status) => status.available),
       detail: statuses
         .map((status) => `${status.tool}=${status.available ? status.version ?? "available" : "missing"}`)

@@ -1,8 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { compatibilityFingerprint } from "./compatibility-fingerprint.mjs";
 
 const path = resolve(import.meta.dirname, "..", "resources", "compatibility-matrix.json");
 const matrix = JSON.parse(await readFile(path, "utf8"));
+const currentCompatibilityFingerprint = await compatibilityFingerprint();
+const { databaseProviders } = await import("../dist/providers/builtin.js");
 if (
   matrix.version !== 2 ||
   !Array.isArray(matrix.requiredPlatforms) ||
@@ -12,6 +15,20 @@ if (
   !Array.isArray(matrix.platformVerifications)
 ) {
   throw new Error("兼容矩阵格式无效。");
+}
+
+const registeredProviders = databaseProviders.ids();
+const missingProviders = registeredProviders.filter(
+  (providerId) => !matrix.requiredEngines.includes(providerId),
+);
+const unknownProviders = matrix.requiredEngines.filter(
+  (providerId) => !registeredProviders.includes(providerId),
+);
+if (missingProviders.length > 0 || unknownProviders.length > 0) {
+  throw new Error(
+    `兼容矩阵与 Provider Registry 不一致。缺少：${missingProviders.join("、") || "无"}；` +
+      `未登记：${unknownProviders.join("、") || "无"}。`,
+  );
 }
 
 const passed = matrix.verified.filter((record) => record.result === "passed");
@@ -33,12 +50,18 @@ for (const record of passed) {
     "osVersion",
     "nodeVersion",
     "installAdapterVersion",
+    "compatibilityFingerprint",
     "verifiedAt",
     "result",
   ]) {
     if (record[field] === undefined || record[field] === "") {
       throw new Error(`兼容矩阵通过记录缺少字段 ${field}。`);
     }
+  }
+  if (record.compatibilityFingerprint !== currentCompatibilityFingerprint) {
+    throw new Error(
+      `兼容矩阵记录 ${record.platform}/${record.engine} 不属于当前实现，请重新运行兼容性验收。`,
+    );
   }
 }
 
@@ -52,10 +75,20 @@ for (const platform of matrix.requiredPlatforms) {
     missingPlatformVerifications.push(`${platform}:未验证`);
     continue;
   }
-  for (const field of ["osVersion", "nodeVersion", "npmInstall", "verifiedAt", "result"]) {
+  for (const field of [
+    "osVersion",
+    "nodeVersion",
+    "compatibilityFingerprint",
+    "npmInstall",
+    "verifiedAt",
+    "result",
+  ]) {
     if (record[field] === undefined || record[field] === "") {
       throw new Error(`平台验证 ${platform} 缺少字段 ${field}。`);
     }
+  }
+  if (record.compatibilityFingerprint !== currentCompatibilityFingerprint) {
+    missingPlatformVerifications.push(`${platform}:兼容性证据不属于当前实现`);
   }
   if (record.npmInstall !== true) {
     missingPlatformVerifications.push(`${platform}:NPM安装未通过`);

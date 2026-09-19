@@ -1,6 +1,6 @@
 import { confirm, input } from "@inquirer/prompts";
 import type { ConnectionService } from "../connections/service.js";
-import { OBJECT_TYPES } from "../exporters/objects.js";
+import { databaseProviders } from "../providers/builtin.js";
 import { PullService, type PullExecutionResult } from "../pull/service.js";
 import type { ConnectionConfig } from "../types.js";
 import { discoverProjectRoot, validatePathSegment } from "../utils/path.js";
@@ -24,7 +24,9 @@ export async function promptImmediatePull(
 
   const database = await input({ message: "目标数据库名：", required: true });
   validatePathSegment(database, "数据库名");
-  const selectedTypes = [...OBJECT_TYPES[connection.engine]];
+  const selectedTypes = databaseProviders
+    .get(connection.engine)
+    .manifest.objects.map((object) => object.id);
   const projectRoot = options.projectRoot ?? (await discoverProjectRoot());
   process.stdout.write(
     [

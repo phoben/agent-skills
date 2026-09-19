@@ -1,9 +1,10 @@
 import { execa } from "execa";
 import { DataPullError } from "../core/errors.js";
+import { databaseProviders } from "../providers/builtin.js";
+import type { DatabaseProviderRegistry } from "../providers/registry.js";
 import type { Engine } from "../types.js";
 import {
   installationPlan,
-  REQUIRED_TOOLS,
   type InstallationPlan,
   type ToolId,
 } from "./catalog.js";
@@ -21,8 +22,12 @@ export interface InstallationResult extends InstallationPlan {
 }
 
 export class ToolManager {
+  constructor(private readonly providers: DatabaseProviderRegistry = databaseProviders) {}
+
   async inspect(engine: Engine): Promise<ToolStatus[]> {
-    return Promise.all(REQUIRED_TOOLS[engine].map(async (tool) => this.detect(tool)));
+    return Promise.all(
+      this.providers.get(engine).manifest.tools.map(async (tool) => this.detect(tool)),
+    );
   }
 
   async missing(engine: Engine): Promise<ToolId[]> {

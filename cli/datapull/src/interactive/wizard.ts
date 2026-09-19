@@ -3,7 +3,7 @@ import { Listr } from "listr2";
 import { ConnectionService } from "../connections/service.js";
 import { ConfigStore } from "../config/store.js";
 import { DataPullError, asDataPullError } from "../core/errors.js";
-import { exporterFor } from "../exporters/factory.js";
+import { databaseProviders } from "../providers/builtin.js";
 import { PullService, type PullExecutionResult } from "../pull/service.js";
 import { SkillInstaller } from "../skills/installer.js";
 import {
@@ -50,24 +50,24 @@ export async function runWizard(store: ConfigStore): Promise<PullExecutionResult
   const resolved = await connections.resolve(connection.alias, undefined, {
     ...(trustServerCertificateOnce ? { trustServerCertificate: true } : {}),
   });
-  const exporter = exporterFor(connection.engine);
+  const provider = databaseProviders.get(connection.engine);
   let enumerated: string[] = [];
   try {
-    enumerated = await exporter.listDatabases(resolved);
+    enumerated = await provider.listDatabases(resolved);
   } catch (error) {
     const normalized = asDataPullError(error);
     process.stderr.write(`无法枚举数据库 [${normalized.code}]，仍可手工输入。\n`);
   }
   const database = await chooseDatabase(connection, enumerated);
   validatePathSegment(database, "数据库名");
-  await exporter.test(
+  const selectedTypes = await promptObjectTypes(connection.engine);
+  await provider.probeExportReadiness(
     await connections.resolve(connection.alias, database, {
       ...(trustServerCertificateOnce ? { trustServerCertificate: true } : {}),
     }),
-    database,
+    { database, objectTypes: selectedTypes },
   );
 
-  const selectedTypes = await promptObjectTypes(connection.engine);
   const projectRoot = await discoverProjectRoot();
   process.stdout.write(
     [

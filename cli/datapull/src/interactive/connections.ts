@@ -5,7 +5,7 @@ import {
   defaultPasswordCredentialRef,
 } from "../connections/service.js";
 import { DataPullError, asDataPullError } from "../core/errors.js";
-import { exporterFor } from "../exporters/factory.js";
+import { databaseProviders } from "../providers/builtin.js";
 import { ToolManager } from "../tools/manager.js";
 import type { AuthMode, ConnectionConfig, Engine } from "../types.js";
 
@@ -43,28 +43,38 @@ export async function promptAndAddConnection(
     initial.engine ??
     (await select<Engine>({
       message: "数据库类型：",
-      choices: [
-        { name: "MySQL", value: "mysql" },
-        { name: "PostgreSQL", value: "postgresql" },
-        { name: "SQL Server", value: "sqlserver" },
-      ],
+      choices: databaseProviders.list().map((provider) => ({
+        name: provider.manifest.displayName,
+        value: provider.manifest.id,
+      })),
     }));
+  const provider = databaseProviders.get(engine);
   const authMode =
     initial.authMode ??
     (await select<AuthMode>({
       message: "认证方式：",
       choices: [
-        { name: "用户名和密码", value: "password" },
-        { name: "完整连接 URL", value: "url" },
-        ...(engine === "sqlserver" && process.platform === "win32"
-          ? [{ name: "Windows 集成认证", value: "integrated" as const }]
-          : []),
-      ],
+        ...provider.manifest.authModes.flatMap((mode) => {
+          if (mode === "integrated" && process.platform !== "win32") return [];
+          return [{
+            name:
+              mode === "password"
+                ? "用户名和密码"
+                : mode === "url"
+                  ? "完整连接 URL"
+                  : "Windows 集成认证",
+            value: mode,
+          }];
+        }),
+      ] as { name: string; value: AuthMode }[],
     }));
-  if (authMode === "integrated" && (engine !== "sqlserver" || process.platform !== "win32")) {
+  if (
+    !provider.manifest.authModes.includes(authMode) ||
+    (authMode === "integrated" && process.platform !== "win32")
+  ) {
     throw new DataPullError(
       "INVALID_ARGUMENT",
-      "Windows 集成认证只支持 Windows 上的 SQL Server。",
+      `${provider.manifest.displayName} 不支持当前环境中的 ${authMode} 认证。`,
       2,
     );
   }
@@ -78,7 +88,7 @@ export async function promptAndAddConnection(
   if (authMode !== "url") {
     host ??= await input({ message: "数据库主机：", required: true });
     if (port === undefined) {
-      const defaultPort = engine === "mysql" ? 3306 : engine === "postgresql" ? 5432 : 1433;
+      const defaultPort = provider.manifest.defaultPort;
       const value = await input({ message: "端口：", default: String(defaultPort) });
       port = Number(value);
     }
@@ -168,14 +178,14 @@ export async function validateConnectionWithRecovery(
       const resolved = await service.resolve(current.alias, undefined, {
         ...(trustServerCertificateOnce ? { trustServerCertificate: true } : {}),
       });
-      await exporterFor(current.engine).test(resolved);
+      await databaseProviders.get(current.engine).probeConnection(resolved);
       process.stdout.write(`连接 ${current.alias} 校验通过。\n`);
       return { connection: current, trustServerCertificateOnce };
     } catch (error) {
       const normalized = asDataPullError(error);
       process.stderr.write(`连接校验失败 [${normalized.code}]：${normalized.message}\n`);
       if (
-        current.engine === "sqlserver" &&
+        databaseProviders.get(current.engine).manifest.tls.trustServerCertificate &&
         normalized.code === "SQLSERVER_TLS_CERTIFICATE_UNTRUSTED"
       ) {
         const tlsAction = await select<"once" | "save" | "back" | "exit">({

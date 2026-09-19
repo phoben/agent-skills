@@ -16,6 +16,8 @@
 - Agent Skill 的验收标准是写入预期目录，并回验元数据、版本和内容哈希；不安装、不启动也不登录 Agent 工具。
 - 数据库工具自动安装前必须展示工具、来源、命令、权限和下载影响，并获得用户确认；Agent 只能给出安装命令，由用户执行。
 - 交互式 `connection add` 在登记后复用连接恢复流程；只有工具和连接校验通过，才询问是否立即输入数据库名拉取。非交互 `--json` 不追加提示或隐式拉取。
+- 基础连接测试不代表对象级权限通过；Provider 必须区分基础探测与导出就绪探测，并保留读取阶段和脱敏详情。明确识别的瞬时只读失败允许有限重试，认证、权限、TLS、SQL 或解析错误不得重试。
+- PostgreSQL 表结构读取使用固定上限并发并报告当前表/总表数；修改并发策略时必须覆盖大批量表、失败回滚和连接数上限。
 
 ## 代码导航
 
@@ -24,7 +26,7 @@
 | 新增或修改命令 | `src/cli/program.ts` | `src/interactive/`、`src/core/output.ts`、`tests/cli.test.ts` |
 | 修改连接与凭证 | `src/config/`、`src/connections/service.ts` | 配置版本、脱敏输出、文件权限、`tests/config-*.test.ts` |
 | 修改拉取流程 | `src/pull/service.ts` | `src/output/transaction.ts`、退出码、事务测试 |
-| 新增数据库或对象类型 | `src/exporters/`、`src/exporters/factory.ts` | `src/types.ts`、`src/tools/`、种子脚本、兼容矩阵 |
+| 新增数据库或对象类型 | `src/providers/builtin.ts`、`src/exporters/` | Provider 契约测试、种子脚本、兼容矩阵 |
 | 修改三方工具安装 | `src/tools/catalog.ts`、`src/tools/manager.ts` | `INSTALL_ADAPTER_VERSION`、权限提示、跨平台测试 |
 | 新增 Agent 或安装位置 | `src/skills/agents.ts`、`src/skills/targets.ts`、`src/skills/installer.ts` | 向导、平台注册表测试、CI 目标、兼容矩阵 |
 | 修改内置 Skill | `skill/` | `npm run skill:sync`、`npm run skill:check`、Plugin 副本 |
@@ -44,20 +46,22 @@
 
 ### 新增数据库引擎
 
-1. 扩展 `Engine`、配置 schema、连接校验和脱敏逻辑。
-2. 实现 `DatabaseExporter` 并在 `exporters/factory.ts` 注册。
-3. 在 `tools/catalog.ts` 声明官方客户端和每个平台的安装计划；安装规则发生变化时递增 `INSTALL_ADAPTER_VERSION`。
-4. 增加不含真实业务数据的 CI 种子脚本，并保留“哨兵业务数据不得出现在 DDL”检查。
-5. 扩展远程 CI Secrets、兼容性执行器、矩阵必选引擎和五个平台记录。
-6. 只有真实数据库和目标平台回验完成后才能宣称支持，单元测试不能替代兼容性证据。
+1. 在 `src/providers/ids.ts` 增加稳定 ID，并在 `src/providers/builtin.ts` 登记一个 Provider。Manifest 必须完整声明名称、别名、默认端口、URL 协议、认证、TLS、对象定义和客户端工具。
+2. 实现数据库专属 adapter；它只负责连接探测、数据库枚举、导出就绪探测、DDL 读取和瞬态错误识别，不得直接写项目输出目录或保存用户配置。
+3. 复用 `ProviderRuntime` 的只读重试与诊断上下文。认证、权限、TLS、SQL 和确定性解析错误不得标记为瞬态。
+4. 在 `tools/catalog.ts` 补齐 Provider 所声明工具的各平台官方安装计划；安装规则发生变化时递增 `INSTALL_ADAPTER_VERSION`。
+5. 增加 Provider 契约测试、无真实业务数据的 CI 种子脚本，并保留“哨兵业务数据不得出现在 DDL”检查。
+6. 扩展远程 CI Secrets 和验收 fixture。兼容性脚本会把 fixture 与 Registry 双向比对；缺少或多余定义都会失败。
+7. 更新兼容矩阵并完成五个平台真实数据库回验。只有真实数据库和目标平台回验完成后才能宣称支持，单元测试不能替代兼容性证据。
 
 ### 新增对象类型
 
-1. 在对象类型模型和各引擎 exporter 中统一定义名称与文件布局。
+1. 在对应 Provider Manifest 中定义稳定 ID、中文名称、常用/高级分类和自定义默认状态，并在 adapter 中实现文件身份与 DDL 读取。
 2. 覆盖“全部、常用、高级、自定义”范围、自定义默认项、非循环列表和 `--include` 校验。
 3. 验证只选择新类型时，其他类型的旧文件保持不变。
 4. 验证同批任一对象失败时，所有所选类型回滚到旧版本。
 5. 在三个种子库中至少创建一个可拉取对象，并更新兼容性断言。
+6. PostgreSQL 还必须覆盖 psql 连接中断重试、SQL/权限错误不重试、pg_dump 中断重试和大批量表的并发上限。
 
 ### 新增 Agent Skill 目标
 

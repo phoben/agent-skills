@@ -2,6 +2,7 @@ import { spawnSync } from "node:child_process";
 import { readFile, readdir, writeFile, mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { compatibilityFingerprint } from "../compatibility-fingerprint.mjs";
 
 const packageRoot = resolve(import.meta.dirname, "..", "..");
 const repositoryRoot = resolve(packageRoot, "..", "..");
@@ -15,67 +16,60 @@ const configRoot = join(temporaryRoot, "config");
 const installRoot = join(temporaryRoot, "install");
 const packRoot = join(temporaryRoot, "pack");
 const npmUserConfig = join(temporaryRoot, "npmrc");
-const secretValues = [
-  required("DATAPULL_CI_MYSQL_PASSWORD"),
-  required("DATAPULL_CI_POSTGRESQL_PASSWORD"),
-  required("DATAPULL_CI_SQLSERVER_PASSWORD"),
-];
+const currentCompatibilityFingerprint = await compatibilityFingerprint();
+const { databaseProviders } = await import("../../dist/providers/builtin.js");
 
-const engines = [
-  {
-    id: "mysql",
-    alias: `ci-${platform}-mysql`,
+// 凭证和数据库名属于 CI 基础设施；对象能力、端口和 TLS 能力必须来自 Provider Registry。
+const acceptanceFixtures = {
+  mysql: {
     host: required("DATAPULL_CI_MYSQL_HOST"),
-    port: optional("DATAPULL_CI_MYSQL_PORT", "3306"),
+    portEnvironment: "DATAPULL_CI_MYSQL_PORT",
     username: required("DATAPULL_CI_MYSQL_USERNAME"),
     passwordReference: "DATAPULL_CI_MYSQL_PASSWORD",
     database: required("DATAPULL_CI_MYSQL_DATABASE"),
     sslMode: optional("DATAPULL_CI_MYSQL_SSL_MODE", "REQUIRED"),
-    include: ["table", "view", "function", "procedure", "trigger", "event"],
   },
-  {
-    id: "postgresql",
-    alias: `ci-${platform}-postgresql`,
+  postgresql: {
     host: required("DATAPULL_CI_POSTGRESQL_HOST"),
-    port: optional("DATAPULL_CI_POSTGRESQL_PORT", "5432"),
+    portEnvironment: "DATAPULL_CI_POSTGRESQL_PORT",
     username: required("DATAPULL_CI_POSTGRESQL_USERNAME"),
     passwordReference: "DATAPULL_CI_POSTGRESQL_PASSWORD",
     database: required("DATAPULL_CI_POSTGRESQL_DATABASE"),
     sslMode: optional("DATAPULL_CI_POSTGRESQL_SSL_MODE", "verify-full"),
-    include: [
-      "schema",
-      "extension",
-      "table",
-      "view",
-      "materialized_view",
-      "sequence",
-      "function",
-      "procedure",
-      "trigger",
-      "type",
-    ],
   },
-  {
-    id: "sqlserver",
-    alias: `ci-${platform}-sqlserver`,
+  sqlserver: {
     host: required("DATAPULL_CI_SQLSERVER_HOST"),
-    port: optional("DATAPULL_CI_SQLSERVER_PORT", "1433"),
+    portEnvironment: "DATAPULL_CI_SQLSERVER_PORT",
     username: required("DATAPULL_CI_SQLSERVER_USERNAME"),
     passwordReference: "DATAPULL_CI_SQLSERVER_PASSWORD",
     database: required("DATAPULL_CI_SQLSERVER_DATABASE"),
-    include: [
-      "schema",
-      "table",
-      "view",
-      "function",
-      "procedure",
-      "trigger",
-      "sequence",
-      "synonym",
-      "type",
-    ],
   },
-];
+};
+const manifests = databaseProviders.manifests();
+const missingAcceptance = manifests
+  .map((manifest) => manifest.id)
+  .filter((providerId) => acceptanceFixtures[providerId] === undefined);
+const unknownAcceptance = Object.keys(acceptanceFixtures).filter(
+  (providerId) => !manifests.some((manifest) => manifest.id === providerId),
+);
+if (missingAcceptance.length > 0 || unknownAcceptance.length > 0) {
+  throw new Error(
+    `Provider 验收定义不完整。缺少：${missingAcceptance.join("、") || "无"}；` +
+      `未登记：${unknownAcceptance.join("、") || "无"}。`,
+  );
+}
+const engines = manifests.map((manifest) => {
+  const fixture = acceptanceFixtures[manifest.id];
+  return {
+    ...fixture,
+    id: manifest.id,
+    alias: `ci-${platform}-${manifest.id}`,
+    port: optional(fixture.portEnvironment, String(manifest.defaultPort)),
+    include: manifest.objects.map((object) => object.id),
+    trustServerCertificate: manifest.tls.trustServerCertificate,
+  };
+});
+const secretValues = engines.map((engine) => required(engine.passwordReference));
 
 try {
   const cliPath = await installPackedCli();
@@ -107,13 +101,14 @@ try {
         "--credential-ref",
         engine.passwordReference,
         ...(engine.sslMode === undefined ? [] : ["--ssl-mode", engine.sslMode]),
-        ...(engine.id === "sqlserver" ? ["--trust-server-certificate"] : []),
+        ...(engine.trustServerCertificate ? ["--trust-server-certificate"] : []),
         "--yes",
         "--json",
       ],
       cliEnvironment,
     );
 
+    const pullStartedAt = Date.now();
     const pull = runCli(
       cliPath,
       [
@@ -130,6 +125,7 @@ try {
       ],
       cliEnvironment,
     );
+    const pullDurationMs = Date.now() - pullStartedAt;
     for (const type of engine.include) {
       if (Number(pull.objectCounts?.[type] ?? 0) < 1) {
         throw new Error(`${engine.id} 验收库缺少对象类型 ${type}。`);
@@ -162,6 +158,9 @@ try {
       osVersion: `${process.platform} ${process.arch} ${process.env.ImageOS ?? "self-hosted"}`,
       nodeVersion: process.version,
       installAdapterVersion: 1,
+      compatibilityFingerprint: currentCompatibilityFingerprint,
+      objectCounts: pull.objectCounts,
+      pullDurationMs,
       verifiedAt: new Date().toISOString(),
       result: "passed",
       gitSha: process.env.GITHUB_SHA ?? "local",
@@ -204,6 +203,7 @@ try {
       platform,
       osVersion: `${process.platform} ${process.arch} ${process.env.ImageOS ?? "self-hosted"}`,
       nodeVersion: process.version,
+      compatibilityFingerprint: currentCompatibilityFingerprint,
       npmInstall: true,
       skillTargets: targets,
       skillInstallationVerified: true,

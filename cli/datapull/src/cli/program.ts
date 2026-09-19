@@ -12,7 +12,7 @@ import { ConfigStore } from "../config/store.js";
 import { DataPullError } from "../core/errors.js";
 import { Output } from "../core/output.js";
 import { runDoctor } from "../doctor/service.js";
-import { exporterFor } from "../exporters/factory.js";
+import { databaseProviders } from "../providers/builtin.js";
 import {
   promptAndAddConnection,
   validateConnectionWithRecovery,
@@ -40,6 +40,13 @@ interface GlobalOptions {
 const packageJson = createRequire(import.meta.url)("../../package.json") as {
   version: string;
 };
+const supportedDatabaseNames = databaseProviders
+  .manifests()
+  .map((manifest) => manifest.displayName)
+  .join("、");
+const supportedAuthModes = [
+  ...new Set(databaseProviders.manifests().flatMap((manifest) => manifest.authModes)),
+];
 
 const ROOT_HELP = `
 快速开始：
@@ -104,7 +111,7 @@ export function buildProgram(store = new ConfigStore()): Command {
   const program = new Command();
   program
     .name("datapull")
-    .description("只读拉取 MySQL、PostgreSQL 与 SQL Server 的 DDL 结构文件")
+    .description(`只读拉取 ${supportedDatabaseNames} 的 DDL 结构文件`)
     .version(packageJson.version, "-V, --version", "显示当前版本")
     .helpOption("-h, --help", "显示命令帮助")
     .option("--json", "仅在结束时向 stdout 输出一个 JSON 文档；进度写入 stderr")
@@ -144,8 +151,8 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
     .command("add")
     .description("交互式登记并校验连接，成功后可立即拉取")
     .option("--alias <alias>", "连接别名")
-    .addOption(new Option("--engine <engine>", "数据库类型").choices(["mysql", "postgresql", "sqlserver"]))
-    .addOption(new Option("--auth-mode <mode>", "认证方式").choices(["password", "url", "integrated"]))
+    .addOption(new Option("--engine <engine>", "数据库类型").choices([...databaseProviders.ids()]))
+    .addOption(new Option("--auth-mode <mode>", "认证方式").choices(supportedAuthModes))
     .option("--host <host>", "数据库主机")
     .option("--port <port>", "端口", numberParser)
     .option("--username <username>", "用户名")
@@ -233,8 +240,8 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
     .command("update")
     .description("更新连接或凭证引用")
     .requiredOption("--alias <alias>", "连接别名")
-    .addOption(new Option("--engine <engine>").choices(["mysql", "postgresql", "sqlserver"]))
-    .addOption(new Option("--auth-mode <mode>").choices(["password", "url", "integrated"]))
+    .addOption(new Option("--engine <engine>").choices([...databaseProviders.ids()]))
+    .addOption(new Option("--auth-mode <mode>").choices(supportedAuthModes))
     .option("--host <host>")
     .option("--port <port>", "端口", numberParser)
     .option("--username <username>")
@@ -336,7 +343,10 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
       const service = new ConnectionService(store);
       const alias = requiredString(options.alias, "--alias");
       const configured = await service.get(alias);
-      if (options.trustServerCertificate === true && configured.engine !== "sqlserver") {
+      if (
+        options.trustServerCertificate === true &&
+        !providerSupportsTrust(configured.engine)
+      ) {
         throw new DataPullError(
           "INVALID_ARGUMENT",
           "--trust-server-certificate 只适用于 SQL Server。",
@@ -353,7 +363,13 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
           : {}),
       });
       await new ToolManager().ensure(connection.engine, false, false);
-      const testResult = await exporterFor(connection.engine).test(connection, options.database);
+      const provider = databaseProviders.get(connection.engine);
+      const testResult = options.database === undefined
+        ? await provider.probeConnection(connection)
+        : await provider.probeExportReadiness(connection, {
+            database: options.database,
+            objectTypes: provider.manifest.objects.map((object) => object.id),
+          });
       output(command, "connection test").success(
         {
           connectionAlias: alias,
@@ -384,7 +400,10 @@ function registerDatabaseCommands(program: Command, store: ConfigStore): void {
     .action(async (options: { connection: string; trustServerCertificate?: boolean }, command) => {
       const service = new ConnectionService(store);
       const connection = await service.get(options.connection);
-      if (options.trustServerCertificate === true && connection.engine !== "sqlserver") {
+      if (
+        options.trustServerCertificate === true &&
+        !providerSupportsTrust(connection.engine)
+      ) {
         throw new DataPullError(
           "INVALID_ARGUMENT",
           "--trust-server-certificate 只适用于 SQL Server。",
@@ -404,7 +423,7 @@ function registerDatabaseCommands(program: Command, store: ConfigStore): void {
       let enumerated: string[] = [];
       let enumerationError: Record<string, string> | undefined;
       try {
-        enumerated = await exporterFor(connection.engine).listDatabases(
+        enumerated = await databaseProviders.get(connection.engine).listDatabases(
           await service.resolve(connection.alias, undefined, {
             ...(options.trustServerCertificate === true
               ? { trustServerCertificate: true }
@@ -712,7 +731,7 @@ function requireConnectionCreateOptions(
     requiredString(options.username, "--username");
   } else if (authMode === "url") requiredString(options.urlRef, "--url-ref");
   else requiredString(options.host, "--host");
-  if (options.trustServerCertificate === true && engine !== "sqlserver") {
+  if (options.trustServerCertificate === true && !providerSupportsTrust(engine)) {
     throw new DataPullError(
       "INVALID_ARGUMENT",
       "--trust-server-certificate 只适用于 SQL Server。",
@@ -750,7 +769,7 @@ function compactConnectionChanges(
   const targetEngine = options.engine ?? existing.engine;
   if (
     (options.trustServerCertificate === true || options.verifyServerCertificate === true) &&
-    targetEngine !== "sqlserver"
+    !providerSupportsTrust(targetEngine)
   ) {
     throw new DataPullError(
       "INVALID_ARGUMENT",
@@ -795,6 +814,10 @@ function successMessage(
     message,
     ...connectionSecurityWarnings(connection).map((warning) => `警告：${warning}`),
   ].join("\n");
+}
+
+function providerSupportsTrust(engine: Engine): boolean {
+  return databaseProviders.get(engine).manifest.tls.trustServerCertificate;
 }
 
 function numberParser(value: string): number {

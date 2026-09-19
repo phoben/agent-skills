@@ -1,5 +1,10 @@
-export const ENGINES = ["mysql", "postgresql", "sqlserver"] as const;
-export type Engine = (typeof ENGINES)[number];
+import {
+  DATABASE_PROVIDER_IDS,
+  type DatabaseProviderId,
+} from "./providers/ids.js";
+
+export const ENGINES = DATABASE_PROVIDER_IDS;
+export type Engine = DatabaseProviderId;
 
 export const AUTH_MODES = ["password", "url", "integrated"] as const;
 export type AuthMode = (typeof AUTH_MODES)[number];

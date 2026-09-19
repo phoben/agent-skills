@@ -1,29 +1,17 @@
 import { checkbox, select } from "@inquirer/prompts";
-import { commonObjectTypes, OBJECT_TYPES } from "../exporters/objects.js";
+import { databaseProviders } from "../providers/builtin.js";
 import type { Engine } from "../types.js";
 
 type ObjectScope = "all" | "common" | "advanced" | "custom";
 
-const DEFAULT_CUSTOM_OBJECT_TYPES = new Set(["table", "view", "function"]);
-
-const OBJECT_TYPE_LABELS: Readonly<Record<string, string>> = {
-  schema: "模式(Schema)",
-  extension: "扩展(Extension)",
-  table: "数据表(Table)",
-  view: "视图(View)",
-  materialized_view: "物化视图(Materialized View)",
-  sequence: "序列(Sequence)",
-  function: "函数(Function)",
-  procedure: "存储过程(Procedure)",
-  trigger: "触发器(Trigger)",
-  event: "事件(Event)",
-  synonym: "同义词(Synonym)",
-  type: "类型(Type)",
-};
-
 export async function promptObjectTypes(engine: Engine): Promise<string[]> {
-  const supported = [...OBJECT_TYPES[engine]];
-  const common = new Set(commonObjectTypes(engine));
+  const definitions = databaseProviders.get(engine).manifest.objects;
+  const supported = definitions.map((object) => object.id);
+  const common = new Set(
+    definitions
+      .filter((object) => object.category === "common")
+      .map((object) => object.id),
+  );
   const scope = await select<ObjectScope>({
     message: "选择数据库对象拉取范围：",
     default: "common",
@@ -45,10 +33,10 @@ export async function promptObjectTypes(engine: Engine): Promise<string[]> {
     required: true,
     loop: false,
     pageSize: supported.length,
-    choices: supported.map((type) => ({
-      name: OBJECT_TYPE_LABELS[type] ?? type,
-      value: type,
-      checked: DEFAULT_CUSTOM_OBJECT_TYPES.has(type),
+    choices: definitions.map((object) => ({
+      name: object.displayName,
+      value: object.id,
+      checked: object.defaultSelected,
     })),
   });
 }

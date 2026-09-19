@@ -1,4 +1,3 @@
-import type { Engine } from "../types.js";
 import { readFileSync } from "node:fs";
 
 export type ToolId =
@@ -22,12 +21,6 @@ export interface InstallationPlan {
   downloadImpact: string;
   manager: string;
 }
-
-export const REQUIRED_TOOLS: Record<Engine, readonly ToolId[]> = {
-  mysql: ["mysql"],
-  postgresql: ["psql", "pg_dump"],
-  sqlserver: ["sqlcmd", "pwsh", "sqlserver-module"],
-};
 
 export function installationPlan(
   tool: ToolId,

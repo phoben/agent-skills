@@ -69,6 +69,10 @@ macOS 15 Intel 与 Ubuntu 24.04 使用 GitHub 托管运行器。以下平台使�
 5. 审查八个 Skill 目标的预期路径、安装或更新结果、版本与内容哈希，并把 `skillInstallationVerified:true` 的证据录入 `resources/compatibility-matrix.json`。
 6. 执行 `npm run release:check`；只有数据库、平台 NPM 安装与 Skill 安装回验矩阵完整时才可进入发布。
 
+兼容性工作流从打包后的 Provider Registry 获取数据库 ID、默认端口、对象类型和 TLS 能力，并与显式的远程验收 fixture 双向核对。新增 Provider 但没有真实数据库 fixture，或兼容矩阵仍包含已移除 Provider，门禁都会失败。
+
+工作流会对 Provider Manifest 与 adapter、数据库导出、外部进程、文件事务、工具目录、依赖锁文件和验收脚本计算稳定指纹。`release:check` 要求每条数据库与平台记录的指纹都等于当前实现；相关代码变化后，旧记录会立即失效，必须重新运行五个平台验收并录入新证据，不能用历史通过记录替代当前版本验收。
+
 ## npm OIDC 自动发布
 
 `@yg-toolkit/datapull` 已使用 NPM Trusted Publishing 绑定 GitHub Actions。正常发布不需要
