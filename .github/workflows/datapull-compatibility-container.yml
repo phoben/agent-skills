@@ -1,0 +1,133 @@
+name: DataPull Linux 容器兼容性验收
+
+on:
+  workflow_call:
+    inputs:
+      platform:
+        required: true
+        type: string
+      container_image:
+        required: true
+        type: string
+      bootstrap:
+        required: true
+        type: string
+      install_missing:
+        required: true
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: ${{ inputs.platform }}
+    runs-on: ubuntu-24.04
+    container:
+      image: ${{ inputs.container_image }}
+    timeout-minutes: 60
+    steps:
+      - name: 准备 Debian 基础环境与数据库客户端
+        if: inputs.bootstrap == 'debian'
+        shell: sh
+        run: |
+          set -eu
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y bash ca-certificates curl gnupg git tar gzip default-mysql-client
+          install -d /usr/share/postgresql-common/pgdg
+          curl --fail --silent --show-error --location \
+            --output /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
+            https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
+            > /etc/apt/sources.list.d/pgdg.list
+          curl --fail --silent --show-error --location --output packages-microsoft-prod.deb \
+            "https://packages.microsoft.com/config/debian/${VERSION_ID}/packages-microsoft-prod.deb"
+          dpkg -i packages-microsoft-prod.deb
+          apt-get update
+          ACCEPT_EULA=Y DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-client-18 mssql-tools18 powershell
+          echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+          pwsh -NoProfile -NonInteractive -Command 'Install-Module SqlServer -Scope CurrentUser -Force'
+
+      - name: 准备 Fedora 基础环境与数据库客户端
+        if: inputs.bootstrap == 'fedora'
+        shell: sh
+        run: |
+          set -eu
+          dnf install -y bash ca-certificates curl git gzip tar community-mysql
+          fedora_version="$(rpm -E %fedora)"
+          dnf install -y "https://download.postgresql.org/pub/repos/yum/reporpms/F-${fedora_version}-x86_64/pgdg-fedora-repo-latest.noarch.rpm"
+          dnf -qy module disable postgresql || true
+          curl --fail --silent --show-error --location \
+            --output /etc/yum.repos.d/microsoft-prod.repo \
+            "https://packages.microsoft.com/config/fedora/${fedora_version}/prod.repo"
+          ACCEPT_EULA=Y dnf install -y postgresql18 mssql-tools18 powershell
+          echo "/usr/pgsql-18/bin" >> "$GITHUB_PATH"
+          echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
+          pwsh -NoProfile -NonInteractive -Command 'Install-Module SqlServer -Scope CurrentUser -Force'
+
+      - name: 信任 SQL Server CA
+        shell: sh
+        env:
+          DATAPULL_SQLSERVER_CA_CERT: ${{ secrets.DATAPULL_CI_SQLSERVER_CA_CERT }}
+        run: |
+          set -eu
+          if [ -z "${DATAPULL_SQLSERVER_CA_CERT:-}" ]; then exit 0; fi
+          if [ "${{ inputs.bootstrap }}" = "debian" ]; then
+            printf '%s\n' "$DATAPULL_SQLSERVER_CA_CERT" > /usr/local/share/ca-certificates/datapull-sqlserver-ca.crt
+            update-ca-certificates
+          else
+            printf '%s\n' "$DATAPULL_SQLSERVER_CA_CERT" > /etc/pki/ca-trust/source/anchors/datapull-sqlserver-ca.crt
+            update-ca-trust
+          fi
+
+      - name: 检出固定提交
+        uses: actions/checkout@v6
+
+      - name: 安装 Node.js 最低支持版本
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.12.0
+          package-manager-cache: false
+
+      - name: 安装项目依赖并执行本地门禁
+        working-directory: cli/datapull
+        run: npm ci --ignore-scripts
+
+      - name: 构建并测试发布包
+        working-directory: cli/datapull
+        run: npm run prepack
+
+      - name: 执行三数据库兼容性验收
+        working-directory: cli/datapull
+        env:
+          DATAPULL_CI_PLATFORM: ${{ inputs.platform }}
+          DATAPULL_CI_INSTALL_MISSING: ${{ inputs.install_missing }}
+          DATAPULL_CI_MYSQL_HOST: ${{ secrets.DATAPULL_CI_MYSQL_HOST }}
+          DATAPULL_CI_MYSQL_PORT: ${{ secrets.DATAPULL_CI_MYSQL_PORT }}
+          DATAPULL_CI_MYSQL_USERNAME: ${{ secrets.DATAPULL_CI_MYSQL_USERNAME }}
+          DATAPULL_CI_MYSQL_PASSWORD: ${{ secrets.DATAPULL_CI_MYSQL_PASSWORD }}
+          DATAPULL_CI_MYSQL_DATABASE: ${{ secrets.DATAPULL_CI_MYSQL_DATABASE }}
+          DATAPULL_CI_MYSQL_SSL_MODE: ${{ secrets.DATAPULL_CI_MYSQL_SSL_MODE }}
+          DATAPULL_CI_POSTGRESQL_HOST: ${{ secrets.DATAPULL_CI_POSTGRESQL_HOST }}
+          DATAPULL_CI_POSTGRESQL_PORT: ${{ secrets.DATAPULL_CI_POSTGRESQL_PORT }}
+          DATAPULL_CI_POSTGRESQL_USERNAME: ${{ secrets.DATAPULL_CI_POSTGRESQL_USERNAME }}
+          DATAPULL_CI_POSTGRESQL_PASSWORD: ${{ secrets.DATAPULL_CI_POSTGRESQL_PASSWORD }}
+          DATAPULL_CI_POSTGRESQL_DATABASE: ${{ secrets.DATAPULL_CI_POSTGRESQL_DATABASE }}
+          DATAPULL_CI_POSTGRESQL_SSL_MODE: ${{ secrets.DATAPULL_CI_POSTGRESQL_SSL_MODE }}
+          DATAPULL_CI_SQLSERVER_HOST: ${{ secrets.DATAPULL_CI_SQLSERVER_HOST }}
+          DATAPULL_CI_SQLSERVER_PORT: ${{ secrets.DATAPULL_CI_SQLSERVER_PORT }}
+          DATAPULL_CI_SQLSERVER_USERNAME: ${{ secrets.DATAPULL_CI_SQLSERVER_USERNAME }}
+          DATAPULL_CI_SQLSERVER_PASSWORD: ${{ secrets.DATAPULL_CI_SQLSERVER_PASSWORD }}
+          DATAPULL_CI_SQLSERVER_DATABASE: ${{ secrets.DATAPULL_CI_SQLSERVER_DATABASE }}
+          DATAPULL_SQLSERVER_EXPORT_TIMEOUT_MS: 180000
+        run: npm run ci:compatibility
+
+      - name: 上传脱敏验收证据
+        uses: actions/upload-artifact@v7
+        with:
+          name: datapull-compatibility-${{ inputs.platform }}
+          path: cli/datapull/ci-evidence/${{ inputs.platform }}.json
+          if-no-files-found: error
+          retention-days: 30

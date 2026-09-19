@@ -48,15 +48,17 @@ SQL Server 使用私有 CA 或自签名证书时，将签发服务器证书的�
 
 ## 运行器
 
-macOS 15 Intel 与 Ubuntu 24.04 使用 GitHub 托管运行器。以下平台使用专用自托管运行器：
+五个平台全部使用 GitHub 托管计算资源，不要求维护者准备或长期运行自托管机器：
 
-| 平台 | 必需标签 |
+| 平台 | 执行环境 |
 |---|---|
-| Windows 10/11 x64 | `self-hosted`、`Windows`、`X64`、`datapull-windows-10-11` |
-| Debian Stable x64 | `self-hosted`、`Linux`、`X64`、`datapull-debian-stable` |
-| Fedora Current x64 | `self-hosted`、`Linux`、`X64`、`datapull-fedora-current` |
+| Windows Server 2025 x64 | GitHub 托管 `windows-2025` |
+| macOS 15 Intel | GitHub 托管 `macos-15-intel` |
+| Ubuntu 24.04 x64 | GitHub 托管 `ubuntu-24.04` |
+| Debian Stable x64 | GitHub 托管 Ubuntu 上的 `debian:stable-slim` 容器 |
+| Fedora Current x64 | GitHub 托管 Ubuntu 上的 `fedora:latest` 容器 |
 
-自托管运行器必须安装 Node.js 可执行环境以及 `mysql`、`psql`、`pg_dump`、`sqlcmd`、`pwsh` 和 PowerShell `SqlServer` 模块，或在手动触发时明确启用 `install_missing`。由于仓库公开，自托管运行器只能用于本工作流，不得允许来自 PR 的任务执行。
+工作流在临时环境中安装 `mysql`、`psql`、`pg_dump`、`sqlcmd`、`pwsh` 和 PowerShell `SqlServer` 模块。任务结束后托管虚拟机和容器会被销毁，不保留数据库秘密或结构文件。Debian/Fedora 容器验证对应发行版的用户空间、包管理器和数据库客户端；内核仍由 GitHub 托管 Ubuntu 主机提供。
 
 ## 执行与取证
 

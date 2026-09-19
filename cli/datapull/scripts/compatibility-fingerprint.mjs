@@ -20,6 +20,9 @@ const compatibilityInputs = [
   "resources/export-sqlserver.ps1",
   "scripts/compatibility-fingerprint.mjs",
   "scripts/ci/run-compatibility.mjs",
+  "../../.github/workflows/datapull-compatibility.yml",
+  "../../.github/workflows/datapull-compatibility-platform.yml",
+  "../../.github/workflows/datapull-compatibility-container.yml",
 ];
 
 export async function compatibilityFingerprint() {

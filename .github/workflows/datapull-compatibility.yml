@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       target:
-        description: 要执行的平台；hosted 只运行 GitHub 托管平台
+        description: 要执行的平台；hosted 运行全部托管平台
         required: true
         default: hosted
         type: choice
@@ -12,7 +12,7 @@ on:
           - hosted
           - macos
           - ubuntu-lts
-          - windows-10-11
+          - windows-server-2025
           - debian-stable
           - fedora-current
           - all
@@ -47,31 +47,31 @@ jobs:
     secrets: inherit
 
   windows:
-    if: inputs.target == 'windows-10-11' || inputs.target == 'all'
+    if: inputs.target == 'hosted' || inputs.target == 'windows-server-2025' || inputs.target == 'all'
     uses: ./.github/workflows/datapull-compatibility-platform.yml
     with:
-      platform: windows-10-11
-      runs_on: '["self-hosted","Windows","X64","datapull-windows-10-11"]'
-      bootstrap: none
+      platform: windows-server-2025
+      runs_on: '"windows-2025"'
+      bootstrap: windows
       install_missing: ${{ inputs.install_missing }}
     secrets: inherit
 
   debian:
-    if: inputs.target == 'debian-stable' || inputs.target == 'all'
-    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    if: inputs.target == 'hosted' || inputs.target == 'debian-stable' || inputs.target == 'all'
+    uses: ./.github/workflows/datapull-compatibility-container.yml
     with:
       platform: debian-stable
-      runs_on: '["self-hosted","Linux","X64","datapull-debian-stable"]'
-      bootstrap: none
+      container_image: debian:stable-slim
+      bootstrap: debian
       install_missing: ${{ inputs.install_missing }}
     secrets: inherit
 
   fedora:
-    if: inputs.target == 'fedora-current' || inputs.target == 'all'
-    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    if: inputs.target == 'hosted' || inputs.target == 'fedora-current' || inputs.target == 'all'
+    uses: ./.github/workflows/datapull-compatibility-container.yml
     with:
       platform: fedora-current
-      runs_on: '["self-hosted","Linux","X64","datapull-fedora-current"]'
-      bootstrap: none
+      container_image: fedora:latest
+      bootstrap: fedora
       install_missing: ${{ inputs.install_missing }}
     secrets: inherit

@@ -70,6 +70,55 @@ jobs:
           echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
           pwsh -NoProfile -NonInteractive -Command 'Install-Module SqlServer -Scope CurrentUser -Force'
 
+      - name: 准备 Windows 数据库客户端
+        if: inputs.bootstrap == 'windows'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          function Add-ExecutableDirectory([string]$Executable) {
+            $command = Get-Command $Executable -ErrorAction SilentlyContinue
+            if ($null -ne $command) {
+              Split-Path -Parent $command.Source | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+              return
+            }
+            $candidate = Get-ChildItem -Path 'C:\Program Files' -Filter "$Executable.exe" -Recurse -ErrorAction SilentlyContinue |
+              Select-Object -First 1
+            if ($null -eq $candidate) { throw "安装后仍未找到 $Executable.exe" }
+            $candidate.DirectoryName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+            $env:PATH = "$($candidate.DirectoryName);$env:PATH"
+          }
+
+          if (-not (Get-Command mysql -ErrorAction SilentlyContinue)) {
+            choco install mysql --yes --no-progress
+          }
+          $postgresBin = 'C:\Program Files\PostgreSQL\18\bin'
+          if (-not (Test-Path -LiteralPath (Join-Path $postgresBin 'pg_dump.exe'))) {
+            choco install postgresql18 --yes --no-progress --params '/Password:datapull-ci'
+          }
+          if (-not (Get-Command sqlcmd -ErrorAction SilentlyContinue)) {
+            $winget = Get-Command winget -ErrorAction SilentlyContinue
+            if ($null -eq $winget) { throw 'Windows 托管镜像缺少 sqlcmd，且 winget 不可用。' }
+            winget install --id Microsoft.Sqlcmd --exact --silent --accept-package-agreements --accept-source-agreements
+          }
+          $postgresBin | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          $env:PATH = "$postgresBin;$env:PATH"
+          Add-ExecutableDirectory mysql
+          Add-ExecutableDirectory sqlcmd
+          if (-not (Get-Module -ListAvailable SqlServer)) {
+            Install-Module SqlServer -Scope CurrentUser -Force -AllowClobber
+          }
+
+      - name: 信任 SQL Server CA（Windows）
+        if: inputs.bootstrap == 'windows'
+        shell: pwsh
+        env:
+          DATAPULL_SQLSERVER_CA_CERT: ${{ secrets.DATAPULL_CI_SQLSERVER_CA_CERT }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:DATAPULL_SQLSERVER_CA_CERT)) { exit 0 }
+          $certificate = Join-Path $env:RUNNER_TEMP 'datapull-sqlserver-ca.cer'
+          Set-Content -LiteralPath $certificate -Value $env:DATAPULL_SQLSERVER_CA_CERT -Encoding ascii
+          Import-Certificate -FilePath $certificate -CertStoreLocation Cert:\CurrentUser\Root | Out-Null
+
       - name: 信任 SQL Server CA（macOS）
         if: inputs.bootstrap == 'macos'
         shell: bash
