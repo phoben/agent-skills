@@ -65,7 +65,7 @@ jobs:
           dnf -qy module disable postgresql || true
           curl --fail --silent --show-error --location \
             --output /etc/yum.repos.d/microsoft-prod.repo \
-            "https://packages.microsoft.com/config/fedora/${fedora_version}/prod.repo"
+            "https://packages.microsoft.com/config/rhel/9/prod.repo"
           ACCEPT_EULA=Y dnf install -y postgresql18 mssql-tools18 powershell
           echo "/usr/pgsql-18/bin" >> "$GITHUB_PATH"
           echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
