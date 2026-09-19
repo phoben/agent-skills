@@ -99,15 +99,15 @@ provenance。
 4. 创建并推送与包版本一致的标签：
 
 ```bash
-git tag -a datapull-v0.1.2 -m "发布 @yg-toolkit/datapull 0.1.2"
-git push origin datapull-v0.1.2
+git tag -a datapull-v0.2.0 -m "发布 @yg-toolkit/datapull 0.2.0"
+git push origin datapull-v0.2.0
 ```
 
 5. 观察“DataPull 发布 npm 包”工作流。只有工作流成功、公开 registry 返回新版本且空目录安装执行通过，才能宣布完成：
 
 ```bash
 npm view @yg-toolkit/datapull version --registry=https://registry.npmjs.org
-npx --yes --package=@yg-toolkit/datapull@0.1.2 datapull --version
+npx --yes --package=@yg-toolkit/datapull@0.2.0 datapull --version
 ```
 
 发布标签只承担发布触发职责，不替代版本提交。禁止在包版本未更新时复用或强推旧标签。
