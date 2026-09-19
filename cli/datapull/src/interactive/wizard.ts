@@ -4,7 +4,6 @@ import { ConnectionService } from "../connections/service.js";
 import { ConfigStore } from "../config/store.js";
 import { DataPullError, asDataPullError } from "../core/errors.js";
 import { exporterFor } from "../exporters/factory.js";
-import { commonObjectTypes, OBJECT_TYPES } from "../exporters/objects.js";
 import { PullService, type PullExecutionResult } from "../pull/service.js";
 import { SkillInstaller } from "../skills/installer.js";
 import {
@@ -24,6 +23,7 @@ import {
   promptAndAddConnection,
   validateConnectionWithRecovery,
 } from "./connections.js";
+import { promptObjectTypes } from "./object-selection.js";
 
 export async function runWizard(store: ConfigStore): Promise<PullExecutionResult> {
   const created = !(await store.exists());
@@ -67,16 +67,7 @@ export async function runWizard(store: ConfigStore): Promise<PullExecutionResult
     database,
   );
 
-  const common = new Set(commonObjectTypes(connection.engine));
-  const selectedTypes = await checkbox<string>({
-    message: "选择要获取的数据库对象（默认全选）：",
-    required: true,
-    choices: OBJECT_TYPES[connection.engine].map((type) => ({
-      name: `${common.has(type) ? "常用" : "高级"} · ${type}`,
-      value: type,
-      checked: true,
-    })),
-  });
+  const selectedTypes = await promptObjectTypes(connection.engine);
   const projectRoot = await discoverProjectRoot();
   process.stdout.write(
     [

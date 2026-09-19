@@ -56,6 +56,7 @@ const ROOT_HELP = `
 说明：
   DataPull 只读取数据库元数据并生成 DDL 结构文件，不导出业务数据。
   交互式 connection add 会登记并校验连接，成功后可立即输入数据库名拉取。
+  完整向导会按全部、常用、高级、自定义四类询问对象范围，默认选择常用对象。
   密码和完整连接 URL 不应放入命令参数。`;
 
 const CONNECTION_HELP = `

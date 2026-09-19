@@ -20,6 +20,7 @@ describe("CLI JSON 契约", () => {
     expect(rootHelp.exitCode).toBe(0);
     expect(rootHelp.stdout).toContain("datapull connection add");
     expect(rootHelp.stdout).toContain("不导出业务数据");
+    expect(rootHelp.stdout).toContain("全部、常用、高级、自定义四类询问对象范围");
     expect(addHelp.exitCode).toBe(0);
     expect(addHelp.stdout).toContain("mysql.demo.example");
     expect(addHelp.stdout).toContain("目标数据库        shop_demo");
