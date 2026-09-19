@@ -146,6 +146,7 @@ export function sqlcmdQueryArguments(
   >,
   database: string,
   query: string,
+  platform = process.platform,
 ): string[] {
   const args = [
     "-S",
@@ -157,8 +158,7 @@ export function sqlcmdQueryArguments(
     "-h",
     "-1",
     "-W",
-    "-f",
-    "65001",
+    ...(platform === "win32" ? ["-f", "65001"] : []),
     "-Q",
     query,
     ...sqlcmdTrustArguments(connection),

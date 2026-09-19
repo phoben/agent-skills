@@ -53,10 +53,28 @@ describe("DDL 安全规范化", () => {
       },
       "master",
       "SELECT 1;",
+      "win32",
     );
 
     expect(args).toContain("-f");
     expect(args[args.indexOf("-f") + 1]).toBe("65001");
+  });
+
+  it("macOS 不传递 Go sqlcmd 不支持的输出编码参数", () => {
+    const args = sqlcmdQueryArguments(
+      {
+        authMode: "password",
+        host: "db.example.internal",
+        port: 1433,
+        username: "tester",
+        tls: { encrypt: true, trustServerCertificate: false },
+      },
+      "master",
+      "SELECT 1;",
+      "darwin",
+    );
+
+    expect(args).not.toContain("-f");
   });
 
   it("把 SQL Server 中文证书链错误识别为可恢复的 TLS 故障", () => {
