@@ -68,9 +68,9 @@
       "osVersion": "darwin x64 macos15",
       "nodeVersion": "v22.12.0",
       "installAdapterVersion": 1,
-      "verifiedAt": "2026-09-18T15:32:31.837Z",
+      "verifiedAt": "2026-09-19T06:13:29.925Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "engine": "postgresql",
@@ -80,9 +80,9 @@
       "osVersion": "darwin x64 macos15",
       "nodeVersion": "v22.12.0",
       "installAdapterVersion": 1,
-      "verifiedAt": "2026-09-18T15:33:11.039Z",
+      "verifiedAt": "2026-09-19T06:14:03.724Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "engine": "sqlserver",
@@ -92,9 +92,9 @@
       "osVersion": "darwin x64 macos15",
       "nodeVersion": "v22.12.0",
       "installAdapterVersion": 1,
-      "verifiedAt": "2026-09-18T15:34:19.252Z",
+      "verifiedAt": "2026-09-19T06:15:03.325Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "engine": "mysql",
@@ -104,9 +104,9 @@
       "osVersion": "linux x64 ubuntu24",
       "nodeVersion": "v22.12.0",
       "installAdapterVersion": 1,
-      "verifiedAt": "2026-09-18T15:31:37.703Z",
+      "verifiedAt": "2026-09-19T06:12:53.319Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "engine": "postgresql",
@@ -116,9 +116,9 @@
       "osVersion": "linux x64 ubuntu24",
       "nodeVersion": "v22.12.0",
       "installAdapterVersion": 1,
-      "verifiedAt": "2026-09-18T15:32:29.546Z",
+      "verifiedAt": "2026-09-19T06:13:39.460Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "engine": "sqlserver",
@@ -128,9 +128,9 @@
       "osVersion": "linux x64 ubuntu24",
       "nodeVersion": "v22.12.0",
       "installAdapterVersion": 1,
-      "verifiedAt": "2026-09-18T15:33:59.284Z",
+      "verifiedAt": "2026-09-19T06:15:00.770Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "engine": "mysql",
@@ -243,10 +243,10 @@
         "trae:project"
       ],
       "skillInstallationVerified": true,
-      "skillInstallationNote": "8 个用户级与项目级目标均位于预期目录，安装或更新后版本与内容哈希回验一致。",
-      "verifiedAt": "2026-09-18T15:34:20.175Z",
+      "skillInstallationNote": "Codex、Claude Code、Cursor、Trae 的用户级与项目级 Skill 均已写入预期目录；共享目录按逻辑目标逐项通过版本与内容哈希回验。",
+      "verifiedAt": "2026-09-19T06:15:07.584Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "platform": "ubuntu-lts",
@@ -264,10 +264,10 @@
         "trae:project"
       ],
       "skillInstallationVerified": true,
-      "skillInstallationNote": "8 个用户级与项目级目标均位于预期目录，安装或更新后版本与内容哈希回验一致。",
-      "verifiedAt": "2026-09-18T15:33:59.877Z",
+      "skillInstallationNote": "Codex、Claude Code、Cursor、Trae 的用户级与项目级 Skill 均已写入预期目录；共享目录按逻辑目标逐项通过版本与内容哈希回验。",
+      "verifiedAt": "2026-09-19T06:15:02.564Z",
       "result": "passed",
-      "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
+      "gitSha": "78a5b240aa30fe8c45ed8b54139718e8f9769ff3"
     },
     {
       "platform": "debian-stable",
