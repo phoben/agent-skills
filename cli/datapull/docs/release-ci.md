@@ -1,6 +1,6 @@
-# DataPull 兼容性 CI
+# DataPull 兼容性与发布 CI
 
-兼容性工作流通过三个远程验收数据库，在每个平台上安装打包后的 DataPull、拉取全部对象类型并生成脱敏证据。工作流不会修改兼容矩阵，也不会自动发布 NPM 包。
+兼容性工作流通过三个远程验收数据库，在每个平台上安装打包后的 DataPull、拉取全部对象类型并生成脱敏证据。它不会修改兼容矩阵，也不会自动发布 NPM 包。发布由独立的 `datapull-publish.yml` 工作流完成。
 
 ## 安全边界
 
@@ -69,4 +69,58 @@ macOS 15 Intel 与 Ubuntu 24.04 使用 GitHub 托管运行器。以下平台使�
 5. 审查八个 Skill 目标的预期路径、安装或更新结果、版本与内容哈希，并把 `skillInstallationVerified:true` 的证据录入 `resources/compatibility-matrix.json`。
 6. 执行 `npm run release:check`；只有数据库、平台 NPM 安装与 Skill 安装回验矩阵完整时才可进入发布。
 
-首次公开包仍需由已启用 2FA 的 owner 在本机发布。包创建后再配置 NPM Trusted Publisher，并使用 GitHub 托管发布任务及 OIDC；不要为发布创建长期写 Token。
+## npm OIDC 自动发布
+
+`@yg-toolkit/datapull` 已使用 NPM Trusted Publishing 绑定 GitHub Actions。正常发布不需要
+`npm login`、OTP、通行密钥或长期写 Token；GitHub 为每次任务签发短期 OIDC 身份，NPM 自动生成
+provenance。
+
+当前信任配置是发布契约，字段区分大小写：
+
+| 字段 | 值 |
+|---|---|
+| Provider | GitHub Actions |
+| Organization or user | `phoben` |
+| Repository | `agent-skills` |
+| Workflow filename | `datapull-publish.yml` |
+| Environment | 留空 |
+| Allowed actions | 允许直接 `npm publish` |
+
+工作流必须位于 `.github/workflows/datapull-publish.yml`，使用 GitHub 托管运行器，并保留
+`id-token: write` 和 `contents: read`。NPM OIDC 要求 Node.js `>=22.14.0` 与 npm `>=11.5.1`；
+发布任务固定使用 Node.js 24 和 npm 11.5.1。`package.json` 中的 `repository.url` 必须继续精确指向
+`https://github.com/phoben/agent-skills`。
+
+### 发布一个新版本
+
+1. 更新 `cli/datapull/package.json` 和锁文件中的版本并完成对应功能验收。
+2. 运行本地门禁与 `npm run release:check`。
+3. 提交并推送版本变更，确认目标提交已经位于 `origin/main`。
+4. 创建并推送与包版本一致的标签：
+
+```bash
+git tag -a datapull-v0.1.2 -m "发布 @yg-toolkit/datapull 0.1.2"
+git push origin datapull-v0.1.2
+```
+
+5. 观察“DataPull 发布 npm 包”工作流。只有工作流成功、公开 registry 返回新版本且空目录安装执行通过，才能宣布完成：
+
+```bash
+npm view @yg-toolkit/datapull version --registry=https://registry.npmjs.org
+npx --yes --package=@yg-toolkit/datapull@0.1.2 datapull --version
+```
+
+发布标签只承担发布触发职责，不替代版本提交。禁止在包版本未更新时复用或强推旧标签。
+
+### 常见失败与恢复
+
+- `ENEEDAUTH`：优先核对 NPM Trusted Publisher 的仓库名、工作流文件名和 Environment 是否与触发工作流完全一致，并确认工作流有 `id-token: write`；不要改回长期 Token。
+- `EOTP`：说明正在走手工发布或 OIDC 未被识别。`npm login` 不会免除逐次发布 2FA，`/auth/cli/` 链接在原进程退出后可能 404。
+- 标签版本不一致：工作流会在上传前失败。删除尚未发布的错误远端标签，修正版本后创建正确标签；已经发布的版本不可覆盖。
+- 工作流成功但 registry 暂无新版本：检查日志是否出现 `+ @yg-toolkit/datapull@<版本>`、签名 provenance 和“正在处理”提示。NPM 可能需要数分钟完成处理，应轮询 registry，不能立即重复发布。
+- 版本已经存在：递增版本、重新验收并创建新标签；NPM 不允许覆盖同名版本。
+- 工作流重命名或仓库迁移：NPM 上现有 Trusted Publisher 连接不可原地编辑，先新增或删除后重建对应连接，再触发发布。
+
+首次 OIDC 发布已由 `datapull-v0.1.1` 验证通过。确认 OIDC 稳定后，Publishing access 应保持
+“Require two-factor authentication and disallow bypass 2FA tokens”，并撤销不再使用的自动化写 Token；
+该限制不会阻止 Trusted Publisher。

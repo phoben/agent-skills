@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { SkillInstaller } from "../src/skills/installer.js";
+import { resolveSkillTarget } from "../src/skills/targets.js";
 
 const directories: string[] = [];
 
@@ -11,10 +12,32 @@ afterEach(async () => {
 });
 
 describe("DataPull Skill 安装保护", () => {
+  it("可把新增平台写入其独立用户目录并完成哈希回验", async () => {
+    const root = await mkdtemp(join(tmpdir(), "datapull-opencode-skill-test-"));
+    directories.push(root);
+    const configHome = join(root, "config");
+    const target = resolveSkillTarget("opencode", "user", root, {
+      homeDir: root,
+      env: { XDG_CONFIG_HOME: configHome },
+    });
+    const installer = new SkillInstaller();
+
+    const installed = await installer.install(target, true);
+
+    expect(installed.status).toBe("installed");
+    expect(target.path).toBe(join(configHome, "opencode", "skills", "datapull"));
+    expect((await installer.status(target)).status).toBe("current");
+  });
+
   it("识别用户修改并只在强制同步前创建备份", async () => {
     const root = await mkdtemp(join(tmpdir(), "datapull-skill-test-"));
     directories.push(root);
-    const target = { agent: "codex" as const, scope: "project" as const, path: join(root, ".agents", "skills", "datapull") };
+    const target = {
+      agent: "codex" as const,
+      scope: "project" as const,
+      path: join(root, ".agents", "skills", "datapull"),
+      scopeRoot: root,
+    };
     const installer = new SkillInstaller();
     await installer.install(target, true);
     expect((await installer.status(target)).status).toBe("current");
@@ -35,6 +58,7 @@ describe("DataPull Skill 安装保护", () => {
       agent: "codex" as const,
       scope: "project" as const,
       path: join(root, ".agents", "skills", "datapull"),
+      scopeRoot: root,
     };
 
     await expect(new SkillInstaller().install(target, true)).rejects.toMatchObject({

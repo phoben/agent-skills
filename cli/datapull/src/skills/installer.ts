@@ -29,9 +29,11 @@ export interface SkillStatus {
 
 export class SkillInstaller {
   readonly sourceDirectory = fileURLToPath(new URL("../../skill", import.meta.url));
+  private sourceHashPromise?: Promise<string>;
 
   async sourceHash(): Promise<string> {
-    return hashDirectory(this.sourceDirectory);
+    this.sourceHashPromise ??= hashDirectory(this.sourceDirectory);
+    return this.sourceHashPromise;
   }
 
   async status(target: SkillTarget): Promise<SkillStatus> {
@@ -136,7 +138,7 @@ export class SkillInstaller {
 
   private async validateTarget(target: SkillTarget): Promise<void> {
     const absolute = resolve(target.path);
-    const root = resolve(dirname(dirname(dirname(target.path))));
+    const root = resolve(target.scopeRoot);
     const relativeTarget = relative(root, absolute);
     if (
       relativeTarget.length === 0 ||

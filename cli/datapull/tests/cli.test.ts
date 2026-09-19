@@ -20,6 +20,41 @@ describe("CLI JSON 契约", () => {
     expect(result.stdout.trim().split(/\r?\n/u)).toHaveLength(1);
   }, 15_000);
 
+  it("非交互密码连接省略变量名时按别名生成稳定引用", async () => {
+    const configRoot = await mkdtemp(join(tmpdir(), "datapull-cli-default-reference-test-"));
+    directories.push(configRoot);
+    const env = {
+      ...process.env,
+      DATAPULL_CONFIG_HOME: configRoot,
+      DATAPULL_YUGA_SQLSERVER_PASSWORD: "top-secret",
+    };
+    const added = await runCli(
+      [
+        "connection",
+        "add",
+        "--alias",
+        "yuga-sqlserver",
+        "--engine",
+        "sqlserver",
+        "--auth-mode",
+        "password",
+        "--host",
+        "db.local",
+        "--username",
+        "reader",
+        "--yes",
+        "--json",
+      ],
+      env,
+    );
+
+    expect(added.exitCode).toBe(0);
+    expect(JSON.parse(added.stdout)).toMatchObject({
+      credentialRef: "DATAPULL_YUGA_SQLSERVER_PASSWORD",
+    });
+    expect(added.stdout).not.toContain("top-secret");
+  }, 15_000);
+
   it("非交互新增连接后可脱敏列出", async () => {
     const configRoot = await mkdtemp(join(tmpdir(), "datapull-cli-test-"));
     directories.push(configRoot);

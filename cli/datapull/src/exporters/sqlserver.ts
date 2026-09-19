@@ -112,22 +112,7 @@ export class SqlServerExporter implements DatabaseExporter {
     database: string,
     query: string,
   ): Promise<string> {
-    const args = [
-      "-S",
-      `${required(connection.host, "host")},${connection.port ?? 1433}`,
-      "-d",
-      database,
-      "-N",
-      "-b",
-      "-h",
-      "-1",
-      "-W",
-      "-Q",
-      query,
-    ];
-    args.push(...sqlcmdTrustArguments(connection));
-    if (connection.authMode === "integrated") args.push("-E");
-    else args.push("-U", connection.username ?? "");
+    const args = sqlcmdQueryArguments(connection, database, query);
     try {
       const result = await runProcess("sqlcmd", args, {
         env: {
@@ -138,15 +123,11 @@ export class SqlServerExporter implements DatabaseExporter {
         },
         timeoutMs: 120_000,
         secrets: [connection.password ?? "", connection.secretUrl ?? ""],
+        outputDecoder: decodeSqlcmdOutput,
       });
       return result.stdout;
     } catch (error) {
-      if (
-        error instanceof DataPullError &&
-        /certificate|证书|certificate chain|unable to verify/iu.test(
-          JSON.stringify(error.details ?? {}),
-        )
-      ) {
+      if (isSqlServerCertificateError(error)) {
         throw new DataPullError(
           "SQLSERVER_TLS_CERTIFICATE_UNTRUSTED",
           "SQL Server 证书链无法验证。请安装可信 CA 链或修复服务器证书。",
@@ -156,6 +137,84 @@ export class SqlServerExporter implements DatabaseExporter {
       throw error;
     }
   }
+}
+
+export function sqlcmdQueryArguments(
+  connection: Pick<
+    ResolvedConnection,
+    "host" | "port" | "authMode" | "username" | "tls"
+  >,
+  database: string,
+  query: string,
+): string[] {
+  const args = [
+    "-S",
+    `${required(connection.host, "host")},${connection.port ?? 1433}`,
+    "-d",
+    database,
+    "-N",
+    "-b",
+    "-h",
+    "-1",
+    "-W",
+    "-f",
+    "65001",
+    "-Q",
+    query,
+    ...sqlcmdTrustArguments(connection),
+  ];
+  if (connection.authMode === "integrated") args.push("-E");
+  else args.push("-U", connection.username ?? "");
+  return args;
+}
+
+export function isSqlServerCertificateError(error: unknown): boolean {
+  return (
+    error instanceof DataPullError &&
+    /certificate|证书|certificate chain|unable to verify|not trusted|untrusted|self[- ]signed/iu.test(
+      JSON.stringify(error.details ?? {}),
+    )
+  );
+}
+
+export function decodeSqlcmdOutput(
+  value: Uint8Array,
+  stream: "stdout" | "stderr",
+  platform = process.platform,
+  locale = Intl.DateTimeFormat().resolvedOptions().locale,
+): string {
+  if (platform !== "win32" || stream === "stdout") return new TextDecoder().decode(value);
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(value);
+  } catch {
+    // Windows 版 ODBC sqlcmd 的错误流可能仍使用系统 ANSI 代码页。
+  }
+  return new TextDecoder(windowsAnsiEncoding(locale)).decode(value);
+}
+
+function windowsAnsiEncoding(locale: string): string {
+  const normalized = locale.toLowerCase();
+  if (
+    normalized.startsWith("zh-tw") ||
+    normalized.startsWith("zh-hk") ||
+    normalized.startsWith("zh-mo") ||
+    normalized.includes("hant")
+  ) {
+    return "big5";
+  }
+  if (normalized.startsWith("zh")) return "gbk";
+  if (normalized.startsWith("ja")) return "shift_jis";
+  if (normalized.startsWith("ko")) return "euc-kr";
+  if (normalized.startsWith("th")) return "windows-874";
+  if (/^(ru|uk|be|bg|sr|mk)/u.test(normalized)) return "windows-1251";
+  if (/^(cs|pl|hu|sk|sl|hr|ro|sq)/u.test(normalized)) return "windows-1250";
+  if (normalized.startsWith("el")) return "windows-1253";
+  if (normalized.startsWith("tr")) return "windows-1254";
+  if (normalized.startsWith("he")) return "windows-1255";
+  if (normalized.startsWith("ar")) return "windows-1256";
+  if (/^(et|lv|lt)/u.test(normalized)) return "windows-1257";
+  if (normalized.startsWith("vi")) return "windows-1258";
+  return "windows-1252";
 }
 
 export function sqlcmdTrustArguments(

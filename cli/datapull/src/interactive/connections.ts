@@ -1,5 +1,9 @@
 import { confirm, input, password, select } from "@inquirer/prompts";
-import { ConnectionService, createConnection } from "../connections/service.js";
+import {
+  ConnectionService,
+  createConnection,
+  defaultPasswordCredentialRef,
+} from "../connections/service.js";
 import { DataPullError } from "../core/errors.js";
 import type { AuthMode, ConnectionConfig, Engine } from "../types.js";
 
@@ -79,15 +83,12 @@ export async function promptAndAddConnection(
   }
   if (authMode === "password") {
     username ??= await input({ message: "用户名：", required: true });
-    credentialRef ??= await input({
-      message: "密码变量名：",
-      default: defaultReference(alias, "PASSWORD"),
-    });
+    credentialRef ??= defaultPasswordCredentialRef(alias, await service.list());
     pendingSecret = await password({ message: "数据库密码（输入不会回显）：", mask: "*" });
   } else if (authMode === "url") {
     urlRef ??= await input({
       message: "连接 URL 变量名：",
-      default: defaultReference(alias, "URL"),
+      default: defaultUrlReference(alias),
     });
     pendingSecret = await password({ message: "完整连接 URL（输入不会回显）：", mask: "*" });
   }
@@ -123,10 +124,10 @@ export async function promptAndAddConnection(
   return service.add(connection);
 }
 
-function defaultReference(alias: string, suffix: string): string {
+function defaultUrlReference(alias: string): string {
   const stem = alias
     .toUpperCase()
     .replace(/[^A-Z0-9_]/gu, "_")
     .replace(/^[^A-Z_]/u, "_$&");
-  return `DATAPULL_${stem}_${suffix}`;
+  return `DATAPULL_${stem}_URL`;
 }

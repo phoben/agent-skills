@@ -1,6 +1,6 @@
 {
   "name": "@yg-toolkit/datapull",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "面向人类交互、同时支持 Agent 自动化的数据库结构文件拉取 CLI",
   "type": "module",
   "bin": {

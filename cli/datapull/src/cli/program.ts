@@ -5,6 +5,7 @@ import {
   ConnectionService,
   connectionSecurityWarnings,
   createConnection,
+  defaultPasswordCredentialRef,
   redactedConnection,
 } from "../connections/service.js";
 import { ConfigStore } from "../config/store.js";
@@ -16,7 +17,11 @@ import { promptAndAddConnection, type ConnectionInput } from "../interactive/con
 import { runWizard } from "../interactive/wizard.js";
 import { PullService } from "../pull/service.js";
 import { SkillInstaller } from "../skills/installer.js";
-import { allSkillTargets, parseSkillTarget } from "../skills/targets.js";
+import {
+  allSkillTargets,
+  parseSkillTarget,
+  uniqueSkillTargets,
+} from "../skills/targets.js";
 import type { AuthMode, ConnectionConfig, Engine } from "../types.js";
 import { discoverProjectRoot, validatePathSegment } from "../utils/path.js";
 import { ToolManager } from "../tools/manager.js";
@@ -82,7 +87,7 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
     .option("--host <host>", "数据库主机")
     .option("--port <port>", "端口", numberParser)
     .option("--username <username>", "用户名")
-    .option("--credential-ref <name>", "密码变量名")
+    .option("--credential-ref <name>", "密码变量名（省略时按连接别名自动生成；兼容已有脚本）")
     .option("--url-ref <name>", "连接 URL 变量名")
     .option("--ssl-mode <mode>", "MySQL/PostgreSQL TLS 模式")
     .option(
@@ -98,7 +103,7 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
         created = await promptAndAddConnection(service, options);
       } else {
         requireYes(global);
-        const requiredOptions = requireConnectionCreateOptions(options);
+        const requiredOptions = requireConnectionCreateOptions(options, await service.list());
         if (requiredOptions.authMode === "integrated" && process.platform !== "win32") {
           throw new DataPullError(
             "INVALID_ARGUMENT",
@@ -200,7 +205,13 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
         }
         await store.setCredential(
           reference,
-          await password({ message: `更新 ${reference}（输入不会回显）：`, mask: "*" }),
+          await password({
+            message:
+              existing.authMode === "url"
+                ? "输入新的完整连接 URL（输入不会回显）："
+                : "输入新数据库密码（输入不会回显）：",
+            mask: "*",
+          }),
         );
       }
       const changes = compactConnectionChanges(options, existing);
@@ -441,9 +452,11 @@ function registerSkillCommands(program: Command): void {
     .option("--target <target>", "目标 agent:scope，可重复", collect, [])
     .action(async (options: { target: string[] }, command) => {
       const projectRoot = await discoverProjectRoot();
-      const targets = options.target.length === 0
-        ? allSkillTargets(projectRoot)
-        : options.target.map((target) => parseTarget(target, projectRoot));
+      const targets = uniqueSkillTargets(
+        options.target.length === 0
+          ? allSkillTargets(projectRoot)
+          : options.target.map((target) => parseTarget(target, projectRoot)),
+      );
       const installer = new SkillInstaller();
       const statuses = await Promise.all(targets.map(async (target) => installer.status(target)));
       output(command, "skill status").success(
@@ -460,8 +473,10 @@ function registerSkillCommands(program: Command): void {
       const projectRoot = await discoverProjectRoot();
       const installer = new SkillInstaller();
       const targets = [];
-      for (const value of options.target) {
-        const target = parseTarget(value, projectRoot);
+      const requestedTargets = uniqueSkillTargets(
+        options.target.map((value) => parseTarget(value, projectRoot)),
+      );
+      for (const target of requestedTargets) {
         try {
           targets.push(await installer.install(target, true));
         } catch (error) {
@@ -499,8 +514,10 @@ function registerSkillCommands(program: Command): void {
       const projectRoot = await discoverProjectRoot();
       const installer = new SkillInstaller();
       const targets = [];
-      for (const value of options.target) {
-        const target = parseTarget(value, projectRoot);
+      const requestedTargets = uniqueSkillTargets(
+        options.target.map((value) => parseTarget(value, projectRoot)),
+      );
+      for (const target of requestedTargets) {
         try {
           targets.push(await installer.sync(target, true, options.force === true));
         } catch (error) {
@@ -597,7 +614,10 @@ function requireYes(global: GlobalOptions): void {
   }
 }
 
-function requireConnectionCreateOptions(options: ConnectionOptions): {
+function requireConnectionCreateOptions(
+  options: ConnectionOptions,
+  existingConnections: readonly Pick<ConnectionConfig, "credentialRef">[] = [],
+): {
   alias: string;
   engine: Engine;
   authMode: AuthMode;
@@ -615,7 +635,6 @@ function requireConnectionCreateOptions(options: ConnectionOptions): {
   if (authMode === "password") {
     requiredString(options.host, "--host");
     requiredString(options.username, "--username");
-    requiredString(options.credentialRef, "--credential-ref");
   } else if (authMode === "url") requiredString(options.urlRef, "--url-ref");
   else requiredString(options.host, "--host");
   if (options.trustServerCertificate === true && engine !== "sqlserver") {
@@ -632,7 +651,11 @@ function requireConnectionCreateOptions(options: ConnectionOptions): {
     ...(options.host === undefined ? {} : { host: options.host }),
     ...(options.port === undefined ? {} : { port: options.port }),
     ...(options.username === undefined ? {} : { username: options.username }),
-    ...(options.credentialRef === undefined ? {} : { credentialRef: options.credentialRef }),
+    ...(authMode === "password"
+      ? { credentialRef: options.credentialRef ?? defaultPasswordCredentialRef(alias, existingConnections) }
+      : options.credentialRef === undefined
+        ? {}
+        : { credentialRef: options.credentialRef }),
     ...(options.urlRef === undefined ? {} : { urlRef: options.urlRef }),
     ...(options.sslMode === undefined ? {} : { sslMode: options.sslMode }),
     ...(options.trustServerCertificate === undefined

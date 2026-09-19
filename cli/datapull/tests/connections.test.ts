@@ -2,7 +2,11 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { ConnectionService, createConnection } from "../src/connections/service.js";
+import {
+  ConnectionService,
+  createConnection,
+  defaultPasswordCredentialRef,
+} from "../src/connections/service.js";
 import { ConfigStore } from "../src/config/store.js";
 import { getConfigPaths } from "../src/config/paths.js";
 import type { CredentialSecurity } from "../src/config/security.js";
@@ -14,6 +18,39 @@ afterEach(async () => {
 });
 
 describe("登记连接", () => {
+  it("按连接别名规范化生成稳定的密码变量名", () => {
+    expect(defaultPasswordCredentialRef("yuga-sqlserver")).toBe(
+      "DATAPULL_YUGA_SQLSERVER_PASSWORD",
+    );
+    expect(defaultPasswordCredentialRef("9号库")).toBe("DATAPULL__9___PASSWORD");
+  });
+
+  it("规范化后的密码变量名冲突时附加稳定别名哈希", () => {
+    const existing = [{ credentialRef: "DATAPULL_FOO_BAR_PASSWORD" }];
+    const generated = defaultPasswordCredentialRef("foo-bar", existing);
+
+    expect(generated).toMatch(/^DATAPULL_FOO_BAR_[A-F0-9]{8}_PASSWORD$/u);
+    expect(defaultPasswordCredentialRef("foo-bar", existing)).toBe(generated);
+  });
+
+  it("更新连接时保留已登记的密码变量名", async () => {
+    const service = await serviceFixture();
+    const credentialRef = defaultPasswordCredentialRef("yuga-sqlserver");
+    await service.add(
+      createConnection({
+        alias: "yuga-sqlserver",
+        engine: "sqlserver",
+        authMode: "password",
+        host: "db.local",
+        username: "reader",
+        credentialRef,
+      }),
+    );
+
+    const updated = await service.update("yuga-sqlserver", { host: "new-db.local" });
+    expect(updated.credentialRef).toBe(credentialRef);
+  });
+
   it("一个连接保存多个最近数据库和收藏", async () => {
     const service = await serviceFixture();
     await service.add(

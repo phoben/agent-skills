@@ -7,6 +7,7 @@ export interface RunOptions {
   input?: string;
   timeoutMs?: number;
   secrets?: string[];
+  outputDecoder?: (value: Uint8Array, stream: "stdout" | "stderr") => string;
 }
 
 export interface RunResult {
@@ -22,16 +23,19 @@ export async function runProcess(
   const execaOptions: Options = {
     reject: false,
     windowsHide: true,
+    ...(options.outputDecoder === undefined ? {} : { encoding: "buffer" as const }),
     ...(options.cwd === undefined ? {} : { cwd: options.cwd }),
     ...(options.env === undefined ? {} : { env: options.env }),
     ...(options.input === undefined ? {} : { input: options.input }),
     ...(options.timeoutMs === undefined ? {} : { timeout: options.timeoutMs }),
   };
   const result = await execa(command, args, execaOptions);
+  const stdout = decodeOutput(result.stdout, "stdout", options.outputDecoder);
+  const stderr = decodeOutput(result.stderr, "stderr", options.outputDecoder);
   if (result.exitCode !== 0) {
     const timedOut = result.timedOut === true;
     const detail = redact(
-      [result.shortMessage, result.stderr, result.stdout]
+      [result.shortMessage, stderr, stdout]
         .filter((value) => typeof value === "string" && value.trim().length > 0)
         .join("\n"),
       options.secrets ?? [],
@@ -50,8 +54,8 @@ export async function runProcess(
     );
   }
   return {
-    stdout: normalizeOutput(result.stdout),
-    stderr: normalizeOutput(result.stderr),
+    stdout,
+    stderr,
   };
 }
 
@@ -65,4 +69,13 @@ function normalizeOutput(value: unknown): string {
   if (typeof value === "string") return value;
   if (Array.isArray(value)) return value.map(String).join("\n");
   return value === undefined ? "" : String(value);
+}
+
+function decodeOutput(
+  value: unknown,
+  stream: "stdout" | "stderr",
+  decoder: RunOptions["outputDecoder"],
+): string {
+  if (decoder !== undefined && value instanceof Uint8Array) return decoder(value, stream);
+  return normalizeOutput(value);
 }

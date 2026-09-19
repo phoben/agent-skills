@@ -7,7 +7,17 @@ import { exporterFor } from "../exporters/factory.js";
 import { commonObjectTypes, OBJECT_TYPES } from "../exporters/objects.js";
 import { PullService, type PullExecutionResult } from "../pull/service.js";
 import { SkillInstaller } from "../skills/installer.js";
-import { AGENTS, parseSkillTarget, type AgentId, type SkillScope } from "../skills/targets.js";
+import {
+  getAgentDefinition,
+  listAgentDefinitions,
+  type AgentId,
+} from "../skills/agents.js";
+import {
+  parseSkillTarget,
+  uniqueSkillTargets,
+  type SkillScope,
+  type SkillTarget,
+} from "../skills/targets.js";
 import { ToolManager } from "../tools/manager.js";
 import type { ConnectionConfig } from "../types.js";
 import { discoverProjectRoot, validatePathSegment } from "../utils/path.js";
@@ -228,7 +238,13 @@ async function validateConnectionWithRecovery(
         process.stderr.write("该连接没有可更新的凭证引用。\n");
         continue;
       }
-      const value = await password({ message: `更新 ${reference}（输入不会回显）：`, mask: "*" });
+      const value = await password({
+        message:
+          current.authMode === "url"
+            ? "更新完整连接 URL（输入不会回显）："
+            : "更新数据库密码（输入不会回显）：",
+        mask: "*",
+      });
       await service.store.setCredential(reference, value);
     }
   }
@@ -259,7 +275,14 @@ async function chooseDatabase(
     : chosen;
 }
 
-async function promptSkillSetup(store: ConfigStore): Promise<void> {
+interface SkillSetupOptions {
+  projectRoot?: string;
+}
+
+export async function promptSkillSetup(
+  store: ConfigStore,
+  options: SkillSetupOptions = {},
+): Promise<void> {
   const config = await store.read();
   if (config.onboarding.skillPrompted) return;
   const install = await confirm({
@@ -267,26 +290,10 @@ async function promptSkillSetup(store: ConfigStore): Promise<void> {
     default: true,
   });
   if (install) {
-    const agents = await checkbox<AgentId>({
-      message: "选择 Agent 工具（不检测本机是否已安装）：",
-      required: true,
-      choices: AGENTS.map((agent) => ({ name: agentLabel(agent), value: agent })),
-    });
-    const projectRoot = await discoverProjectRoot();
-    const targets = [];
-    for (const agent of agents) {
-      const scopes = await checkbox<SkillScope>({
-        message: `${agentLabel(agent)} 的安装位置：`,
-        required: true,
-        choices: [
-          { name: "用户级", value: "user", checked: true },
-          { name: "项目级", value: "project" },
-        ],
-      });
-      for (const scope of scopes) targets.push(parseSkillTarget(`${agent}:${scope}`, projectRoot));
-    }
+    const projectRoot = options.projectRoot ?? (await discoverProjectRoot());
+    const targets = await chooseSkillTargets(projectRoot);
     process.stdout.write(
-      `\n将写入以下 Skill 目标：\n${targets.map((target) => `- ${target.agent}:${target.scope} → ${target.path}`).join("\n")}\n`,
+      `\n将写入 ${targets.length} 个 Skill 目录：\n${targets.map((target) => `- ${targetLabel(target)} → ${target.path}`).join("\n")}\n`,
     );
     if (await confirm({ message: "确认创建以上目录并安装 Skill？", default: true })) {
       const installer = new SkillInstaller();
@@ -300,15 +307,47 @@ async function promptSkillSetup(store: ConfigStore): Promise<void> {
   await store.write({ ...config, onboarding: { skillPrompted: true } });
 }
 
+async function chooseSkillTargets(
+  projectRoot: string,
+): Promise<SkillTarget[]> {
+  const selectedAgents = await checkbox<AgentId>({
+    message: "选择 Agent 工具（不检测本机是否已安装）：",
+    required: true,
+    choices: listAgentDefinitions().map((agent) => ({
+      name: agent.displayName,
+      value: agent.id,
+      checked: agent.id === "codex",
+    })),
+  });
+  const targets: SkillTarget[] = [];
+  for (const agent of selectedAgents) {
+    const definition = getAgentDefinition(agent);
+    const scope = await select<SkillScope>({
+      message: `${definition.displayName} 的安装位置：`,
+      choices: [
+        ...(definition.supportsUserScope
+          ? [{ name: "用户级 · 所有项目可用", value: "user" as const }]
+          : []),
+        { name: "项目级 · 仅当前项目", value: "project" as const },
+      ],
+      default: definition.supportsUserScope ? "user" : "project",
+    });
+    targets.push(parseSkillTarget(`${agent}:${scope}`, projectRoot));
+  }
+  return uniqueSkillTargets(targets);
+}
+
 function unique(values: string[]): string[] {
   return [...new Set(values)];
 }
 
 function agentLabel(agent: AgentId): string {
-  return {
-    codex: "Codex",
-    claude: "Claude Code",
-    cursor: "Cursor",
-    trae: "Trae IDE",
-  }[agent];
+  return getAgentDefinition(agent).displayName;
+}
+
+function targetLabel(target: SkillTarget): string {
+  if (target.agent === "universal" && target.scope === "project") {
+    return "兼容共享目录（.agents/skills）";
+  }
+  return `${agentLabel(target.agent)}（${target.agent}:${target.scope}）`;
 }
