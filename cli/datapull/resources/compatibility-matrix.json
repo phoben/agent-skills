@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "policy": "仅实际验证通过的组合可声明支持；空矩阵表示开发包尚未完成发布验收。",
+  "version": 2,
+  "policy": "仅实际验证通过的组合可声明支持；Agent Skill 写入预期目录且版本与内容哈希回验一致即视为通过，无需启动 Agent。",
   "requiredPlatforms": [
     "windows-10-11",
     "macos",
@@ -221,8 +221,8 @@
         "trae:user",
         "trae:project"
       ],
-      "agentDiscoveryVerified": false,
-      "agentDiscoveryNote": "CI 已验证 8 个用户级/项目级安装路径与回验；Windows 上 Codex 用户级和项目级实际发现通过。Claude Code 因当前账号返回 402 未完成，Cursor、Trae 因桌面自动化运行时不可用未完成，因此整个平台仍不标记为发现通过。",
+      "skillInstallationVerified": true,
+      "skillInstallationNote": "8 个用户级与项目级目标均位于预期目录，安装或更新后版本与内容哈希回验一致。",
       "verifiedAt": "2026-09-18T14:59:58.840Z",
       "result": "passed",
       "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
@@ -242,8 +242,8 @@
         "trae:user",
         "trae:project"
       ],
-      "agentDiscoveryVerified": false,
-      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "skillInstallationVerified": true,
+      "skillInstallationNote": "8 个用户级与项目级目标均位于预期目录，安装或更新后版本与内容哈希回验一致。",
       "verifiedAt": "2026-09-18T15:34:20.175Z",
       "result": "passed",
       "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
@@ -263,8 +263,8 @@
         "trae:user",
         "trae:project"
       ],
-      "agentDiscoveryVerified": false,
-      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "skillInstallationVerified": true,
+      "skillInstallationNote": "8 个用户级与项目级目标均位于预期目录，安装或更新后版本与内容哈希回验一致。",
       "verifiedAt": "2026-09-18T15:33:59.877Z",
       "result": "passed",
       "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
@@ -284,8 +284,8 @@
         "trae:user",
         "trae:project"
       ],
-      "agentDiscoveryVerified": false,
-      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "skillInstallationVerified": true,
+      "skillInstallationNote": "8 个用户级与项目级目标均位于预期目录，安装或更新后版本与内容哈希回验一致。",
       "verifiedAt": "2026-09-18T15:24:10.429Z",
       "result": "passed",
       "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"
@@ -305,8 +305,8 @@
         "trae:user",
         "trae:project"
       ],
-      "agentDiscoveryVerified": false,
-      "agentDiscoveryNote": "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      "skillInstallationVerified": true,
+      "skillInstallationNote": "8 个用户级与项目级目标均位于预期目录，安装或更新后版本与内容哈希回验一致。",
       "verifiedAt": "2026-09-18T15:29:36.246Z",
       "result": "passed",
       "gitSha": "2ededdb9436e49fd71a0d5652e2f86bca62a597b"

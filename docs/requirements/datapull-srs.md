@@ -6,7 +6,7 @@
 |---|---|
 | 项目名称 | DataPull |
 | 文档类型 | 软件需求规格说明书（SRS） |
-| 文档版本 | v1.1 |
+| 文档版本 | v1.2 |
 | 文档状态 | 已批准 |
 | 编写日期 | 2026-09-19 |
 | 目标交付物 | 公开 NPM CLI、内置轻量 DataPull Skill、YG Toolkit Skill 同步副本 |
@@ -63,7 +63,7 @@ DataPull 的目标是让用户无需记忆复杂参数即可完成可恢复的�
 | REF-005 | [Inquirer Prompts 文档](https://github.com/SBoudrias/Inquirer.js) | 交互提示与隐藏输入。 |
 | REF-006 | [Listr2 文档](https://listr2.kilic.dev/) | 可视任务清单与进度。 |
 | REF-007 | [execa 文档](https://github.com/sindresorhus/execa) | 安全执行外部数据库工具。 |
-| REF-008 | [Codex Skill 路径源码](https://github.com/openai/codex/blob/main/codex-rs/ext/skills/src/host_roots.rs)；[Claude Code Skills 文档](https://code.claude.com/docs/en/skills)；[Cursor Skills 文档](https://cursor.com/docs/skills)；[Trae Skills 文档](https://docs.trae.cn/ide_skills) | Agent Skill 路径与发现验证。 |
+| REF-008 | [Codex Skill 路径源码](https://github.com/openai/codex/blob/main/codex-rs/ext/skills/src/host_roots.rs)；[Claude Code Skills 文档](https://code.claude.com/docs/en/skills)；[Cursor Skills 文档](https://cursor.com/docs/skills)；[Trae Skills 文档](https://docs.trae.cn/ide_skills) | Agent Skill 路径与安装回验。 |
 | REF-009 | [MySQL 客户端选项](https://dev.mysql.com/doc/refman/8.4/en/mysql-command-options.html)；[PostgreSQL psql](https://www.postgresql.org/docs/current/app-psql.html) 与 [pg_dump](https://www.postgresql.org/docs/current/app-pgdump.html)；[SQL Server sqlcmd](https://learn.microsoft.com/sql/tools/sqlcmd/sqlcmd-utility) 与 [SMO 脚本](https://learn.microsoft.com/sql/relational-databases/server-management-objects-smo/tasks/scripting) | 数据库官方工具与脚本能力。 |
 
 ## 2. 产品范围与边界
@@ -522,7 +522,7 @@ DataPull Skill 的唯一源码必须位于 `cli/datapull/skill/`；构建时同�
 
 ### 10.2 硬编码目标与官方安装路径
 
-CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、进程、扩展或登录状态判断任何 Agent 已安装。用户选择即表示安装意图。本文中的 Trae IDE 指桌面 IDE 的 Skills 能力；即使官方资料页面或产品品牌出现 TraeCode 字样，也不表示支持 TraeCode CLI。以下为当前官方路径约定；每次发行必须验证路径创建、内容回验与修改检测。干净环境中的实际发现和调用属于独立兼容性认证；未完成认证的 Agent、平台与作用域不得声明为已支持，但不阻止通过其他发布门禁的 CLI 包发布。
+CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、进程、扩展或登录状态判断任何 Agent 已安装。用户选择即表示安装意图。本文中的 Trae IDE 指桌面 IDE 的 Skills 能力；即使官方资料页面或产品品牌出现 TraeCode 字样，也不表示支持 TraeCode CLI。以下为当前官方路径约定；完整验收标准是用户所选 Skill 已安装或更新到预期目录，且版本、安装元数据与内容哈希回验一致。无需启动、登录或实际打开对应 Agent，也不要求验证 Agent 运行时发现。
 
 | Agent | 用户级路径 | 项目级路径 |
 |---|---|---|
@@ -548,7 +548,7 @@ CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、
 | AC-10-02 | 用户多选目标与不同范围。 | 逐项预览官方绝对路径，确认后创建并回验。 |
 | AC-10-03 | 已修改 Skill 副本。 | 默认不覆盖；仅备份成功后的 `--force --yes` 可覆盖。 |
 | AC-10-04 | 发布前构建。 | CLI 唯一源码、NPM 与 Plugin 副本哈希一致；旧技能未变化。 |
-| AC-10-05 | 发行验证门。 | 四工具分别记录官方路径依据、干净环境发现和实际调用结论。 |
+| AC-10-05 | 发行验证门。 | 四工具的用户级与项目级目标均记录预期路径；安装或更新后状态为 `current`，版本与内容哈希一致。 |
 | AC-10-06 | `skill status --json` 未指定目标。 | 只扫描八个硬编码路径并逐项报告 DataPull Skill 状态，不推断 Agent 是否安装。 |
 | AC-10-07 | `skill sync` 未指定 `--target`。 | 不覆盖任何副本，返回参数错误；指定目标后只处理这些目标。 |
 
@@ -588,7 +588,7 @@ CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、
 
 ### 13.1 测试层级
 
-验收必须区分静态、单元、契约、真实数据库集成、端到端交互、跨 OS、发布包和实际 Agent 发现验证；任一层不能替代其他层。实际 Agent 发现采用独立兼容性认证，不作为 CLI 首次公开发布的硬门禁；其认证状态必须如实记录并约束支持声明。
+验收必须区分静态、单元、契约、真实数据库集成、端到端交互、跨 OS、发布包和 Agent Skill 安装回验；任一层不能替代其他层。Agent Skill 安装回验仅检查预期目录、安装元数据、版本与内容哈希，不启动或登录 Agent，也不验证运行时发现。
 
 | 层级 | 最低内容 |
 |---|---|
@@ -603,15 +603,15 @@ CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、
 
 | 平台 | NPM/Node | MySQL | PostgreSQL | SQL Server | Skill |
 |---|---|---|---|---|---|
-| Windows 10/11 | 必测 | 必测 | 必测 | 必测 | 四目标用户级/项目级路径创建与回验必测；实际发现独立认证。 |
-| macOS | 必测 | 必测 | 必测 | 必测 | 路径创建与回验必测；实际发现独立认证。 |
+| Windows 10/11 | 必测 | 必测 | 必测 | 必测 | 四目标用户级/项目级路径创建、安装或更新及内容回验。 |
+| macOS | 必测 | 必测 | 必测 | 必测 | 路径创建、安装或更新及内容回验。 |
 | Ubuntu LTS | 必测 | 必测 | 必测 | 必测 | 同上。 |
 | Debian Stable | 必测 | 必测 | 必测 | 必测 | 同上。 |
 | Fedora 当前稳定版 | 必测 | 必测 | 必测 | 必测 | 同上。 |
 
 安全验收至少覆盖秘密扫描、路径穿越、Shell 注入、符号链接逃逸、秘密文件权限降级、SQL Server 默认证书拒绝与显式信任后的加密连接，以及输出中无业务数据、角色、授权、所有者或 `DEFINER`。
 
-公开发布前，每种数据库引擎必须至少有一个完整通过的服务端/客户端组合；Windows、macOS、Ubuntu LTS、Debian Stable、Fedora 当前稳定版必须分别有一条真实 NPM 安装、八个 Skill 目标路径创建与回验以及数据库拉取通过记录。若单次组合无法同时覆盖这些维度，可以由多条记录共同满足，但不得用静态检查替代真实安装、连接与拉取验证。兼容矩阵还必须为每个平台记录 `agentDiscoveryVerified`；值为 `false` 时必须记录原因，且对应 Agent、平台与作用域只能标为计划兼容。
+公开发布前，每种数据库引擎必须至少有一个完整通过的服务端/客户端组合；Windows、macOS、Ubuntu LTS、Debian Stable、Fedora 当前稳定版必须分别有一条真实 NPM 安装、八个 Skill 目标路径安装或更新与回验以及数据库拉取通过记录。若单次组合无法同时覆盖这些维度，可以由多条记录共同满足，但不得用静态检查替代真实安装、连接与拉取验证。兼容矩阵必须为每个平台记录 `skillInstallationVerified:true`；只有八个目标均位于预期目录且版本与内容哈希一致时才能写入该值。
 
 ## 14. 实施约束、风险与后续范围
 
@@ -620,13 +620,13 @@ CLI 固定展示 Codex、Claude Code、Cursor、Trae IDE，不得依据目录、
 | 风险 | 缓解 |
 |---|---|
 | 客户端、包名、包管理器变化 | 适配表集中维护；安装前预览；未知平台仅指引；保存实际验证记录。 |
-| Agent 路径或发现机制演进 | 路径创建与回验作为发行门；实际发现独立认证，缺证据不宣称可用。 |
+| Agent Skill 路径演进 | 硬编码路径集中维护；每次发行在五个平台完成八个目标的安装或更新与内容回验。 |
 | 凭证泄露 | 独立秘密文件、隐藏输入、权限与全链路脱敏、安全回归。 |
 | 部分覆盖损坏文件 | 临时目录、所选类型整体提交、回滚、锁与中断清理。 |
 | 大库/工具异常 | 流式处理、进度、取消、真实三引擎集成测试。 |
 | 自动安装改变环境 | 始终展示来源、命令、权限、影响；交互确认或命令显式授权。 |
 
-发布前必须通过第 13 章矩阵、三数据库真实集成、安全与 TLS 测试、Skill 一致性、五平台 NPM 安装及 Skill 路径回验；必须确认 `@yg-toolkit` NPM scope 的发布权限、包名可用性和公开访问策略，发布账号应配置最小权限和双因素认证。Agent 实际发现认证可在发布后持续补齐，但在认证完成前不得把对应 Agent、平台与作用域声明为已支持。
+发布前必须通过第 13 章矩阵、三数据库真实集成、安全与 TLS 测试、Skill 一致性、五平台 NPM 安装及 Skill 路径与内容回验；必须确认 `@yg-toolkit` NPM scope 的发布权限、包名可用性和公开访问策略，发布账号应配置最小权限和双因素认证。Agent 无需安装、启动、登录或执行实际发现验证。
 
 后续候选包括容器备用路径、更多 Agent、云 IAM/OAuth/SSH、完整国际化、历史结构版本/完整结构快照、更多数据库和集中式凭证库；均需独立评估。
 
@@ -746,7 +746,7 @@ datapull skill install --target codex:user --target cursor:project --yes
 
 | Agent | 用户级 | 项目级 | 验证门 |
 |---|---|---|---|
-| Codex | `~/.agents/skills/datapull/SKILL.md` | `<project>/.agents/skills/datapull/SKILL.md` | 官方资料、干净环境发现、实际调用。 |
-| Claude Code | `~/.claude/skills/datapull/SKILL.md` | `<project>/.claude/skills/datapull/SKILL.md` | 官方资料、干净环境发现、实际调用。 |
-| Cursor | `~/.cursor/skills/datapull/SKILL.md` | `<project>/.cursor/skills/datapull/SKILL.md` | 官方资料、干净环境发现、实际调用。 |
-| Trae IDE | macOS/Linux `~/.trae-cn/skills/datapull/SKILL.md`；Windows `%USERPROFILE%/.trae-cn/skills/datapull/SKILL.md` | `<project>/.trae/skills/datapull/SKILL.md` | 官方资料、干净环境发现、实际调用；不含 TraeCode CLI。 |
+| Codex | `~/.agents/skills/datapull/SKILL.md` | `<project>/.agents/skills/datapull/SKILL.md` | 预期目录存在，安装元数据、版本与内容哈希一致。 |
+| Claude Code | `~/.claude/skills/datapull/SKILL.md` | `<project>/.claude/skills/datapull/SKILL.md` | 预期目录存在，安装元数据、版本与内容哈希一致。 |
+| Cursor | `~/.cursor/skills/datapull/SKILL.md` | `<project>/.cursor/skills/datapull/SKILL.md` | 预期目录存在，安装元数据、版本与内容哈希一致。 |
+| Trae IDE | macOS/Linux `~/.trae-cn/skills/datapull/SKILL.md`；Windows `%USERPROFILE%/.trae-cn/skills/datapull/SKILL.md` | `<project>/.trae/skills/datapull/SKILL.md` | 预期目录存在，安装元数据、版本与内容哈希一致；不含 TraeCode CLI。 |

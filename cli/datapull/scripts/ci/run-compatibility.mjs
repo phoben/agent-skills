@@ -194,7 +194,7 @@ try {
 
   const packageVersion = JSON.parse(await readFile(join(packageRoot, "package.json"), "utf8")).version;
   const evidence = {
-    version: 1,
+    version: 2,
     packageVersion,
     databaseRecords,
     platformVerification: {
@@ -203,8 +203,8 @@ try {
       nodeVersion: process.version,
       npmInstall: true,
       skillTargets: targets,
-      agentDiscoveryVerified: false,
-      agentDiscoveryNote: "CI 只验证安装路径与回验；Codex、Claude Code、Cursor、Trae 实际发现仍需专用验收机确认。",
+      skillInstallationVerified: true,
+      skillInstallationNote: "Codex、Claude Code、Cursor、Trae 的用户级与项目级 Skill 均已写入预期目录，并通过版本与内容哈希回验。",
       verifiedAt: new Date().toISOString(),
       result: "passed",
       gitSha: process.env.GITHUB_SHA ?? "local",

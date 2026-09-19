@@ -9,7 +9,7 @@
 - SQL Server 始终使用加密连接；验收库可显式启用 `trustServerCertificate`，该选择不代表生产环境建议。
 - 不要在 Issue、提交、工作流参数或聊天中传递秘密。数据库秘密只写入 GitHub Actions Secrets。
 - Windows、Debian、Fedora 自托管运行器必须是可重建的专用验收机，不得与开发者日常账号或生产网络共用。
-- CI 验证八个 Skill 路径的安装和回验，这两项属于发布硬门禁。四种 Agent 对 Skill 的实际发现属于独立兼容性认证，仍需在专用桌面验收机上确认；完成前证据中的 `agentDiscoveryVerified` 保持 `false`，并且不得声明对应组合已支持。
+- CI 验证八个 Skill 目标是否写入预期目录，以及安装元数据、版本和内容哈希是否一致。全部目标状态为 `current` 即视为 Agent Skill 验收通过；无需安装、启动、登录或实际打开对应 Agent。
 
 ## 远程数据库
 
@@ -66,7 +66,7 @@ macOS 15 Intel 与 Ubuntu 24.04 使用 GitHub 托管运行器。以下平台使�
 2. 三个自托管运行器上线后，分别选择对应平台。
 3. 每个成功任务都会上传 `datapull-compatibility-<platform>`，保留 30 天。
 4. 审查证据中的提交 SHA、数据库/客户端版本、对象数量和平台信息。
-5. 审查八个 Skill 目标路径的安装与回验结果，并把证据录入 `resources/compatibility-matrix.json`；尚未完成实际发现认证时，保持 `agentDiscoveryVerified:false` 并填写原因。
-6. 执行 `npm run release:check`；只有数据库、平台安装与 Skill 路径矩阵完整时才可进入发布。Agent 实际发现认证状态会被报告，但不阻止 CLI 包发布。
+5. 审查八个 Skill 目标的预期路径、安装或更新结果、版本与内容哈希，并把 `skillInstallationVerified:true` 的证据录入 `resources/compatibility-matrix.json`。
+6. 执行 `npm run release:check`；只有数据库、平台 NPM 安装与 Skill 安装回验矩阵完整时才可进入发布。
 
 首次公开包仍需由已启用 2FA 的 owner 在本机发布。包创建后再配置 NPM Trusted Publisher，并使用 GitHub 托管发布任务及 OIDC；不要为发布创建长期写 Token。

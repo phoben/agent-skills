@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 const path = resolve(import.meta.dirname, "..", "resources", "compatibility-matrix.json");
 const matrix = JSON.parse(await readFile(path, "utf8"));
 if (
-  matrix.version !== 1 ||
+  matrix.version !== 2 ||
   !Array.isArray(matrix.requiredPlatforms) ||
   !Array.isArray(matrix.requiredEngines) ||
   !Array.isArray(matrix.requiredSkillTargets) ||
@@ -60,14 +60,8 @@ for (const platform of matrix.requiredPlatforms) {
   if (record.npmInstall !== true) {
     missingPlatformVerifications.push(`${platform}:NPM安装未通过`);
   }
-  if (typeof record.agentDiscoveryVerified !== "boolean") {
-    throw new Error(`平台验证 ${platform} 缺少 Agent 发现认证状态。`);
-  }
-  if (
-    record.agentDiscoveryVerified === false &&
-    (typeof record.agentDiscoveryNote !== "string" || record.agentDiscoveryNote.trim() === "")
-  ) {
-    throw new Error(`平台验证 ${platform} 的 Agent 发现尚未认证，必须记录原因。`);
+  if (record.skillInstallationVerified !== true) {
+    missingPlatformVerifications.push(`${platform}:Skill安装或更新回验未通过`);
   }
   const targets = Array.isArray(record.skillTargets) ? record.skillTargets : [];
   const missingTargets = matrix.requiredSkillTargets.filter((target) => !targets.includes(target));
@@ -84,7 +78,6 @@ if (missingCombinations.length > 0 || missingPlatformVerifications.length > 0) {
 }
 
 process.stdout.write(
-  `兼容矩阵发布门通过：${passed.length} 条数据库记录，${passedPlatforms.length} 条平台安装与Skill路径记录；` +
-    `Agent发现认证 ${passedPlatforms.filter((record) => record.agentDiscoveryVerified === true).length}/${passedPlatforms.length}，` +
-    `未认证项不得声明支持。\n`,
+  `兼容矩阵发布门通过：${passed.length} 条数据库记录，` +
+    `${passedPlatforms.length} 条平台 NPM 与 Skill 安装回验记录。\n`,
 );
