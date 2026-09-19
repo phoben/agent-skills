@@ -33,19 +33,23 @@ jobs:
         run: |
           set -eu
           apt-get update
-          DEBIAN_FRONTEND=noninteractive apt-get install -y bash ca-certificates curl gnupg git tar gzip default-mysql-client
+          DEBIAN_FRONTEND=noninteractive apt-get install -y bash ca-certificates curl gnupg git tar gzip
+          curl --fail --silent --show-error --location https://repo.mysql.com/RPM-GPG-KEY-mysql-2025 \
+            | gpg --dearmor --yes --output /usr/share/keyrings/mysql.gpg
+          . /etc/os-release
+          echo "deb [signed-by=/usr/share/keyrings/mysql.gpg] https://repo.mysql.com/apt/debian/ ${VERSION_CODENAME} mysql-8.4-lts" \
+            > /etc/apt/sources.list.d/mysql.list
           install -d /usr/share/postgresql-common/pgdg
           curl --fail --silent --show-error --location \
             --output /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc \
             https://www.postgresql.org/media/keys/ACCC4CF8.asc
-          . /etc/os-release
           echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt ${VERSION_CODENAME}-pgdg main" \
             > /etc/apt/sources.list.d/pgdg.list
           curl --fail --silent --show-error --location --output packages-microsoft-prod.deb \
             "https://packages.microsoft.com/config/debian/${VERSION_ID}/packages-microsoft-prod.deb"
           dpkg -i packages-microsoft-prod.deb
           apt-get update
-          ACCEPT_EULA=Y DEBIAN_FRONTEND=noninteractive apt-get install -y postgresql-client-18 mssql-tools18 powershell
+          ACCEPT_EULA=Y DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-community-client postgresql-client-18 mssql-tools18 powershell
           echo "/usr/lib/postgresql/18/bin" >> "$GITHUB_PATH"
           echo "/opt/mssql-tools18/bin" >> "$GITHUB_PATH"
           pwsh -NoProfile -NonInteractive -Command 'Install-Module SqlServer -Scope CurrentUser -Force'
@@ -55,7 +59,7 @@ jobs:
         shell: sh
         run: |
           set -eu
-          dnf install -y bash ca-certificates curl git gzip tar community-mysql
+          dnf install -y bash ca-certificates curl git gzip tar mysql
           fedora_version="$(rpm -E %fedora)"
           dnf install -y "https://download.postgresql.org/pub/repos/yum/reporpms/F-${fedora_version}-x86_64/pgdg-fedora-repo-latest.noarch.rpm"
           dnf -qy module disable postgresql || true
