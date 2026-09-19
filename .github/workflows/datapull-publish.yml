@@ -1,0 +1,49 @@
+name: DataPull 发布 npm 包
+
+on:
+  push:
+    tags:
+      - 'datapull-v*'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    name: 发布 @yg-toolkit/datapull
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: cli/datapull
+
+    steps:
+      - name: 检出发布提交
+        uses: actions/checkout@v6
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+
+      - name: 安装支持 OIDC 的 npm
+        run: npm install --global npm@11.5.1
+
+      - name: 校验标签与包版本一致
+        shell: bash
+        run: |
+          tag_version="${GITHUB_REF_NAME#datapull-v}"
+          package_version="$(node -p "require('./package.json').version")"
+          if [[ "$tag_version" != "$package_version" ]]; then
+            echo "发布标签版本 $tag_version 与包版本 $package_version 不一致。"
+            exit 1
+          fi
+
+      - name: 安装项目依赖
+        run: npm ci --ignore-scripts
+
+      - name: 通过 Trusted Publishing 发布
+        run: npm publish --access public
