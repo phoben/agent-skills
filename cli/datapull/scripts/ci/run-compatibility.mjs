@@ -183,11 +183,14 @@ try {
     ["skill", "sync", ...targets.flatMap((target) => ["--target", target]), "--force", "--yes", "--json"],
     cliEnvironment,
   );
-  const skillStatus = runCli(cliPath, ["skill", "status", "--json"], cliEnvironment);
-  const currentTargets = skillStatus.targets
-    ?.filter((target) => target.status === "current")
-    .map((target) => `${target.agent}:${target.scope}`);
-  const missingTargets = targets.filter((target) => !currentTargets?.includes(target));
+  const missingTargets = targets.filter((target) => {
+    const skillStatus = runCli(
+      cliPath,
+      ["skill", "status", "--target", target, "--json"],
+      cliEnvironment,
+    );
+    return skillStatus.targets?.[0]?.status !== "current";
+  });
   if (missingTargets.length > 0) {
     throw new Error(`Skill 安装回验缺少目标：${missingTargets.join("、")}`);
   }
@@ -204,7 +207,7 @@ try {
       npmInstall: true,
       skillTargets: targets,
       skillInstallationVerified: true,
-      skillInstallationNote: "Codex、Claude Code、Cursor、Trae 的用户级与项目级 Skill 均已写入预期目录，并通过版本与内容哈希回验。",
+      skillInstallationNote: "Codex、Claude Code、Cursor、Trae 的用户级与项目级 Skill 均已写入预期目录；共享目录按逻辑目标逐项通过版本与内容哈希回验。",
       verifiedAt: new Date().toISOString(),
       result: "passed",
       gitSha: process.env.GITHUB_SHA ?? "local",
