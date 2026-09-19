@@ -13,7 +13,12 @@ import { DataPullError } from "../core/errors.js";
 import { Output } from "../core/output.js";
 import { runDoctor } from "../doctor/service.js";
 import { exporterFor } from "../exporters/factory.js";
-import { promptAndAddConnection, type ConnectionInput } from "../interactive/connections.js";
+import {
+  promptAndAddConnection,
+  validateConnectionWithRecovery,
+  type ConnectionInput,
+} from "../interactive/connections.js";
+import { promptImmediatePull } from "../interactive/pull.js";
 import { runWizard } from "../interactive/wizard.js";
 import { PullService } from "../pull/service.js";
 import { SkillInstaller } from "../skills/installer.js";
@@ -36,6 +41,57 @@ const packageJson = createRequire(import.meta.url)("../../package.json") as {
   version: string;
 };
 
+const ROOT_HELP = `
+快速开始：
+  datapull
+  datapull connection add
+  npx --yes --package=@yg-toolkit/datapull@latest datapull connection add
+
+常用示例：
+  datapull connection list
+  datapull pull --connection demo-mysql --database shop_demo --yes
+  datapull pull --connection demo-mysql --database shop_demo --include table,view --yes --json
+  datapull pull --help
+
+说明：
+  DataPull 只读取数据库元数据并生成 DDL 结构文件，不导出业务数据。
+  交互式 connection add 会登记并校验连接，成功后可立即输入数据库名拉取。
+  密码和完整连接 URL 不应放入命令参数。`;
+
+const CONNECTION_HELP = `
+新手入口：
+  datapull connection add
+
+该交互流程会隐藏输入秘密、保存连接、检查数据库工具并校验连通性；
+校验成功后可以立即输入目标数据库名，拉取全部支持的结构对象。`;
+
+const CONNECTION_ADD_HELP = `
+交互示例：
+  datapull connection add
+  npx --yes --package=@yg-toolkit/datapull@latest datapull connection add
+
+模拟信息：
+  连接别名          demo-mysql
+  数据库类型        MySQL
+  主机              mysql.demo.example
+  端口              3306
+  用户名            schema_reader
+  目标数据库        shop_demo
+
+自动化示例（预先在环境中设置 DATAPULL_DEMO_MYSQL_PASSWORD）：
+  datapull connection add --alias demo-mysql --engine mysql --auth-mode password --host mysql.demo.example --port 3306 --username schema_reader --yes --json
+
+非交互模式只登记连接；不会追加校验、提问或自动拉取。`;
+
+const PULL_HELP = `
+示例：
+  datapull pull --connection demo-mysql --database shop_demo --yes
+  datapull pull --connection demo-mysql --database shop_demo --include table,view --yes
+  datapull pull --connection demo-mysql --database shop_demo --yes --json
+
+省略 --include 时拉取当前数据库引擎支持的全部对象类型。
+结构文件写入当前项目的 .database-schema/<连接别名>/<数据库名>/。`;
+
 interface ConnectionOptions extends GlobalOptions, ConnectionInput {
   refreshCredential?: boolean;
   deleteCredential?: boolean;
@@ -47,13 +103,15 @@ export function buildProgram(store = new ConfigStore()): Command {
   const program = new Command();
   program
     .name("datapull")
-    .description("交互式拉取 MySQL、PostgreSQL 与 SQL Server 数据库结构文件")
-    .version(packageJson.version)
-    .option("--json", "仅在结束时向 stdout 输出一个 JSON 文档")
-    .option("--yes", "确认当前命令声明的写入或安装操作")
+    .description("只读拉取 MySQL、PostgreSQL 与 SQL Server 的 DDL 结构文件")
+    .version(packageJson.version, "-V, --version", "显示当前版本")
+    .helpOption("-h, --help", "显示命令帮助")
+    .option("--json", "仅在结束时向 stdout 输出一个 JSON 文档；进度写入 stderr")
+    .option("--yes", "确认当前命令声明的写入或安装操作；不跳过安全校验")
     .option("--no-color", "禁用 ANSI 色彩")
     .showHelpAfterError()
-    .exitOverride();
+    .exitOverride()
+    .addHelpText("after", ROOT_HELP);
 
   program.action(async (_options, command) => {
     const global = globals(command);
@@ -77,10 +135,13 @@ export function buildProgram(store = new ConfigStore()): Command {
 }
 
 function registerConnectionCommands(program: Command, store: ConfigStore): void {
-  const connection = program.command("connection").description("管理用户级数据库连接");
+  const connection = program
+    .command("connection")
+    .description("管理用户级数据库连接与凭证引用")
+    .addHelpText("after", CONNECTION_HELP);
   connection
     .command("add")
-    .description("登记数据库连接")
+    .description("交互式登记并校验连接，成功后可立即拉取")
     .option("--alias <alias>", "连接别名")
     .addOption(new Option("--engine <engine>", "数据库类型").choices(["mysql", "postgresql", "sqlserver"]))
     .addOption(new Option("--auth-mode <mode>", "认证方式").choices(["password", "url", "integrated"]))
@@ -94,6 +155,7 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
       "--trust-server-certificate",
       "保持加密但不验证 SQL Server 身份；仅用于明确接受风险的连接",
     )
+    .addHelpText("after", CONNECTION_ADD_HELP)
     .action(async (options: ConnectionOptions, command: Command) => {
       const global = globals(command);
       await initializeForWrite(store, global.yes === true);
@@ -101,6 +163,17 @@ function registerConnectionCommands(program: Command, store: ConfigStore): void 
       let created;
       if (process.stdin.isTTY && global.json !== true) {
         created = await promptAndAddConnection(service, options);
+        process.stdout.write(`连接 ${created.alias} 已登记，正在校验。\n`);
+        const validation = await validateConnectionWithRecovery(service, created, {
+          allowBack: false,
+        });
+        if (validation === undefined) {
+          throw new DataPullError("UNEXPECTED_ERROR", "新增连接校验未返回结果。", 1);
+        }
+        created = validation.connection;
+        await promptImmediatePull(service, created, {
+          trustServerCertificateOnce: validation.trustServerCertificateOnce,
+        });
       } else {
         requireYes(global);
         const requiredOptions = requireConnectionCreateOptions(options, await service.list());
@@ -390,15 +463,16 @@ function registerDatabaseCommands(program: Command, store: ConfigStore): void {
 function registerPullCommand(program: Command, store: ConfigStore): void {
   program
     .command("pull")
-    .description("拉取目标数据库结构文件")
-    .requiredOption("--connection <alias>", "连接别名")
-    .requiredOption("--database <database>", "目标数据库")
-    .option("--include <types>", "逗号分隔的对象类型")
+    .description("使用已登记连接拉取指定数据库的 DDL 结构文件")
+    .requiredOption("--connection <alias>", "已登记的连接别名")
+    .requiredOption("--database <database>", "目标数据库名")
+    .option("--include <types>", "逗号分隔的对象类型；省略时拉取当前引擎全部类型")
     .option("--install-missing", "安装缺少的官方数据库工具")
     .option(
       "--trust-server-certificate",
       "仅本次保持加密但不验证 SQL Server 身份",
     )
+    .addHelpText("after", PULL_HELP)
     .action(async (options: { connection: string; database: string; include?: string; installMissing?: boolean; trustServerCertificate?: boolean }, command) => {
       const global = globals(command);
       if (global.yes !== true && options.installMissing === true) {

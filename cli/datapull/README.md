@@ -1,81 +1,243 @@
 # DataPull
 
-DataPull 是一款面向人类交互、同时提供稳定 Agent 自动化接口的数据库结构文件拉取 CLI。它将 MySQL、PostgreSQL 或 SQL Server 的 DDL 按对象保存到当前项目根目录的 `.database-schema/`，不拉取业务数据、用户、角色或授权。
+DataPull 是一款面向人类交互、同时提供稳定自动化接口的数据库结构拉取 CLI。它以只读方式连接 MySQL、PostgreSQL 或 SQL Server，把数据库对象的 DDL 保存到当前项目的 `.database-schema/`。
 
-## 安装
+DataPull 不导出表内业务数据、数据库用户、角色或授权，也不是数据库备份工具。
 
-```bash
-npm install --global @yg-toolkit/datapull
-datapull
+## 60 秒上手
+
+### 1. 检查运行环境
+
+需要 Node.js `>=22.12` 和可用的 NPM：
+
+```powershell
+node --version
+npm --version
 ```
 
-需要 Node.js `>=22.12`。只执行 `datapull` 会进入中文引导流程；NPM 安装生命周期不会启动交互、访问数据库或安装 Agent Skill。
+### 2. 用一条命令新增连接并拉取
+
+无需全局安装：
+
+```powershell
+npx --yes --package=@yg-toolkit/datapull@latest datapull connection add
+```
+
+已经全局安装时：
+
+```powershell
+datapull connection add
+```
+
+可以使用下面这组模拟信息熟悉流程。域名为示例保留域名，需要替换成自己的数据库地址才能真正连接：
+
+| 提示项 | 模拟输入 | 说明 |
+|---|---|---|
+| 连接别名 | `demo-mysql` | 后续命令通过该名称选择连接 |
+| 数据库类型 | `MySQL` | 也支持 PostgreSQL、SQL Server |
+| 认证方式 | `用户名和密码` | 密码使用隐藏输入，不写入命令历史 |
+| 数据库主机 | `mysql.demo.example` | 替换为真实主机名或 IP |
+| 端口 | `3306` | MySQL 默认端口 |
+| 用户名 | `schema_reader` | 建议使用只读结构账号 |
+| 数据库密码 | 隐藏输入 | 不会回显 |
+
+连接保存后，DataPull 会检查数据库工具并校验连通性。校验成功后选择“立即拉取”，再输入模拟数据库名：
+
+```text
+shop_demo
+```
+
+DataPull 随后拉取该引擎支持的全部结构对象，并输出实际写入目录和对象数量。拒绝立即拉取时，连接仍会保存，稍后可通过 `pull` 命令使用。
+
+## 拉取已有连接
+
+拉取 `demo-mysql` 连接中的 `shop_demo` 数据库全部结构：
+
+```powershell
+datapull pull --connection demo-mysql --database shop_demo --yes
+```
+
+通过 npx 执行同一操作：
+
+```powershell
+npx --yes --package=@yg-toolkit/datapull@latest datapull pull --connection demo-mysql --database shop_demo --yes
+```
+
+只更新表和视图，保留其他类型的既有文件：
+
+```powershell
+datapull pull --connection demo-mysql --database shop_demo --include table,view --yes
+```
+
+给 Agent、CI 或脚本使用机器可读输出：
+
+```powershell
+datapull pull --connection demo-mysql --database shop_demo --include table,view --yes --json
+```
+
+`--json` 模式只在 stdout 输出一个最终 JSON 文档；阶段进度和诊断信息写入 stderr。
+
+## PostgreSQL 与 SQL Server 示例
+
+交互式新增连接时，只需替换数据库类型和连接信息：
+
+| 数据库 | 模拟主机 | 默认端口 | 模拟数据库名 |
+|---|---|---:|---|
+| MySQL | `mysql.demo.example` | 3306 | `shop_demo` |
+| PostgreSQL | `postgres.demo.example` | 5432 | `analytics_demo` |
+| SQL Server | `sqlserver.demo.example` | 1433 | `orders_demo` |
+
+已有 PostgreSQL 连接的拉取示例：
+
+```powershell
+datapull pull --connection demo-postgres --database analytics_demo --yes
+```
+
+已有 SQL Server 连接的拉取示例：
+
+```powershell
+datapull pull --connection demo-sqlserver --database orders_demo --yes
+```
+
+SQL Server 始终启用传输加密并默认严格验证服务器证书。遇到内部 CA 或自签名证书时，优先安装可信 CA；只有明确接受风险时，才选择仅本次信任或保存信任设置。
+
+## 输出目录
+
+结构文件按连接、数据库、对象类型和可选 schema 分层：
+
+```text
+.database-schema/
+└── demo-mysql/
+    └── shop_demo/
+        ├── table/
+        │   ├── customers.sql
+        │   └── orders.sql
+        ├── view/
+        └── procedure/
+```
+
+本次选择的对象类型会作为一个文件事务整体更新；未选择类型原样保留。任一所选类型读取、校验或提交失败时，不会留下半套新文件。
+
+## 支持的对象类型
+
+省略 `--include` 时，默认拉取当前引擎支持的全部类型。
+
+| 数据库 | 对象类型 |
+|---|---|
+| MySQL | `table`、`view`、`function`、`procedure`、`trigger`、`event` |
+| PostgreSQL | `schema`、`extension`、`table`、`view`、`materialized_view`、`sequence`、`function`、`procedure`、`trigger`、`type` |
+| SQL Server | `schema`、`table`、`view`、`function`、`procedure`、`trigger`、`sequence`、`synonym`、`type` |
 
 ## 常用命令
 
-```bash
-# 进入完整中文向导
+```powershell
+# 完整中文向导
 datapull
+
+# 新增、保存并校验连接，成功后可立即拉取
+datapull connection add
 
 # 查看脱敏连接
 datapull connection list
 
-# 拉取表和视图；连接必须已经登记
-datapull pull --connection main --database app --include table,view --yes
+# 查看连接可访问、收藏和最近使用的数据库
+datapull database list --connection demo-mysql
 
-# Agent 友好的机器可读输出
-datapull pull --connection main --database app --include table,view --yes --json
+# 测试连接及指定数据库
+datapull connection test --alias demo-mysql --database shop_demo --json
 
-# 为使用自签名证书的 SQL Server 保存显式信任设置
-datapull connection update --alias sqlserver-dev --trust-server-certificate --yes
-
-# 恢复严格证书验证
-datapull connection update --alias sqlserver-dev --verify-server-certificate --yes
-
-# 诊断环境，不自动安装
+# 诊断 Node.js、配置与数据库工具，不自动安装
 datapull doctor --json
 
-# 为 Codex 用户级目录安装内置 Skill
-datapull skill install --target codex:user --yes
-
-# 安装到所有兼容 .agents/skills 的项目级共享目录
-datapull skill install --target universal:project --yes
-
-# 也可明确选择 OpenCode、Trae CN 等平台
-datapull skill install --target opencode:user --target trae-cn:user --yes
+# 查看完整帮助或具体命令帮助
+datapull --help
+datapull connection add --help
+datapull pull --help
 ```
 
-完整命令族包括 `connection add|list|show|update|remove|test`、`database list|favorite add|favorite remove`、`pull`、`skill install|list|status|sync`、`config path|validate` 和 `doctor`。
+完整命令族包括：
 
-## Agent 平台
+- `connection add|list|show|update|remove|test`
+- `database list|favorite add|favorite remove`
+- `pull`
+- `skill install|list|status|sync`
+- `config path|validate`
+- `doctor`
 
-DataPull 的平台注册表基于 `vercel-labs/skills` v1.7.0，识别该快照中的 79 个 ID（含内部 `universal` 目标）。`datapull skill list` 可查看当前版本接受的平台、范围和实际目录；`claude-code` 同时作为现有 `claude` ID 的兼容别名。
+## 自动化调用
 
-首次运行向导会读取本机配置痕迹来缩短选择过程，但不会把“存在配置目录”描述为 Agent 已安装或可运行。项目级安装默认写入 `.agents/skills/datapull` 一次，供 Codex、Cursor、Gemini CLI、GitHub Copilot、OpenCode 等共享该目录的平台读取；Claude Code、Trae、Windsurf 等专属目录按需添加。用户级目录不会套用项目共享规则，会分别遵循 `CODEX_HOME`、`CLAUDE_CONFIG_DIR`、XDG 或各平台的用户目录约定。
+交互式 `connection add` 会校验连接并询问是否立即拉取。带 `--json` 的非交互调用保持稳定契约：只登记连接，不追加提示或自动访问数据库。
 
-平台注册表来自上游路径契约和本地路径测试，不等于所有 Agent 都已完成真实运行时验收。发布兼容矩阵仍单独记录已在目标操作系统完成落盘、元数据和内容哈希回验的组合。设计来源与取舍见 [Vercel `skills` 平台选择与 UI 调研](../../docs/research/2026-09-19-vercel-skills-agent-targets-and-ui.md)。
+自动化新增连接时，先通过进程环境或 CI Secret 安全注入凭证变量，不要把真实密码直接写在命令参数中。以下命令假设环境中已经存在 `DATAPULL_DEMO_MYSQL_PASSWORD`：
+
+```powershell
+datapull connection add `
+  --alias demo-mysql `
+  --engine mysql `
+  --auth-mode password `
+  --host mysql.demo.example `
+  --port 3306 `
+  --username schema_reader `
+  --yes `
+  --json
+```
+
+然后显式执行拉取：
+
+```powershell
+datapull pull --connection demo-mysql --database shop_demo --yes --json
+```
 
 ## 配置和秘密
 
-登记连接是当前操作系统用户的全局配置：
+登记连接属于当前操作系统用户：
 
 - Windows：`%APPDATA%/datapull/`
 - macOS：`$HOME/Library/Application Support/datapull/`
 - Linux：`${XDG_CONFIG_HOME:-$HOME/.config}/datapull/`
 
-非秘密连接信息保存在 `config.json`，密码或完整含秘密 URL 保存在权限受限的 `credentials.env`。秘密只能通过交互式隐藏输入或用户手工编辑该文件写入；不要把密码放入命令参数。
+非秘密连接信息保存在 `config.json`，密码或完整含秘密 URL 保存在权限受限的 `credentials.env`。秘密只能通过交互式隐藏输入、进程环境或用户手工维护凭证文件提供，不会写入结构文件。
 
-SQL Server 始终启用传输加密并默认严格验证服务器证书。自签名或内部 CA 环境可在用户明确确认后，仅本次使用 `--trust-server-certificate --yes`，或把该设置保存到登记连接。该模式不会关闭加密，但无法验证服务器身份，适合已确认风险的开发、测试或受控内网；生产连接优先安装可信 CA，并保持严格验证。
+推荐为 DataPull 使用只读结构账号，只授予连接数据库、读取元数据和查看对象定义所需的最小权限。
 
-## 覆盖规则
+## 常见问题
 
-本次选择的对象类型作为一个文件事务整体更新；未选择类型原样保留。任一所选类型读取、生成、校验或提交失败时，所有所选类型保留上一次结果。进程异常终止后，下一次访问同一目标时会先执行持久化事务恢复。
+### 提示缺少数据库工具
 
-SQL 文件默认可纳入 Git。DataPull 只在 `.database-schema/.gitignore` 中忽略临时目录、锁、事务日志和提交期备份，不修改项目根 `.gitignore`。
+DataPull 会展示缺少的官方客户端、来源、安装命令、所需权限和下载影响。交互模式下确认后才能自动安装；自动化模式需要显式加入 `--install-missing --yes`。
 
-## 开发验证
+### 提示凭证不可用
 
-```bash
+运行 `datapull connection show --alias <连接别名>` 查看脱敏的凭证引用，再通过隐藏输入、进程环境或 CLI 指示的 `credentials.env` 提供对应值。不要把密码发到聊天或日志中。
+
+### SQL Server 证书不受信任
+
+生产环境优先安装可信 CA 并保持严格验证。仅在开发、测试或受控内网明确接受中间人攻击风险时，选择仅本次信任或保存该设置；该选项不会关闭加密，但会失去服务器身份验证。
+
+### 不确定失败发生在哪一层
+
+```powershell
+datapull doctor --json
+```
+
+根据返回的稳定 `error.code` 处理配置、凭证、工具或连接问题。
+
+## Agent Skill
+
+DataPull 内置 Agent Skill 安装器。平台注册表基于 `vercel-labs/skills` v1.7.0，当前识别 79 个 ID（包含内部 `universal` 目标）：
+
+```powershell
+datapull skill list
+datapull skill install --target codex:user --yes
+datapull skill install --target universal:project --yes
+datapull skill install --target opencode:user --target trae-cn:user --yes
+```
+
+`skill list` 展示的是路径契约，不代表对应 Agent 已安装或完成真实运行时验收。平台分类和选择逻辑见 [Vercel `skills` 平台选择与 UI 调研](../../docs/research/2026-09-19-vercel-skills-agent-targets-and-ui.md)。
+
+## 开发与发布
+
+```powershell
 npm install --ignore-scripts
 npm run check
 npm test
@@ -83,8 +245,8 @@ npm run build
 npm run skill:check
 ```
 
-`npm run release:check` 验证 `resources/compatibility-matrix.json` 是否已经包含三种数据库、五类操作系统、NPM 安装及八个既有 Skill 目标的真实通过记录。Skill 位于预期目录，且安装元数据、版本与内容哈希回验一致，即视为该目标的 Agent Skill 落盘验收通过；无需启动或实际打开 Agent。新注册平台在进入发布兼容声明前仍须补充真实平台记录；开发包的空矩阵会阻止公开发布，不能用本地单元测试替代真实数据库或跨平台验收。
+`npm run release:check` 验证真实数据库、五类操作系统、NPM 安装及既有 Skill 目标的兼容矩阵是否完整。单元测试不能替代真实数据库和跨平台验收。
 
-跨平台验收使用仓库的“DataPull 兼容性验收”GitHub Actions 工作流。远程数据库、Actions Secrets、自托管运行器和取证步骤见 [兼容性与发布 CI](https://github.com/phoben/agent-skills/blob/main/cli/datapull/docs/release-ci.md)。
-
-后续新增命令、数据库引擎、对象类型、Agent 目标或配置版本前，请先阅读 [维护者指南](https://github.com/phoben/agent-skills/blob/main/cli/datapull/docs/maintenance.md)。NPM 版本通过 Trusted Publishing 与 `datapull-v*` 标签自动发布，不使用长期写 Token。
+- DataPull 维护要求：[维护者指南](docs/maintenance.md)
+- 跨平台验收与发布：[兼容性与发布 CI](docs/release-ci.md)
+- 仓库级通用 CLI 工程要求：[通用 CLI 开发规范](../CLI-DEVELOPMENT-STANDARD.md)

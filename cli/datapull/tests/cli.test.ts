@@ -12,6 +12,23 @@ afterEach(async () => {
 });
 
 describe("CLI JSON 契约", () => {
+  it("帮助文本覆盖新增连接后立即拉取与模拟示例", async () => {
+    const rootHelp = await runCli(["--help"]);
+    const addHelp = await runCli(["connection", "add", "--help"]);
+    const pullHelp = await runCli(["pull", "--help"]);
+
+    expect(rootHelp.exitCode).toBe(0);
+    expect(rootHelp.stdout).toContain("datapull connection add");
+    expect(rootHelp.stdout).toContain("不导出业务数据");
+    expect(addHelp.exitCode).toBe(0);
+    expect(addHelp.stdout).toContain("mysql.demo.example");
+    expect(addHelp.stdout).toContain("目标数据库        shop_demo");
+    expect(addHelp.stdout).toContain("非交互模式只登记连接");
+    expect(pullHelp.exitCode).toBe(0);
+    expect(pullHelp.stdout).toContain("--include 时拉取当前数据库引擎支持的全部对象类型");
+    expect(pullHelp.stdout).toContain(".database-schema/<连接别名>/<数据库名>/");
+  }, 15_000);
+
   it("非 TTY 无参数只输出一个 JSON 并返回退出码 2", async () => {
     const result = await runCli(["--json"]);
     expect(result.exitCode).toBe(2);

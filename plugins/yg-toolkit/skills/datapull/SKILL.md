@@ -21,6 +21,8 @@ description: 检查并指导安装 DataPull CLI，使用已登记连接拉取 My
 - `datapull database list --connection <alias> --json`：读取收藏、最近使用和可访问数据库。
 - `datapull pull --connection <alias> --database <database> --include <types> --yes --json`：拉取结构文件。
 
+人类用户要在一次终端会话中新增连接并立即拉取时，运行 `datapull connection add`。CLI 会通过隐藏输入登记秘密、校验工具与连接，然后询问是否立即拉取；用户同意并输入目标数据库名后，默认获取该引擎支持的全部结构对象。通过 NPM 临时运行时使用 `npx --yes --package=@yg-toolkit/datapull@latest datapull connection add`。该交互便捷流程不改变 `--json` 的非交互契约。
+
 执行拉取前向用户说明连接别名、目标数据库、对象类型和当前项目根。任一值无法从用户请求或 CLI 脱敏结果唯一确定时，停在该步骤并请用户决定；不猜测连接、数据库或对象范围。
 
 当 CLI 返回缺少工具时，说明 `actionPlan.installation` 中的工具、来源、命令、权限与下载影响。只有用户明确要求执行该安装计划后，才在下一次 CLI 调用中加入 `--install-missing --yes`。

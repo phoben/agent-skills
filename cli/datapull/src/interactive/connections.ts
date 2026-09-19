@@ -4,7 +4,9 @@ import {
   createConnection,
   defaultPasswordCredentialRef,
 } from "../connections/service.js";
-import { DataPullError } from "../core/errors.js";
+import { DataPullError, asDataPullError } from "../core/errors.js";
+import { exporterFor } from "../exporters/factory.js";
+import { ToolManager } from "../tools/manager.js";
 import type { AuthMode, ConnectionConfig, Engine } from "../types.js";
 
 export interface ConnectionInput {
@@ -122,6 +124,118 @@ export async function promptAndAddConnection(
     await service.store.setCredential(reference, pendingSecret);
   }
   return service.add(connection);
+}
+
+export interface ValidatedConnection {
+  connection: ConnectionConfig;
+  trustServerCertificateOnce: boolean;
+}
+
+interface ValidateConnectionOptions {
+  allowBack?: boolean;
+}
+
+export async function validateConnectionWithRecovery(
+  service: ConnectionService,
+  connection: ConnectionConfig,
+  options: ValidateConnectionOptions = {},
+): Promise<ValidatedConnection | undefined> {
+  const tools = new ToolManager();
+  const allowBack = options.allowBack !== false;
+  let current = connection;
+  let trustServerCertificateOnce = false;
+  while (true) {
+    try {
+      const missing = await tools.missing(current.engine);
+      if (missing.length > 0) {
+        const plans = tools.plans(missing);
+        process.stdout.write("\n检测到缺少数据库工具：\n");
+        for (const plan of plans) {
+          process.stdout.write(
+            `- ${plan.tool}\n  来源：${plan.source}\n  官方说明：${plan.sourceUrl}\n  命令：${plan.command} ${plan.args.join(" ")}\n  权限：${plan.permission}\n  影响：${plan.downloadImpact}\n`,
+          );
+        }
+        const install = await confirm({ message: "确认自动安装以上工具？", default: false });
+        if (!install) {
+          throw new DataPullError(
+            "DATABASE_TOOL_MISSING",
+            "缺少数据库工具，请按以上命令手工安装后重试。",
+            4,
+          );
+        }
+        await tools.ensure(current.engine, true, true);
+      }
+      const resolved = await service.resolve(current.alias, undefined, {
+        ...(trustServerCertificateOnce ? { trustServerCertificate: true } : {}),
+      });
+      await exporterFor(current.engine).test(resolved);
+      process.stdout.write(`连接 ${current.alias} 校验通过。\n`);
+      return { connection: current, trustServerCertificateOnce };
+    } catch (error) {
+      const normalized = asDataPullError(error);
+      process.stderr.write(`连接校验失败 [${normalized.code}]：${normalized.message}\n`);
+      if (
+        current.engine === "sqlserver" &&
+        normalized.code === "SQLSERVER_TLS_CERTIFICATE_UNTRUSTED"
+      ) {
+        const tlsAction = await select<"once" | "save" | "back" | "exit">({
+          message:
+            "服务器证书不受信任。信任后连接仍加密，但无法验证服务器身份，可能受到中间人攻击：",
+          choices: [
+            { name: "仅本次信任并继续", value: "once" },
+            { name: "保存到该连接并继续", value: "save" },
+            ...(allowBack ? [{ name: "返回连接选择", value: "back" as const }] : []),
+            { name: "退出", value: "exit" },
+          ],
+        });
+        if (tlsAction === "once") {
+          trustServerCertificateOnce = true;
+          continue;
+        }
+        if (tlsAction === "save") {
+          const approved = await confirm({
+            message: "确认保存该风险设置？可稍后使用 connection update 恢复证书验证。",
+            default: false,
+          });
+          if (!approved) continue;
+          current = await service.update(current.alias, {
+            tls: { encrypt: true, trustServerCertificate: true },
+          });
+          trustServerCertificateOnce = false;
+          continue;
+        }
+        if (tlsAction === "back") return undefined;
+        throw new DataPullError("OPERATION_CANCELLED", "已退出连接校验。", 1);
+      }
+      const action = await select<"retry" | "credential" | "back" | "exit">({
+        message: "请选择恢复操作：",
+        choices: [
+          { name: "重试", value: "retry" },
+          { name: "更新凭证", value: "credential" },
+          ...(allowBack ? [{ name: "返回连接选择", value: "back" as const }] : []),
+          { name: "退出", value: "exit" },
+        ],
+      });
+      if (action === "retry") continue;
+      if (action === "back") return undefined;
+      if (action === "exit") {
+        throw new DataPullError("OPERATION_CANCELLED", "已退出连接校验。", 1);
+      }
+      const reference = current.authMode === "url" ? current.urlRef : current.credentialRef;
+      if (reference === undefined) {
+        process.stderr.write("该连接没有可更新的凭证引用。\n");
+        continue;
+      }
+      const value = await password({
+        message:
+          current.authMode === "url"
+            ? "更新完整连接 URL（输入不会回显）："
+            : "更新数据库密码（输入不会回显）：",
+        mask: "*",
+      });
+      await service.store.setCredential(reference, value);
+    }
+  }
 }
 
 function defaultUrlReference(alias: string): string {
