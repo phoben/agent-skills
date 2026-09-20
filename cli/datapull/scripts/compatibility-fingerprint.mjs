@@ -36,10 +36,14 @@ export async function compatibilityFingerprint() {
     const name = relative(packageRoot, file).split(sep).join("/");
     hash.update(name);
     hash.update("\0");
-    hash.update(await readFile(file));
+    hash.update(normalizeCompatibilityContent(await readFile(file, "utf8")));
     hash.update("\0");
   }
   return hash.digest("hex");
+}
+
+export function normalizeCompatibilityContent(content) {
+  return content.replace(/\r\n?/g, "\n");
 }
 
 async function collect(path, files) {
