@@ -1,0 +1,66 @@
+name: DataPull Windows 网络诊断
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  mysql:
+    name: Windows 到 MySQL 的脱敏连通性诊断
+    runs-on: windows-2025
+    timeout-minutes: 10
+    steps:
+      - name: 检查 DNS、TCP 与 MySQL 握手
+        shell: pwsh
+        env:
+          DATAPULL_CI_MYSQL_HOST: ${{ secrets.DATAPULL_CI_MYSQL_HOST }}
+          DATAPULL_CI_MYSQL_PORT: ${{ secrets.DATAPULL_CI_MYSQL_PORT }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $hostName = $env:DATAPULL_CI_MYSQL_HOST
+          if ([string]::IsNullOrWhiteSpace($hostName)) { throw '缺少 MySQL 主机 Secret。' }
+          $port = if ([string]::IsNullOrWhiteSpace($env:DATAPULL_CI_MYSQL_PORT)) {
+            3306
+          } else {
+            [int]$env:DATAPULL_CI_MYSQL_PORT
+          }
+
+          $addresses = @(Resolve-DnsName -Name $hostName -Type A -ErrorAction Stop |
+            Where-Object Type -EQ 'A' |
+            Select-Object -ExpandProperty IPAddress -Unique)
+          if ($addresses.Count -eq 0) { throw 'MySQL 主机没有可用的 IPv4 地址。' }
+          Write-Output "DNS_A_COUNT=$($addresses.Count)"
+
+          $successes = 0
+          for ($index = 0; $index -lt $addresses.Count; $index += 1) {
+            $address = $addresses[$index]
+            Write-Output "::add-mask::$address"
+            $client = [System.Net.Sockets.TcpClient]::new()
+            try {
+              $connect = $client.ConnectAsync($address, $port)
+              if (-not $connect.Wait([TimeSpan]::FromSeconds(10))) {
+                Write-Output "MYSQL_ENDPOINT_$($index + 1)=TCP_TIMEOUT"
+                continue
+              }
+              $stream = $client.GetStream()
+              $stream.ReadTimeout = 10000
+              $buffer = [byte[]]::new(4)
+              $read = $stream.Read($buffer, 0, $buffer.Length)
+              if ($read -gt 0) {
+                $successes += 1
+                Write-Output "MYSQL_ENDPOINT_$($index + 1)=HANDSHAKE_OK"
+              } else {
+                Write-Output "MYSQL_ENDPOINT_$($index + 1)=NO_HANDSHAKE"
+              }
+            } catch {
+              Write-Output "MYSQL_ENDPOINT_$($index + 1)=CONNECT_FAILED"
+            } finally {
+              $client.Dispose()
+            }
+          }
+
+          if ($successes -eq 0) {
+            throw 'Windows 托管 Runner 无法从任一 IPv4 地址读取 MySQL 初始握手。'
+          }
