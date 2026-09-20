@@ -21,15 +21,24 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $hostName = $env:DATAPULL_CI_MYSQL_HOST
           if ([string]::IsNullOrWhiteSpace($hostName)) { throw '缺少 MySQL 主机 Secret。' }
+          Write-Output "::add-mask::$hostName"
           $port = if ([string]::IsNullOrWhiteSpace($env:DATAPULL_CI_MYSQL_PORT)) {
             3306
           } else {
             [int]$env:DATAPULL_CI_MYSQL_PORT
           }
 
-          $addresses = @(Resolve-DnsName -Name $hostName -Type A -ErrorAction Stop |
-            Where-Object Type -EQ 'A' |
-            Select-Object -ExpandProperty IPAddress -Unique)
+          $literalAddress = $null
+          if ([System.Net.IPAddress]::TryParse($hostName, [ref]$literalAddress)) {
+            if ($literalAddress.AddressFamily -ne [System.Net.Sockets.AddressFamily]::InterNetwork) {
+              throw 'MySQL 主机必须提供 IPv4 地址或可解析为 IPv4 的域名。'
+            }
+            $addresses = @($literalAddress.IPAddressToString)
+          } else {
+            $addresses = @(Resolve-DnsName -Name $hostName -Type A -ErrorAction Stop |
+              Where-Object Type -EQ 'A' |
+              Select-Object -ExpandProperty IPAddress -Unique)
+          }
           if ($addresses.Count -eq 0) { throw 'MySQL 主机没有可用的 IPv4 地址。' }
           Write-Output "DNS_A_COUNT=$($addresses.Count)"
 
