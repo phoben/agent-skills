@@ -1,0 +1,17 @@
+name: DataPull Windows 桌面端兼容性验收
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    uses: ./.github/workflows/datapull-compatibility-platform.yml
+    with:
+      platform: windows-10-11
+      runs_on: '["self-hosted","Windows","X64","datapull-release"]'
+      bootstrap: none
+      install_missing: false
+    secrets: inherit

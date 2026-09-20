@@ -48,17 +48,19 @@ SQL Server 使用私有 CA 或自签名证书时，将签发服务器证书的�
 
 ## 运行器
 
-五个平台全部使用 GitHub 托管计算资源，不要求维护者准备或长期运行自托管机器：
+Linux 与 macOS 使用 GitHub 托管计算资源。Windows 桌面端使用带专用标签的临时自托管 Runner，仅在发布验收期间运行：
 
 | 平台 | 执行环境 |
 |---|---|
-| Windows Server 2025 x64 | GitHub 托管 `windows-2025` |
+| Windows 10/11 x64 | 临时自托管 Runner：`self-hosted`、`Windows`、`X64`、`datapull-release` |
 | macOS 15 Intel | GitHub 托管 `macos-15-intel` |
 | Ubuntu 24.04 x64 | GitHub 托管 `ubuntu-24.04` |
 | Debian Stable x64 | GitHub 托管 Ubuntu 上的 `debian:stable-slim` 容器 |
 | Fedora Current x64 | GitHub 托管 Ubuntu 上的 `fedora:latest` 容器 |
 
-工作流在临时环境中安装 `mysql`、`psql`、`pg_dump`、`sqlcmd`、`pwsh` 和 PowerShell `SqlServer` 模块。任务结束后托管虚拟机和容器会被销毁，不保留数据库秘密或结构文件。Debian/Fedora 容器验证对应发行版的用户空间、包管理器和数据库客户端；内核仍由 GitHub 托管 Ubuntu 主机提供。
+托管工作流在临时环境中安装 `mysql`、`psql`、`pg_dump`、`sqlcmd`、`pwsh` 和 PowerShell `SqlServer` 模块。任务结束后托管虚拟机和容器会被销毁，不保留数据库秘密或结构文件。Debian/Fedora 容器验证对应发行版的用户空间、包管理器和数据库客户端；内核仍由 GitHub 托管 Ubuntu 主机提供。
+
+Windows Runner 使用 `datapull-compatibility-windows-local.yml`，必须以 `--ephemeral` 注册并在完成一个任务后自动注销。这样可以复用维护者已获数据库访问授权的 Windows 网络，同时避免为公开仓库保留长期在线的自托管执行器。`datapull-compatibility.yml` 中的 Windows Server 2025 托管目标可用于网络允许时的附加烟测，但不替代 Windows 10/11 桌面端发布证据。
 
 ## 执行与取证
 

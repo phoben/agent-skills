@@ -2,7 +2,7 @@
   "version": 2,
   "policy": "仅实际验证通过的组合可声明支持；Agent Skill 写入预期目录且版本与内容哈希回验一致即视为通过，无需启动 Agent。",
   "requiredPlatforms": [
-    "windows-server-2025",
+    "windows-10-11",
     "macos",
     "ubuntu-lts",
     "debian-stable",
