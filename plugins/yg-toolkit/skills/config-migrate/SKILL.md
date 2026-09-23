@@ -1,6 +1,6 @@
 ---
 name: config-migrate
-description: 盘点并迁移项目级或用户级的工程化配置，包括 skills、rules、MCP、agents、hooks 和 commands；适用于在 Claude、Codex、Cursor、Trae、ZCode、Kimi 等平台之间规划或执行配置迁移。
+description: 盘点、规划并迁移项目级或用户级的 Skills、Rules、MCP、Agents、Hooks 和 Commands 配置；适用于 Claude、Codex、Cursor、Trae、ZCode、Kimi 等开发工具之间的配置迁移。
 ---
 
 # 工程配置迁移

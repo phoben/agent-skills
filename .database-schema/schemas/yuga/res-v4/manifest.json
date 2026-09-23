@@ -1,0 +1,1059 @@
+{
+  "formatVersion": 2,
+  "status": "complete",
+  "connectionAlias": "yuga",
+  "engine": "sqlserver",
+  "database": "res-v4",
+  "exportedAt": "2026-09-18T06:38:30.189386+00:00",
+  "objectCount": 174,
+  "objects": [
+    {
+      "type": "function",
+      "schema": "dbo",
+      "name": "fn_GetAddressTags",
+      "file": "function/dbo.fn_GetAddressTags--4721cb5537.sql"
+    },
+    {
+      "type": "function",
+      "schema": "dbo",
+      "name": "fn_SplitString",
+      "file": "function/dbo.fn_SplitString--ff0db304e1.sql"
+    },
+    {
+      "type": "procedure",
+      "schema": "dbo",
+      "name": "ConvertToIdentity",
+      "file": "procedure/dbo.ConvertToIdentity--29a84c2dad.sql"
+    },
+    {
+      "type": "procedure",
+      "schema": "dbo",
+      "name": "UpdateLowestPriceID",
+      "file": "procedure/dbo.UpdateLowestPriceID--7f69225559.sql"
+    },
+    {
+      "type": "procedure",
+      "schema": "dbo",
+      "name": "sp_动态更新指定表字段值",
+      "file": "procedure/dbo.sp_动态更新指定表字段值--24caaff024.sql"
+    },
+    {
+      "type": "procedure",
+      "schema": "dbo",
+      "name": "搜索周边指定标签地址",
+      "file": "procedure/dbo.搜索周边指定标签地址--3cffc0d4ff.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_accessadmin",
+      "name": "db_accessadmin",
+      "file": "schema/db_accessadmin--fbd2403161.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_backupoperator",
+      "name": "db_backupoperator",
+      "file": "schema/db_backupoperator--3b769d1c55.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_datareader",
+      "name": "db_datareader",
+      "file": "schema/db_datareader--38750d56fd.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_datawriter",
+      "name": "db_datawriter",
+      "file": "schema/db_datawriter--f11884706e.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_ddladmin",
+      "name": "db_ddladmin",
+      "file": "schema/db_ddladmin--c16a06d657.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_denydatareader",
+      "name": "db_denydatareader",
+      "file": "schema/db_denydatareader--6392550b2f.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_denydatawriter",
+      "name": "db_denydatawriter",
+      "file": "schema/db_denydatawriter--9cfb44c056.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_owner",
+      "name": "db_owner",
+      "file": "schema/db_owner--ff32df2f29.sql"
+    },
+    {
+      "type": "schema",
+      "schema": "db_securityadmin",
+      "name": "db_securityadmin",
+      "file": "schema/db_securityadmin--26fcd45b01.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_EVT_LOG",
+      "file": "table/dbo.ACT_EVT_LOG--11807935e6.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_FGC_DELEGATION_CONF",
+      "file": "table/dbo.ACT_FGC_DELEGATION_CONF--6dce07dc9f.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_FGC_DELEGATION_PROC_DETAIL",
+      "file": "table/dbo.ACT_FGC_DELEGATION_PROC_DETAIL--1f47fbe37b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_FGC_DELEGATION_TO_DETAIL",
+      "file": "table/dbo.ACT_FGC_DELEGATION_TO_DETAIL--8f8a918fd4.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_FGC_HI_ADDONSIGN",
+      "file": "table/dbo.ACT_FGC_HI_ADDONSIGN--fdcf7aa28d.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_GE_BYTEARRAY",
+      "file": "table/dbo.ACT_GE_BYTEARRAY--bd396e9811.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_GE_PROPERTY",
+      "file": "table/dbo.ACT_GE_PROPERTY--bdcdeb17c9.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_ACTINST",
+      "file": "table/dbo.ACT_HI_ACTINST--6eaf735565.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_ATTACHMENT",
+      "file": "table/dbo.ACT_HI_ATTACHMENT--4ee5aeb1aa.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_COMMENT",
+      "file": "table/dbo.ACT_HI_COMMENT--16320e9835.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_DETAIL",
+      "file": "table/dbo.ACT_HI_DETAIL--30e0dfea1a.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_IDENTITYLINK",
+      "file": "table/dbo.ACT_HI_IDENTITYLINK--c3e1088340.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_PROCINST",
+      "file": "table/dbo.ACT_HI_PROCINST--70f584ba79.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_TASKINST",
+      "file": "table/dbo.ACT_HI_TASKINST--4d86bf25f7.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_HI_VARINST",
+      "file": "table/dbo.ACT_HI_VARINST--b7758f1ffc.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_PROCDEF_INFO",
+      "file": "table/dbo.ACT_PROCDEF_INFO--2e81b351f1.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RE_DEPLOYMENT",
+      "file": "table/dbo.ACT_RE_DEPLOYMENT--d5d0b540a2.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RE_MODEL",
+      "file": "table/dbo.ACT_RE_MODEL--c3d9426921.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RE_PROCDEF",
+      "file": "table/dbo.ACT_RE_PROCDEF--194ef92006.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_DEADLETTER_JOB",
+      "file": "table/dbo.ACT_RU_DEADLETTER_JOB--b2e76cf283.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_EVENT_SUBSCR",
+      "file": "table/dbo.ACT_RU_EVENT_SUBSCR--ff1118e9fb.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_EXECUTION",
+      "file": "table/dbo.ACT_RU_EXECUTION--97383dca76.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_IDENTITYLINK",
+      "file": "table/dbo.ACT_RU_IDENTITYLINK--4fa26eca7f.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_INTEGRATION",
+      "file": "table/dbo.ACT_RU_INTEGRATION--6203183e78.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_JOB",
+      "file": "table/dbo.ACT_RU_JOB--5e3dabe558.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_SUSPENDED_JOB",
+      "file": "table/dbo.ACT_RU_SUSPENDED_JOB--2ec8c318c7.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_TASK",
+      "file": "table/dbo.ACT_RU_TASK--9babc1da81.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_TIMER_JOB",
+      "file": "table/dbo.ACT_RU_TIMER_JOB--63956024fe.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "ACT_RU_VARIABLE",
+      "file": "table/dbo.ACT_RU_VARIABLE--e3c369466b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "BaseQuotation",
+      "file": "table/dbo.BaseQuotation--83bf127283.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "BaseQuotation_copy1",
+      "file": "table/dbo.BaseQuotation_copy1--406529717b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_BF_202508181934",
+      "file": "table/dbo.FGC2_USD_BF_202508181934--542a13d7d1.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_DESKTOP_MI5CUG9",
+      "file": "table/dbo.FGC2_USD_DESKTOP_MI5CUG9--b38f049671.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_DESKTOP_P7DCA12",
+      "file": "table/dbo.FGC2_USD_DESKTOP_P7DCA12--c91ed531e9.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_SHAMUSWINDOWS11",
+      "file": "table/dbo.FGC2_USD_SHAMUSWINDOWS11--44d841e779.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_SHAMUS_PC",
+      "file": "table/dbo.FGC2_USD_SHAMUS_PC--55d3424883.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_TYFEIKELE",
+      "file": "table/dbo.FGC2_USD_TYFEIKELE--27465e306b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_TYFEIKELEPC",
+      "file": "table/dbo.FGC2_USD_TYFEIKELEPC--f2c011c12b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_W_DESKTOP_MI5CUG9",
+      "file": "table/dbo.FGC2_USD_W_DESKTOP_MI5CUG9--3f50598486.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_W_SHAMUSWINDOWS11",
+      "file": "table/dbo.FGC2_USD_W_SHAMUSWINDOWS11--17bca139d6.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_W_SHAMUS_PC",
+      "file": "table/dbo.FGC2_USD_W_SHAMUS_PC--988e56a35a.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_W_TYFEIKELE",
+      "file": "table/dbo.FGC2_USD_W_TYFEIKELE--1335db35ca.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_USD_W_TYFEIKELEPC",
+      "file": "table/dbo.FGC2_USD_W_TYFEIKELEPC--0e401176af.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_US_SERVER_RES",
+      "file": "table/dbo.FGC2_US_SERVER_RES--079acb9084.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_US_W_SERVER_RES",
+      "file": "table/dbo.FGC2_US_W_SERVER_RES--d445790057.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_US__10_0_4_10",
+      "file": "table/dbo.FGC2_US__10_0_4_10--b78f2eee18.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "FGC2_US__10_206_0_6",
+      "file": "table/dbo.FGC2_US__10_206_0_6--a1d84fd893.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic_报价状态表",
+      "file": "table/dbo.dic_报价状态表--37e4299b3a.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic_询价列队状态",
+      "file": "table/dbo.dic_询价列队状态--35efd634e0.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic_项目状态表",
+      "file": "table/dbo.dic_项目状态表--d6c071d73e.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic业务分类表",
+      "file": "table/dbo.dic业务分类表--551b146e58.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic业务类型表",
+      "file": "table/dbo.dic业务类型表--ddd19cdaa0.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic供应商级别表",
+      "file": "table/dbo.dic供应商级别表--55e49939f0.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic报价采用模式表",
+      "file": "table/dbo.dic报价采用模式表--36eb4805b6.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic时效性",
+      "file": "table/dbo.dic时效性--21899fcd7b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic枚举字典表",
+      "file": "table/dbo.dic枚举字典表--0902ce733d.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic线路类型表",
+      "file": "table/dbo.dic线路类型表--947a191098.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic运营商表",
+      "file": "table/dbo.dic运营商表--82ec9b261b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "dic需求单状态表",
+      "file": "table/dbo.dic需求单状态表--170a6979ff.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "fgc_usd_shamus_pc",
+      "file": "table/dbo.fgc_usd_shamus_pc--f094cf3f51.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "业务人员对应表",
+      "file": "table/dbo.业务人员对应表--f56129c729.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "业务移交记录表",
+      "file": "table/dbo.业务移交记录表--a08c527ccd.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "业务菜单表",
+      "file": "table/dbo.业务菜单表--935c623484.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "人员假期设置表",
+      "file": "table/dbo.人员假期设置表--53dfc462ac.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "供应商_支持业务",
+      "file": "table/dbo.供应商_支持业务--453406bc2b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "供应商_支持运营商",
+      "file": "table/dbo.供应商_支持运营商--837fe445df.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "供应商表",
+      "file": "table/dbo.供应商表--2f36b7b0d4.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "团队业务分配表",
+      "file": "table/dbo.团队业务分配表--f6444608e6.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "地址标签",
+      "file": "table/dbo.地址标签--4fa96cfe4b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "地址池",
+      "file": "table/dbo.地址池--2cb7786bea.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "地址解析级别",
+      "file": "table/dbo.地址解析级别--49a9e10a9a.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "报价修正日志",
+      "file": "table/dbo.报价修正日志--8c59bf61e8.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "报价历史记录主表",
+      "file": "table/dbo.报价历史记录主表--e6deb5c9ae.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "报价历史记录子表",
+      "file": "table/dbo.报价历史记录子表--3aa2c8cb60.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "报价方案状态表",
+      "file": "table/dbo.报价方案状态表--7966cfa7e6.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "方案主表",
+      "file": "table/dbo.方案主表--fc22bd3fb1.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "方案子表",
+      "file": "table/dbo.方案子表--9e0f669614.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "日志表",
+      "file": "table/dbo.日志表--67535fb07f.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "服务性采购模板子表",
+      "file": "table/dbo.服务性采购模板子表--87f2db0a18.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "系统操作记录表",
+      "file": "table/dbo.系统操作记录表--5cd282bd13.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "组织成员表",
+      "file": "table/dbo.组织成员表--2d480846c1.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "组织架构表",
+      "file": "table/dbo.组织架构表--a1951a3708.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "询价任务表",
+      "file": "table/dbo.询价任务表--b9ae7baccd.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "询价列队表",
+      "file": "table/dbo.询价列队表--3db7f32b2f.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "询价模板主表",
+      "file": "table/dbo.询价模板主表--45e4418046.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "询价模板库",
+      "file": "table/dbo.询价模板库--9a2e46556f.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "询价模板库_支持供应商级别",
+      "file": "table/dbo.询价模板库_支持供应商级别--3ab8e192fd.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "询价模板库_支持运营商",
+      "file": "table/dbo.询价模板库_支持运营商--783dd9b99b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "询价需求单",
+      "file": "table/dbo.询价需求单--3224917696.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "邮件回复记录",
+      "file": "table/dbo.邮件回复记录--739b42e687.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "销售人员表",
+      "file": "table/dbo.销售人员表--b8c929b764.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求报价方案主表",
+      "file": "table/dbo.需求报价方案主表--6fcf3162cc.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求报价方案子表",
+      "file": "table/dbo.需求报价方案子表--0f1914e615.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_avpn",
+      "file": "table/dbo.需求详情_avpn--9eda955b17.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_avpn_max",
+      "file": "table/dbo.需求详情_avpn_max--916bd78632.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_general",
+      "file": "table/dbo.需求详情_general--5e9dfb631d.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_other",
+      "file": "table/dbo.需求详情_other--a39ada0eb9.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_uias_new",
+      "file": "table/dbo.需求详情_uias_new--f6be4b9e2d.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_uias_t1",
+      "file": "table/dbo.需求详情_uias_t1--6c749b71f9.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_uvpn",
+      "file": "table/dbo.需求详情_uvpn--216edd5a7f.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_uvpn_t2",
+      "file": "table/dbo.需求详情_uvpn_t2--7e7045d148.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_匹配供应商",
+      "file": "table/dbo.需求详情_匹配供应商--9d9477449a.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_服务性采购",
+      "file": "table/dbo.需求详情_服务性采购--a858ebf273.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_设备服务",
+      "file": "table/dbo.需求详情_设备服务--7b11d7d45f.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_设备维保",
+      "file": "table/dbo.需求详情_设备维保--480107f87b.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "需求详情_设备采购",
+      "file": "table/dbo.需求详情_设备采购--3c30b8c100.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "项目主表",
+      "file": "table/dbo.项目主表--3444d57ff9.sql"
+    },
+    {
+      "type": "table",
+      "schema": "dbo",
+      "name": "项目方案评审表",
+      "file": "table/dbo.项目方案评审表--b43e10298d.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "ACT_HI_COMMENT_View",
+      "file": "view/dbo.ACT_HI_COMMENT_View--8c385247fc.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "ACT_HI_PROCINST_View",
+      "file": "view/dbo.ACT_HI_PROCINST_View--62eba41bbe.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "ACT_HI_TASKINST_View",
+      "file": "view/dbo.ACT_HI_TASKINST_View--f81de563dd.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "ACT_RE_PROCDEF_View",
+      "file": "view/dbo.ACT_RE_PROCDEF_View--7ef4f0429f.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "ACT_RU_TASK_View",
+      "file": "view/dbo.ACT_RU_TASK_View--20835d0bf8.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_报价历史记录主表",
+      "file": "view/dbo.MT_报价历史记录主表--61bef33847.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_报价历史记录子表",
+      "file": "view/dbo.MT_报价历史记录子表--5b35d36d9c.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_询价任务表",
+      "file": "view/dbo.MT_询价任务表--205551eb4c.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_询价需求单",
+      "file": "view/dbo.MT_询价需求单--f5858258d9.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_需求单状态表",
+      "file": "view/dbo.MT_需求单状态表--5b0ddf51d4.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_需求报价方案主表",
+      "file": "view/dbo.MT_需求报价方案主表--1a02a3d2b4.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_需求报价方案子表",
+      "file": "view/dbo.MT_需求报价方案子表--8b26b6abe9.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_需求详情_设备服务",
+      "file": "view/dbo.MT_需求详情_设备服务--0939e7ad6f.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_需求详情_设备维保",
+      "file": "view/dbo.MT_需求详情_设备维保--b761f12781.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "MT_需求详情_设备采购",
+      "file": "view/dbo.MT_需求详情_设备采购--35dcef00cd.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "V_最新报价记录",
+      "file": "view/dbo.V_最新报价记录--2d2c5fa56f.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "V_设备成本推送_报价方案表",
+      "file": "view/dbo.V_设备成本推送_报价方案表--1c3dfea35f.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "V_设备成本推送_设备服务明细",
+      "file": "view/dbo.V_设备成本推送_设备服务明细--a5279a92fb.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "V_设备成本推送_设备维保明细",
+      "file": "view/dbo.V_设备成本推送_设备维保明细--c4e27e9ce5.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "V_设备成本推送_设备采购明细",
+      "file": "view/dbo.V_设备成本推送_设备采购明细--766a7b2963.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "V_需求单报价主表状态统计",
+      "file": "view/dbo.V_需求单报价主表状态统计--558ed845de.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "View_供应商回复统计",
+      "file": "view/dbo.View_供应商回复统计--4ba92abd4d.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "View_供应商回复统计业务视图",
+      "file": "view/dbo.View_供应商回复统计业务视图--8167c935ca.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "View_供应商回复统计年视图",
+      "file": "view/dbo.View_供应商回复统计年视图--0866aed218.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "View_地址池",
+      "file": "view/dbo.View_地址池--545e45575c.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "View_需求详情匹配供应商",
+      "file": "view/dbo.View_需求详情匹配供应商--da2b07c9af.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "View需求单主表视图",
+      "file": "view/dbo.View需求单主表视图--86b16072d3.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "人员工作量统计视图",
+      "file": "view/dbo.人员工作量统计视图--4dacc1604b.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "供应商报价次数统计视图",
+      "file": "view/dbo.供应商报价次数统计视图--8fa2b88699.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "供应商汇总视图",
+      "file": "view/dbo.供应商汇总视图--c34f422390.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "供应商表_合并视图",
+      "file": "view/dbo.供应商表_合并视图--af4c3829c0.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "供应商表_展开视图",
+      "file": "view/dbo.供应商表_展开视图--a9e86c0060.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "全业务类型规则视图",
+      "file": "view/dbo.全业务类型规则视图--7b5342a7a1.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "全需求树型图视图",
+      "file": "view/dbo.全需求树型图视图--c98e17d1f0.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "匿名_需求详情明细视图",
+      "file": "view/dbo.匿名_需求详情明细视图--12e4cfb433.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "品牌统计视图",
+      "file": "view/dbo.品牌统计视图--2cd6dd950a.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "工作量统计视图",
+      "file": "view/dbo.工作量统计视图--5272854a4f.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "报价历史记录子表视图",
+      "file": "view/dbo.报价历史记录子表视图--63d7d7d1cb.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "报价大数据视图",
+      "file": "view/dbo.报价大数据视图--aab33f1618.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "报价子表关联视图",
+      "file": "view/dbo.报价子表关联视图--6f04fb5a0b.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "数据表信息视图",
+      "file": "view/dbo.数据表信息视图--d8bc7331cc.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "设备需求汇总视图",
+      "file": "view/dbo.设备需求汇总视图--543ebe715a.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "询价列队视图",
+      "file": "view/dbo.询价列队视图--29312809a0.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "询价模板库_合并视图",
+      "file": "view/dbo.询价模板库_合并视图--7c7df19311.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "询价模板库_展开视图",
+      "file": "view/dbo.询价模板库_展开视图--7a7e317231.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "询价需求单视图",
+      "file": "view/dbo.询价需求单视图--bfbad4b6d4.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "邮件往来记录视图",
+      "file": "view/dbo.邮件往来记录视图--eb28d5d7d0.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "需求单匿名视图",
+      "file": "view/dbo.需求单匿名视图--7b6ae2dda9.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "需求详情合并视图",
+      "file": "view/dbo.需求详情合并视图--48c1222309.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "需求详情拼接视图",
+      "file": "view/dbo.需求详情拼接视图--85bc15efbe.sql"
+    },
+    {
+      "type": "view",
+      "schema": "dbo",
+      "name": "项目需求审批历史视图",
+      "file": "view/dbo.项目需求审批历史视图--8cb8a86e06.sql"
+    }
+  ],
+  "connectionSecurity": {
+    "encrypted": true,
+    "serverCertificateValidated": false
+  }
+}

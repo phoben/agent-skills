@@ -1,0 +1,53 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[地址池](
+	[ID] [bigint] IDENTITY(1,1) NOT NULL,
+	[FGC_Creator] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[FGC_CreateDate] [datetime] NULL,
+	[FGC_LastModifier] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[FGC_LastModifyDate] [datetime] NULL,
+	[FGC_Rowversion] [timestamp] NOT NULL,
+	[FGC_UpdateHelp] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[国家] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NOT NULL,
+	[省份] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[城市] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[区县] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[经度] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[完整地址] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[地址名称] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[纬度] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[GeoLocation]  AS (case when [经度] IS NOT NULL AND [纬度] IS NOT NULL AND isnumeric([经度])=(1) AND isnumeric([纬度])=(1) then [geography]::Point(CONVERT([float],[纬度]),CONVERT([float],[经度]),(4326))  end) PERSISTED,
+	[乡镇] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[社区] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[楼栋号] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[单元号] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[层号] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[房间号] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF),
+UNIQUE NONCLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+)
+GO
+ALTER TABLE [dbo].[地址池] ADD  CONSTRAINT [DK_地址池_d94953a035ce49d1846efabe23dc0b4a]  DEFAULT (N'中国') FOR [国家]
+GO
+SET ARITHABORT ON
+SET CONCAT_NULL_YIELDS_NULL ON
+SET QUOTED_IDENTIFIER ON
+SET ANSI_NULLS ON
+SET ANSI_PADDING ON
+SET ANSI_WARNINGS ON
+SET NUMERIC_ROUNDABORT OFF
+GO
+CREATE SPATIAL INDEX [IX_地址池_GeoLocation] ON [dbo].[地址池]
+(
+	[GeoLocation]
+)USING  GEOGRAPHY_GRID 
+WITH (GRIDS =(LEVEL_1 = MEDIUM,LEVEL_2 = MEDIUM,LEVEL_3 = MEDIUM,LEVEL_4 = MEDIUM), 
+CELLS_PER_OBJECT = 16, PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)

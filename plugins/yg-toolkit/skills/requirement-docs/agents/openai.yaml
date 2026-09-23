@@ -1,0 +1,4 @@
+interface:
+  display_name: "Requirements Documentation"
+  short_description: "创建或完善 BRD、PRD、TRD、SRS 等需求文档"
+  default_prompt: "使用 $requirement-docs 将当前需求整理为结构化需求文档。"

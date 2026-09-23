@@ -1,6 +1,6 @@
 ---
 name: requirement-docs
-description: 创建 BRD、PRD、TRD 或 SRS 需求文档；适用于用户要求生成、编写或完善商业、产品、技术及软件需求规格文档，不适用于最终用户操作手册。
+description: 创建或完善 BRD、PRD、TRD、SRS 等商业、产品、技术和软件需求文档；适用于需求梳理与规格化表达，不适用于最终用户操作手册。
 ---
 
 # 文档编写

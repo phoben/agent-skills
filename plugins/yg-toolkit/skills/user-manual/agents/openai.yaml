@@ -1,4 +1,4 @@
 interface:
-  display_name: "仓库用户操作手册"
-  short_description: "从仓库创建或增量维护可按语言与角色筛选的最终用户手册"
+  display_name: "User Manual"
+  short_description: "基于真实仓库、权限与运行界面创建或增量维护最终用户操作手册"
   default_prompt: "使用 $user-manual，根据当前仓库创建或增量更新中文最终用户操作手册。"

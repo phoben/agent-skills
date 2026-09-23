@@ -1,0 +1,18 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[dic运营商表](
+	[编码] [nvarchar](20) COLLATE Chinese_PRC_CI_AS NOT NULL,
+	[名称] [nvarchar](50) COLLATE Chinese_PRC_CI_AS NOT NULL,
+	[ID] [bigint] NOT NULL,
+	[分类] [bigint] NULL,
+	[FGC_CreateDate] [datetime] NULL,
+	[FGC_LastModifier] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+	[FGC_LastModifyDate] [datetime] NULL,
+	[FGC_Creator] [nvarchar](500) COLLATE Chinese_PRC_CI_AS NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF)
+)

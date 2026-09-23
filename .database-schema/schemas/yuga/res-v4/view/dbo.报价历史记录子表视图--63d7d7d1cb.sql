@@ -1,0 +1,5 @@
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE VIEW [dbo].[报价历史记录子表视图] AS SELECT * FROM [dbo].[报价历史记录子表]
