@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>标准 BOM 维护（模拟原型）</title>
+  <style>
+    :root { --blue:#1677ff; --blue-soft:#eaf3ff; --line:#e6e8eb; --muted:#6b7280; --bg:#f5f6f8; --text:#1f2329; --green:#389e0d; --orange:#d46b08; --red:#cf1322; }
+    * { box-sizing:border-box; } body { margin:0; min-width:1040px; color:var(--text); background:var(--bg); font:14px/1.5 "Microsoft YaHei", "PingFang SC", Arial,sans-serif; }
+    button,input,select { font:inherit; } button { cursor:pointer; } button:focus-visible,input:focus-visible,select:focus-visible { outline:2px solid #69b1ff; outline-offset:1px; }
+    .topbar { height:56px; background:#fff; border-bottom:1px solid var(--line); display:flex; align-items:center; padding:0 24px; gap:16px; position:sticky; top:0; z-index:5; }
+    .crumb { color:var(--muted); } .crumb strong { color:var(--text); font-weight:600; } .simulation { margin-left:auto; border:1px solid #91caff; background:#e6f4ff; color:#0958d9; padding:3px 9px; border-radius:3px; font-size:12px; }
+    .workspace { padding:16px 24px 84px; max-width:1600px; margin:auto; }
+    .toolbar,.panel,.detail-head { background:#fff; border:1px solid var(--line); border-radius:4px; box-shadow:0 1px 2px #00000005; }
+    .toolbar { padding:14px 16px; display:flex; align-items:end; gap:12px; margin-bottom:16px; }
+    label { display:block; color:#4b5563; font-size:13px; margin-bottom:5px; } input,select { height:32px; border:1px solid #d9d9d9; border-radius:3px; padding:0 9px; background:#fff; color:var(--text); } input[readonly] { background:#fafafa; color:#606266; }
+    .field { min-width:190px; } .field input { width:100%; } .grow { flex:1; } .btn { height:32px; padding:0 13px; border:1px solid #d9d9d9; background:#fff; border-radius:3px; color:#303133; } .btn:hover { color:var(--blue); border-color:#91caff; } .btn-primary { color:#fff; background:var(--blue); border-color:var(--blue); } .btn-primary:hover { background:#4096ff; } .btn-danger { color:var(--red); border-color:#ffccc7; } .btn:disabled { color:#bfbfbf; background:#f5f5f5; border-color:#d9d9d9; cursor:not-allowed; }
+    .main-grid { display:grid; grid-template-columns:minmax(430px, .95fr) minmax(610px, 1.45fr); gap:16px; align-items:start; }
+    .panel-title { font-size:15px; font-weight:600; padding:13px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:8px; } .panel-title .count { font-size:12px; font-weight:400; color:var(--muted); }
+    .versions { padding:8px; } .version-row { width:100%; background:#fff; text-align:left; padding:11px 10px; border:1px solid transparent; border-radius:3px; display:grid; grid-template-columns: 1fr auto; gap:4px 8px; margin-bottom:3px; } .version-row:hover { background:#fafafa; } .version-row.selected { background:var(--blue-soft); border-color:#91caff; } .version-row .sku { font-weight:600; } .version-row .sub { color:var(--muted); font-size:12px; grid-column:1/2; } .version-row .state { grid-column:2; grid-row:1/3; align-self:center; }
+    .tag { display:inline-block; padding:1px 7px; border-radius:3px; font-size:12px; border:1px solid; white-space:nowrap; } .tag.active { color:#237804; background:#f6ffed; border-color:#b7eb8f; } .tag.history { color:#595959; background:#fafafa; border-color:#d9d9d9; } .tag.draft { color:#ad4e00; background:#fff7e6; border-color:#ffd591; } .tag.temp { color:#531dab; background:#f9f0ff; border-color:#d3adf7; } .tag.existing { color:#0958d9; background:#e6f4ff; border-color:#91caff; } .tag.virtual { color:#c41d7f; background:#fff0f6; border-color:#ffadd2; }
+    .detail-head { padding:15px 16px 12px; display:flex; align-items:flex-start; gap:14px; margin-bottom:12px; } .detail-head h1 { font-size:18px; margin:0 0 2px; } .detail-head p { margin:0; color:var(--muted); font-size:13px; } .detail-head .actions { margin-left:auto; display:flex; gap:8px; align-items:center; } .scope { margin-top:10px; border-left:3px solid #91caff; background:#f7fbff; color:#3d5b7a; padding:7px 9px; font-size:12px; }
+    .notice { display:none; margin-bottom:12px; padding:9px 12px; border-radius:3px; border:1px solid #ffd591; background:#fff7e6; color:#873800; } .notice.show { display:block; } .notice button { float:right; border:0; background:transparent; color:#873800; text-decoration:underline; }
+    .table-card { background:#fff; border:1px solid var(--line); border-radius:4px; overflow:hidden; } .table-tools { padding:10px 12px; border-bottom:1px solid var(--line); display:flex; align-items:center; } .table-tools strong { font-weight:600; } .table-tools span { color:var(--muted); margin-left:8px; font-size:12px; } .table-tools .right { margin-left:auto; color:#595959; }
+    .table-wrap { overflow:auto; max-height:calc(100vh - 320px); min-height:290px; } table { width:100%; border-collapse:collapse; min-width:700px; } th { position:sticky; top:0; background:#fafafa; color:#4b5563; font-weight:600; white-space:nowrap; z-index:1; } th,td { border-bottom:1px solid #f0f0f0; padding:10px 10px; text-align:left; vertical-align:middle; } td:first-child { padding-left:16px; } tr:last-child td { border-bottom:0; } tr:hover td { background:#fcfcfc; } .item-name { font-weight:600; } .item-code { display:block; font-size:12px; color:var(--muted); margin-top:2px; } .small-input { width:72px; text-align:right; } .spec-input { width:140px; } .readonly-spec { display:flex; align-items:center; gap:5px; color:#606266; } .lock { color:#8c8c8c; } .checks { display:flex; flex-wrap:wrap; gap:5px; } .row-action { color:var(--blue); border:0; background:none; padding:0; } .row-action:hover { text-decoration:underline; }
+    .footer-actions { position:fixed; bottom:0; left:0; right:0; height:64px; background:#fff; border-top:1px solid var(--line); display:flex; align-items:center; justify-content:flex-end; gap:9px; padding:0 24px; z-index:4; } .dirty-tip { margin-right:auto; color:#ad4e00; display:none; } .dirty-tip.show { display:block; }
+    .empty { padding:70px 20px; text-align:center; color:var(--muted); } .empty b { display:block; color:#303133; font-size:16px; margin-bottom:5px; }
+    .modal-backdrop { display:none; position:fixed; inset:0; background:#00000073; z-index:10; align-items:center; justify-content:center; } .modal-backdrop.show { display:flex; } .modal { width:490px; max-width:calc(100vw - 32px); background:#fff; border-radius:4px; box-shadow:0 12px 32px #00000030; } .modal.large { width:610px; } .modal-header { padding:15px 18px; font-size:16px; font-weight:600; border-bottom:1px solid var(--line); } .modal-body { padding:18px; } .modal-body p { margin:0 0 10px; } .modal-footer { padding:10px 18px; border-top:1px solid var(--line); text-align:right; display:flex; justify-content:flex-end; gap:8px; } .warnbox { background:#fff7e6; border:1px solid #ffd591; padding:10px; color:#873800; border-radius:3px; } .successbox { background:#f6ffed; border:1px solid #b7eb8f; padding:10px; color:#237804; border-radius:3px; } .toast { display:none; position:fixed; z-index:20; top:72px; left:50%; transform:translateX(-50%); background:#fff; border:1px solid #b7eb8f; border-radius:4px; box-shadow:0 4px 14px #0002; padding:10px 15px; color:#237804; } .toast.show { display:block; }
+    @media (max-width:1280px) { .workspace { padding-left:16px; padding-right:16px; } .main-grid { grid-template-columns:420px minmax(600px,1fr); } .topbar { padding:0 16px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar"><span class="crumb">主数据 / 标准 BOM / <strong>维护</strong></span><span class="simulation">模拟数据 · 本地原型</span></header>
+  <main class="workspace">
+    <section class="toolbar" aria-label="BOM 查询">
+      <div class="field"><label for="skuSearch">成品 SKU</label><input id="skuSearch" placeholder="编码或名称" value="CP-1008" /></div>
+      <div class="field"><label for="effectSearch">是否生效</label><select id="effectSearch"><option value="all">全部状态</option><option value="active">仅生效</option><option value="draft">仅草稿</option></select></div>
+      <button class="btn btn-primary" id="searchBtn">查询</button><button class="btn" id="resetBtn">重置</button>
+    </section>
+    <section class="main-grid">
+      <aside class="panel" aria-label="成品 SKU 与版本列表"><div class="panel-title">成品 SKU 与版本 <span class="count" id="resultCount"></span></div><div class="versions" id="versionList"></div></aside>
+      <section id="detailArea" aria-live="polite"></section>
+    </section>
+  </main>
+  <footer class="footer-actions"><span class="dirty-tip" id="dirtyTip">当前版本有未保存修改；切换版本或离开会要求确认。</span><button class="btn" id="cancelBtn">还原本次修改</button><button class="btn btn-primary" id="saveBtn">保存当前版本</button></footer>
+  <div class="modal-backdrop" id="modal"><div class="modal" id="modalBox"><div class="modal-header" id="modalTitle"></div><div class="modal-body" id="modalBody"></div><div class="modal-footer" id="modalActions"></div></div></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script>
+    // 全部数据仅保存在浏览器内存，用于演示标准 BOM 的查询、编辑、保存和复制流程。
+    const data = [
+      {sku:'CP-1008', name:'便携终端整机', versions:[
+        {version:'V3', status:'active', items:[
+          {code:'WL-2001', name:'主控板', source:'existing', qty:'1', unit:'块', spec:'32GB', required:true, virtual:false},
+          {code:'WL-2002', name:'外壳', source:'existing', qty:'2', unit:'件', spec:'黑色', required:true, virtual:false},
+          {code:'TMP-039', name:'缓冲垫片', source:'temp', qty:'4', unit:'片', spec:'厚度 1.0mm', required:true, virtual:true}
+        ]},
+        {version:'V2', status:'history', items:[
+          {code:'WL-2001', name:'主控板', source:'existing', qty:'1', unit:'块', spec:'16GB', required:true, virtual:false},
+          {code:'WL-2002', name:'外壳', source:'existing', qty:'2', unit:'件', spec:'黑色', required:true, virtual:false},
+          {code:'TMP-039', name:'缓冲垫片', source:'temp', qty:'4', unit:'片', spec:'厚度 1.0mm', required:true, virtual:true}
+        ]}
+      ]},
+      {sku:'CP-1020', name:'扫码底座', versions:[{version:'V2',status:'active',items:[{code:'WL-3008',name:'底座壳体',source:'existing',qty:'1',unit:'件',spec:'深灰色',required:true,virtual:false}]}]}
+    ];
+    let selected = {sku:'CP-1008', version:'V3'}; let dirty=false; let filter={text:'CP-1008',effect:'all'};
+    const el = id => document.getElementById(id);
+    const findVersion = () => data.find(x=>x.sku===selected.sku)?.versions.find(x=>x.version===selected.version);
+    const selectedProduct = () => data.find(x=>x.sku===selected.sku);
+    const statusText = s => s==='active'?'生效':s==='draft'?'草稿':'历史';
+    function visibleVersions(){ const q=filter.text.trim().toLowerCase(); return data.flatMap(p=>p.versions.map(v=>({...v,p}))).filter(x=>(!q||x.p.sku.toLowerCase().includes(q)||x.p.name.includes(q))&&(filter.effect==='all'||x.status===filter.effect)); }
+    function renderList(){ const rows=visibleVersions(); el('resultCount').textContent=`${rows.length} 个版本`; el('versionList').innerHTML=rows.length?rows.map(({p,...v})=>`<button class="version-row ${p.sku===selected.sku&&v.version===selected.version?'selected':''}" data-sku="${p.sku}" data-version="${v.version}"><span class="sku">${p.sku} · ${p.name}</span><span class="tag ${v.status} state">${statusText(v.status)}</span><span class="sub">版本 ${v.version} · ${v.items.length} 个子件</span></button>`).join(''):`<div class="empty"><b>未找到 BOM</b>调整查询条件后重试</div>`; document.querySelectorAll('.version-row').forEach(b=>b.onclick=()=>requestSwitch({sku:b.dataset.sku,version:b.dataset.version})); }
+    function renderDetail(){ const p=selectedProduct(), v=findVersion(); if(!p||!v){el('detailArea').innerHTML='<div class="panel empty"><b>请选择一个 BOM 版本</b>从左侧列表开始查看。</div>'; return;} const editable=v.status==='active';
+      el('detailArea').innerHTML=`<div class="detail-head"><div><h1>${p.sku} · ${p.name} <span class="tag ${v.status}">${statusText(v.status)}</span></h1><p>标准 BOM · 版本 ${v.version} · 当前版本共 ${v.items.length} 个子件</p><div class="scope">保存范围：将完整子件清单整体保存到当前版本 ${v.version}。本原型不调用真实服务。</div></div><div class="actions"><button class="btn" id="copyBtn" ${v.status==='active'?'':'disabled'}>复制为新版本</button></div></div>
+      <div class="notice ${dirty?'show':''}" id="editingNotice">正在编辑 ${p.sku} ${v.version}；请在保存前核对以下全部 ${v.items.length} 个子件。<button id="reviewBtn">定位到清单</button></div>
+      <div class="table-card"><div class="table-tools"><strong>子件清单</strong><span>规格来源与物料来源在此核对</span><span class="right">${editable?'可编辑用量与临时物料规格':v.status==='history'?'历史版本只读':'草稿版本只读（本原型）'}</span></div><div class="table-wrap" id="tableWrap"><table><thead><tr><th>子件</th><th>物料来源</th><th>用途</th><th>用量</th><th>单位</th><th>规格</th><th>约束</th></tr></thead><tbody>${v.items.map((i,n)=>`<tr><td><span class="item-name">${i.name}</span><span class="item-code">${i.code}</span></td><td><span class="tag ${i.source==='temp'?'temp':'existing'}">${i.source==='temp'?'临时物料':'已有 SKU'}</span></td><td>生产领用</td><td>${editable?`<input class="small-input qty-input" data-index="${n}" inputmode="decimal" value="${i.qty}" aria-label="${i.name} 用量">`:i.qty}</td><td>${i.unit}</td><td>${i.source==='temp'&&editable?`<input class="spec-input spec-input" data-index="${n}" value="${i.spec}" aria-label="${i.name} 规格">`:`<span class="readonly-spec">${i.spec}${i.source==='existing'?'<span class="lock" title="已有 SKU 规格源自 SKU 资料，在 BOM 内不可修改">🔒 只读</span>':''}</span>`}</td><td><div class="checks">${i.required?'<span class="tag active">必需</span>':''}${i.virtual?'<span class="tag virtual">虚拟件</span>':''}</div></td></tr>`).join('')}</tbody></table></div></div>`;
+      el('copyBtn')?.addEventListener('click', openCopy); el('reviewBtn')?.addEventListener('click',()=>el('tableWrap').scrollIntoView({behavior:'smooth',block:'start'}));
+      const bindEdit = (selector, field) => document.querySelectorAll(selector).forEach(input => ['input','change'].forEach(eventName => input.addEventListener(eventName, e => { v.items[e.target.dataset.index][field]=e.target.value; markDirty(); })));
+      bindEdit('.qty-input','qty'); bindEdit('.spec-input','spec'); }
+    function render(){ renderList(); renderDetail(); el('dirtyTip').classList.toggle('show',dirty); el('saveBtn').disabled=!dirty||findVersion()?.status!=='active'; el('cancelBtn').disabled=!dirty; }
+    function setDirty(value){dirty=value; render();}
+    function markDirty(){ dirty=true; el('editingNotice')?.classList.add('show'); el('dirtyTip').classList.add('show'); el('saveBtn').disabled=false; el('cancelBtn').disabled=false; }
+    function requestSwitch(next){ if(next.sku===selected.sku&&next.version===selected.version)return; if(dirty){openModal('未保存的修改',`<div class="warnbox">${selected.sku} ${selected.version} 有未保存修改。离开将丢失本次编辑的用量和临时物料规格。</div>`,[{text:'留在当前版本',primary:true},{text:'放弃修改并切换',action:()=>{dirty=false;selected=next;render();}}]);}else{selected=next;render();}}
+    function openCopy(){ const p=selectedProduct(),v=findVersion(),next=`V${Math.max(...p.versions.map(x=>Number(x.version.slice(1))))+1}`; openModal('复制为新版本',`<p>将 <b>${p.sku} ${v.version}</b> 的完整子件清单复制为 <b>${next}</b> 草稿。</p><div class="warnbox">复制后 ${v.version} 仍保持生效；${next} 仅为草稿。本原型不包含发布或审批。</div>`,[{text:'取消',primary:true},{text:`确认复制为 ${next}`,action:()=>{p.versions.unshift({version:next,status:'draft',items:structuredClone(v.items)}); selected={sku:p.sku,version:next}; dirty=false; closeModal(); render(); toast(`${next} 草稿已创建，已保留 ${v.items.length} 个子件。`);}}]); }
+    function save(){ const v=findVersion(); if(!dirty||v.status!=='active')return; const invalid=v.items.find(i=>!i.qty||Number(i.qty)<=0); if(invalid){openModal('无法保存',`<div class="warnbox">请为「${invalid.name}」填写大于 0 的用量，然后再保存。</div>`,[{text:'返回修改',primary:true}]);return;} openModal('确认保存当前版本',`<p>将整树保存 <b>${selected.sku} ${v.version}</b> 的完整子件清单（共 ${v.items.length} 项）。</p><div class="successbox">已核对：已有 SKU 规格保持只读；临时物料「缓冲垫片」仍为虚拟件。</div>`,[{text:'取消',primary:true},{text:'确认模拟保存',action:()=>{dirty=false;closeModal();render();toast(`${selected.sku} ${v.version} 已模拟保存。`);}}]);}
+    function restore(){openModal('还原本次修改','<div class="warnbox">将恢复到本页打开时的模拟数据。未保存的编辑会丢失。</div>',[{text:'取消',primary:true},{text:'确认还原',action:()=>{location.reload();}}]);}
+    function openModal(title,body,buttons){el('modalTitle').textContent=title;el('modalBody').innerHTML=body;el('modalActions').innerHTML='';buttons.forEach(x=>{const b=document.createElement('button');b.className='btn'+(x.primary?' btn-primary':'');b.textContent=x.text;b.onclick=()=>x.action?x.action():closeModal();el('modalActions').appendChild(b)});el('modal').classList.add('show');}
+    function closeModal(){el('modal').classList.remove('show');} function toast(msg){el('toast').textContent=msg;el('toast').classList.add('show');setTimeout(()=>el('toast').classList.remove('show'),2600)}
+    el('searchBtn').onclick=()=>{filter={text:el('skuSearch').value,effect:el('effectSearch').value}; const first=visibleVersions()[0];if(first){selected={sku:first.p.sku,version:first.version};}render();}; el('resetBtn').onclick=()=>{el('skuSearch').value='';el('effectSearch').value='all';filter={text:'',effect:'all'};render();};el('saveBtn').onclick=save;el('cancelBtn').onclick=restore; el('modal').onclick=e=>{if(e.target===el('modal'))closeModal()}; window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}}); render();
+  </script>
+</body>
+</html>
