@@ -1,4 +1,4 @@
 interface:
-  display_name: "Issue 分析与答复"
+  display_name: "Issue Triage"
   short_description: "读取 Issue、组织只读调研，澄清诉求并在用户确认后回复和分类"
   default_prompt: "使用 $issue-triage 处理指定仓库的 Issue，先提交回复草案和标签建议供我确认。"

@@ -1,4 +1,4 @@
 interface:
-  display_name: "资料核验与 Issue 提取"
+  display_name: "Issue Extract"
   short_description: "从已有资料核对项目现状、筛选可执行任务，提交草案并在用户确认后创建 Issue"
   default_prompt: "使用 $issue-extract 从我提供的资料中提取本项目可执行的待办，先核验现状并交付草案，等我选定后再创建 Issue。"
