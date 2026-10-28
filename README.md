@@ -10,6 +10,7 @@
 | [`user-manual`](./plugins/yg-toolkit/skills/user-manual/SKILL.md) | 基于真实仓库、权限与运行界面创建或增量维护最终用户操作手册 |
 | [`requirement-docs`](./plugins/yg-toolkit/skills/requirement-docs/SKILL.md) | 创建 BRD、PRD、TRD 和 SRS 等需求文档 |
 | [`issue-triage`](./plugins/yg-toolkit/skills/issue-triage/SKILL.md) | 读取 Issue、组织只读调研，澄清诉求并经确认后回复和分类 |
+| [`issue-extract`](./plugins/yg-toolkit/skills/issue-extract/SKILL.md) | 从已有资料提取待办，核验项目现状、筛选有效 Issue，交付草案并经用户选定后创建 |
 | [`enterprise-ui-design`](./plugins/yg-toolkit/skills/enterprise-ui-design/SKILL.md) | 继承现有企业系统规范，设计高密度页面与复杂交互，并通过原型和独立审查验证 |
 | [`database-schema`](./plugins/yg-toolkit/skills/database-schema/SKILL.md) | 通过连接别名安全提取指定 MySQL、PostgreSQL 或 SQL Server 数据库的分类 DDL 结构快照 |
 | [`datapull`](./plugins/yg-toolkit/skills/datapull/SKILL.md) | 检查并指导安装 DataPull CLI，帮助 Agent 安全拉取数据库结构文件 |
@@ -29,6 +30,7 @@
             ├── datapull/
             ├── enterprise-ui-design/
             ├── issue-triage/
+            ├── issue-extract/
             ├── requirement-docs/
             ├── user-manual/
             └── version-release/
