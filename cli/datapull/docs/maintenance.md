@@ -12,9 +12,9 @@
 - 非秘密信息写入 `config.json`，密码和完整含秘密 URL 写入权限受限的 `credentials.env`。秘密不得进入命令参数、日志、Git 或兼容性证据。
 - 输出固定写入当前项目的 `.database-schema/`。只替换本次选择的对象类型，未选择类型必须保留。
 - 同一次拉取是文件事务：任一所选类型失败时不得留下半套新文件；异常退出后必须能够恢复。
-- DataPull 独立于旧 `database-schema` 技能运行，不承担旧配置、脚本或输出兼容。
+- 数据库结构导出统一由 DataPull CLI 执行；旧 `database-schema` 仅保留显式调用的转接入口，不包含独立脚本。不自动迁移旧配置或快照，详见 [合并决策](../../../docs/adr/0008-unify-database-skills-on-datapull.md)。
 - Agent Skill 的验收标准是写入预期目录，并回验元数据、版本和内容哈希；不安装、不启动也不登录 Agent 工具。
-- 数据库工具自动安装前必须展示工具、来源、命令、权限和下载影响，并获得用户确认；Agent 只能给出安装命令，由用户执行。
+- 数据库工具自动安装前必须展示工具、来源、命令、权限和下载影响，并获得用户确认；Agent 仅在授权覆盖该安装计划时通过 CLI 的 `--install-missing --yes` 执行。DataPull CLI 的全局安装仍由用户亲自执行。
 - 交互式 `connection add` 在登记后复用连接恢复流程；只有工具和连接校验通过，才询问是否立即输入数据库名拉取。非交互 `--json` 不追加提示或隐式拉取。
 - 基础连接测试不代表对象级权限通过；Provider 必须区分基础探测与导出就绪探测，并保留读取阶段和脱敏详情。明确识别的瞬时只读失败允许有限重试，认证、权限、TLS、SQL 或解析错误不得重试。
 - PostgreSQL 表结构读取使用固定上限并发并报告当前表/总表数；修改并发策略时必须覆盖大批量表、失败回滚和连接数上限。
@@ -29,7 +29,7 @@
 | 新增数据库或对象类型 | `src/providers/builtin.ts`、`src/exporters/` | Provider 契约测试、种子脚本、兼容矩阵 |
 | 修改三方工具安装 | `src/tools/catalog.ts`、`src/tools/manager.ts` | `INSTALL_ADAPTER_VERSION`、权限提示、跨平台测试 |
 | 新增 Agent 或安装位置 | `src/skills/agents.ts`、`src/skills/targets.ts`、`src/skills/installer.ts` | 向导、平台注册表测试、CI 目标、兼容矩阵 |
-| 修改内置 Skill | `skill/` | `npm run skill:sync`、`npm run skill:check`、Plugin 副本 |
+| 修改内置 Skill | `skill/` | `npm run skill:sync`、`npm run skill:check`、Plugin 副本；旧 `database-schema` 仅转接，不复制执行规则 |
 | 修改发布门 | `scripts/check-release-matrix.mjs` | `resources/compatibility-matrix.json`、两个 GitHub Actions 工作流 |
 
 `cli/datapull/skill/` 是 DataPull Skill 的唯一源码；Plugin 中的副本是同步产物，禁止两处分别编辑。

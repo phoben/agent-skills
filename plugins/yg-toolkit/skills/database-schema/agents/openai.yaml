@@ -1,4 +1,6 @@
 interface:
   display_name: "DB Schema"
-  short_description: "通过连接别名导出指定数据库的完整 DDL 结构快照"
-  default_prompt: "使用 $database-schema <连接别名> <数据库名> 导出当前项目指定数据库的结构快照。"
+  short_description: "兼容旧的数据库结构导出调用，通过 DataPull 统一执行并保留原有文件"
+  default_prompt: "使用 $database-schema <连接别名> <数据库名>，按 DataPull 统一流程导出当前项目的数据库结构。"
+policy:
+  allow_implicit_invocation: false
