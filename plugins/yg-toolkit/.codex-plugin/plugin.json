@@ -1,6 +1,6 @@
 {
   "name": "yg-toolkit",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "\u7ea6\u683c\u5f00\u6e90\u7684 Codex \u5de5\u4f5c\u6d41\u5de5\u5177\u96c6\uff0c\u8986\u76d6\u5de5\u7a0b\u914d\u7f6e\u8fc1\u79fb\u3001\u6570\u636e\u5e93\u7ed3\u6784\u63d0\u53d6\u548c\u6587\u6863\u5de5\u4f5c\u3002",
   "author": {
     "name": "\u7ea6\u683c",

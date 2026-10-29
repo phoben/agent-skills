@@ -43,6 +43,8 @@
 
 数据库结构导出统一使用 `$datapull`。旧 [`$database-schema`](./plugins/yg-toolkit/skills/database-schema/SKILL.md) 只保留显式调用的兼容入口，不再包含独立导出器。两者执行同一套 DataPull 流程；旧连接配置需通过 CLI 重新登记，已有旧快照不自动迁移或删除。对比与取舍见 [合并决策](./docs/adr/0008-unify-database-skills-on-datapull.md)。
 
+项目 Codex 会在推送前自动递增 YG Toolkit 插件补丁版本；规则与边界见 [自动版本升级决策](./docs/adr/0009-auto-bump-plugin-version-before-codex-push.md)。
+
 ## 在 Codex 中安装
 
 克隆仓库后，将仓库根目录注册为本地 Marketplace，再安装插件：

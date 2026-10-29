@@ -1,0 +1,19 @@
+{
+  "description": "YG Toolkit 插件推送前自动升级版本号",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "^Bash$",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/bump_plugin_version_before_push.py\"",
+            "commandWindows": "py -3 \"$((git rev-parse --show-toplevel).Trim())/.codex/hooks/bump_plugin_version_before_push.py\"",
+            "timeout": 30,
+            "statusMessage": "检查并升级 YG Toolkit 插件版本"
+          }
+        ]
+      }
+    ]
+  }
+}
