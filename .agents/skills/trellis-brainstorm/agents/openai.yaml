@@ -1,0 +1,4 @@
+interface:
+  display_name: Task Brainstorm
+  short_description: 澄清需求与方案，确定任务的 MVP 范围
+  default_prompt: 使用 $trellis-brainstorm 梳理当前需求，逐一澄清关键问题并确定 MVP 范围。

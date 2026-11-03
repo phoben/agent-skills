@@ -1,0 +1,4 @@
+interface:
+  display_name: Trellis Start
+  short_description: 初始化开发会话并确定当前任务的工作流
+  default_prompt: 使用 $trellis-start 初始化本次开发会话，读取项目上下文并确定任务工作流。

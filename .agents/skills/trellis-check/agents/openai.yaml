@@ -1,0 +1,4 @@
+interface:
+  display_name: Task Review
+  short_description: 检查实现质量、规范遵循与跨层一致性
+  default_prompt: 使用 $trellis-check 验证当前改动的实现质量、规范遵循与跨层一致性。

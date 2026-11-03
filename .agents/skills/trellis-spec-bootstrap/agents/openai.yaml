@@ -1,0 +1,4 @@
+interface:
+  display_name: Spec Bootstrap
+  short_description: 依据真实代码建立或刷新项目编码规范
+  default_prompt: 使用 $trellis-spec-bootstrap 依据当前代码库建立或刷新项目专属的 Trellis 编码规范。

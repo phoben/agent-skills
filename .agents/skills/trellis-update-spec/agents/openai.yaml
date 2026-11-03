@@ -1,0 +1,4 @@
+interface:
+  display_name: Spec Update
+  short_description: 将新发现的契约与编码约定记录到项目规范
+  default_prompt: 使用 $trellis-update-spec 将本次工作中确认的契约与编码约定记录到项目规范。
