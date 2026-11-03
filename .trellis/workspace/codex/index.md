@@ -8,7 +8,7 @@
 
 <!-- @@@auto:current-status -->
 - **Active File**: `journal-1.md`
-- **Total Sessions**: 1
+- **Total Sessions**: 2
 - **Last Active**: 2026-11-03
 <!-- @@@/auto:current-status -->
 
@@ -19,7 +19,7 @@
 <!-- @@@auto:active-documents -->
 | File | Lines | Status |
 |------|-------|--------|
-| `journal-1.md` | ~46 | Active |
+| `journal-1.md` | ~82 | Active |
 <!-- @@@/auto:active-documents -->
 
 ---
@@ -29,6 +29,7 @@
 <!-- @@@auto:session-history -->
 | # | Date | Title | Commits | Branch |
 |---|------|-------|---------|--------|
+| 2 | 2026-11-03 | 完成用量页暗色优化并升级至 0.2.5 | `a179af7` | `main` |
 | 1 | 2026-11-03 | 完成 Tokens 用量侧栏与主题适配 | `ebaee94`, `c4da4b0`, `8ef7e9f` | `codex/token-usage-sidebar` |
 <!-- @@@/auto:session-history -->
 
