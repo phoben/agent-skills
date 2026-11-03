@@ -12,7 +12,7 @@
 | [`issue-triage`](./plugins/yg-toolkit/skills/issue-triage/SKILL.md) | 读取 Issue、组织只读调研，澄清诉求并经确认后回复和分类 |
 | [`issue-extract`](./plugins/yg-toolkit/skills/issue-extract/SKILL.md) | 从已有资料提取待办，核验项目现状、筛选有效 Issue，交付草案并经用户选定后创建 |
 | [`enterprise-ui-design`](./plugins/yg-toolkit/skills/enterprise-ui-design/SKILL.md) | 继承现有企业系统规范，设计高密度页面与复杂交互，并通过原型和独立审查验证 |
-| [`edgeone-app-builder`](./plugins/yg-toolkit/skills/edgeone-app-builder/SKILL.md) | 指导来源项目构建、验证并交付符合 EdgeOne 运行方式和目标路径要求的应用成品 |
+| [`edgeone-app-builder`](./plugins/yg-toolkit/skills/edgeone-app-builder/SKILL.md) | 新建或更新 EdgeOne 应用；沿用现有项目的技术栈与界面体系，并验证部署路径和交付成品 |
 | [`datapull`](./plugins/yg-toolkit/skills/datapull/SKILL.md) | 通过 DataPull CLI 安全导出 MySQL、PostgreSQL 或 SQL Server 的 DDL，处理环境、对象范围、证书异常与结果验收 |
 | [`version-release`](./plugins/yg-toolkit/skills/version-release/SKILL.md) | 检查工作区并完成提交、推送、发布、故障恢复和公开安装验证 |
 

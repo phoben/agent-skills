@@ -1,4 +1,4 @@
 interface:
   display_name: "EdgeOne Build"
-  short_description: "指导来源项目构建、验证并交付符合 EdgeOne 部署规范的应用成品"
-  default_prompt: "使用 $edgeone-app-builder 在当前项目构建适合 EdgeOne 部署的应用，并验证目标路径、运行方式与交付物。"
+  short_description: "新建或更新 EdgeOne 应用，遵循项目现有技术与界面规范并验证成品"
+  default_prompt: "使用 $edgeone-app-builder 新建或更新 EdgeOne 应用；优先沿用现有项目的技术栈、UI 框架和样式，并验证部署路径与成品。"
