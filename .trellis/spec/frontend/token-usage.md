@@ -53,6 +53,7 @@ model测试覆盖日期、空值、错误优先、额度选择、转义、趋势
 
 - 统计项放顶部四张卡片，不再在底部重复。Tokens构成为缓存/非缓存/输出环图，额度为真实窗口圆形进度；保留官方与本机口径区别。
 - App初始化后读取getHostContext，订阅onhostcontextchanged。宿主主题优先，未提供时跟随prefers-color-scheme；样式变量同主题按键合并，换主题清除上一主题残留。
+- 暗色页面映射宿主color-background-primary，卡片、悬停、边框和轨道根据该背景与文字混合派生；禁止直接将secondary作为画布、primary作为卡片，避免宿主深浅层级与页面相反。显式暗色和系统回退须一致，并实际注入宿主primary=#111、secondary=#303030检查。浅色色板不随暗色精修改变。
 - projectPresentation按全量本机totalTokens严格比较>1%；<=1%聚为group:other，保留memberIds，分项/日桶/会话数相加，未知不冒充零。展开后恢复原项目，不重新归一化百分比。
 - 合并行通过projectIds调用会话接口，不把group:other作为真实projectId发送。
 - day-cell与day-hit均明确底部对齐，day-hit为row方向；截图之外实际测量非零bar的bottom坐标差应小于0.5px。

@@ -1,0 +1,30 @@
+{
+  "id": "token-usage-dark-palette",
+  "name": "token-usage-dark-palette",
+  "title": "优化用量页暗色配色层次",
+  "description": "参考用户提供的Codex插件页，修正暗色背景与卡片反差，保留现有布局和功能并验证本地插件。",
+  "status": "in_progress",
+  "dev_type": null,
+  "scope": null,
+  "package": null,
+  "priority": "P2",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-11-03",
+  "completedAt": null,
+  "branch": "main",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {
+    "implementation_verified": "true",
+    "delivered_version": "0.2.5",
+    "git_commit_decision": "authorized_by_user"
+  }
+}
