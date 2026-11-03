@@ -3,7 +3,7 @@
   "name": "token-usage-sidebar",
   "title": "实现 Tokens 用量统计与 Codex 侧栏",
   "description": "按已确认C版接入真实账号总览、本机项目与会话统计，通过MCP提供侧栏页面",
-  "status": "in_progress",
+  "status": "completed",
   "dev_type": null,
   "scope": null,
   "package": null,
@@ -11,7 +11,7 @@
   "creator": "codex",
   "assignee": "codex",
   "createdAt": "2026-11-03",
-  "completedAt": null,
+  "completedAt": "2026-11-03",
   "branch": "codex/token-usage-sidebar",
   "base_branch": "main",
   "worktree_path": null,
@@ -26,6 +26,7 @@
     "implementation_verified": "true",
     "pending_git_approval": "false",
     "delivered_version": "0.2.3",
-    "git_commit_decision": "authorized_by_user"
+    "git_commit_decision": "authorized_by_user",
+    "work_commits": "ebaee94,c4da4b0,8ef7e9f"
   }
 }

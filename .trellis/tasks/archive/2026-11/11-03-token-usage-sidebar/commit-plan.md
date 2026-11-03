@@ -4,6 +4,8 @@
 
 当前决定：用户于2026-11-03明确要求“提交并推送”，覆盖此前的暂缓决定。提交后以普通推送发布当前分支codex/token-usage-sidebar，不合并main、不创建标签或公开发布制品。
 
+三批工作提交已完成：ebaee94、c4da4b0、8ef7e9f。当前任务已按Trellis归档，归档及会话记录提交完成后执行推送。
+
 ## 1. chore(trellis): 初始化项目开发工作流
 
 - `.agents/skills/trellis-*/`及其英文显示名、中文说明。
