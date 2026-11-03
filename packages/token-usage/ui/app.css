@@ -1,0 +1,71 @@
+/* MCP 页面只提供内容，导航由宿主负责。 */
+#plan-type { font-size: 11px; color: var(--muted); max-width: 130px; overflow: hidden; text-overflow: ellipsis; }
+.page-actions { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.refresh-button { height: 35px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); padding: 0 12px; font-size: 12px; white-space: nowrap; }
+.refresh-button:hover { background: var(--accentsoft); }
+.notice { padding: 11px 14px; border: 1px solid var(--notice-line); border-radius: 7px; background: var(--notice-bg); margin-bottom: 12px; font-size: 12px; line-height: 1.6; }
+@media (max-width: 1300px) {
+  .workspace { padding-left: 22px; padding-right: 22px; }
+  .summary-card { padding-left: 15px; padding-right: 15px; }
+  .composition-content { gap: 10px; }
+  #token-donut { width: 122px; height: 122px; flex-basis: 122px; }
+  .board-title { gap: 10px; }
+  .session-dialog { width: calc(100vw - 48px); }
+  .session-toolbar { padding-left: 22px; padding-right: 22px; }
+  .session-table td:first-child > span { font-size: 12px; }
+  .chart-tooltip { width: 260px; }
+}
+@media (max-width: 1100px) {
+  .workspace { padding: 22px; }
+  .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .summary-card { height: 210px; padding: 17px 20px; }
+  #token-donut { width: 128px; height: 128px; flex-basis: 128px; }
+  .composition-content { gap: 20px; }
+  .comparison-canvas { grid-template-columns: minmax(0, 1fr) 285px; padding: 0 12px; }
+  .board-header { padding: 0 16px; }
+  .board-footer { padding: 8px 16px; }
+}
+@media (max-width: 800px) {
+  .workspace { padding: 18px 14px; }
+  .page-path { gap: 8px; }
+  .page-path > span#plan-type { display: none; }
+  .date-trigger { gap: 7px; padding: 0 9px; }
+  .date-range { display: none; }
+  .summary-card { padding: 15px; }
+  .account-number > span:first-child { font-size: 32px; }
+  .composition-content { gap: 10px; }
+  #token-donut { width: 112px; height: 112px; flex-basis: 112px; }
+  .board-header { height: auto; min-height: 65px; gap: 8px; padding: 13px; }
+  .board-title { display: block; }
+  .board-title p { margin-top: 6px; gap: 4px; }
+  .board-actions { gap: 10px; }
+  .comparison-canvas { grid-template-columns: minmax(0, 1fr) 245px; padding: 0 10px; }
+  .board-footer { flex-wrap: wrap; gap: 5px; }
+  .project-visibility-note { padding-left: 13px; padding-right: 13px; }
+  .period-popover { right: 14px; top: 68px; }
+  .session-dialog { width: calc(100vw - 24px); max-height: calc(100vh - 24px); }
+  .dialog-head { padding: 18px; }
+  .session-toolbar { padding: 12px 18px 0; flex-wrap: wrap; gap: 10px; }
+  .session-search { min-width: 200px; }
+  .session-sort { margin-left: auto; }
+  .dialog-content { padding: 0 18px 12px; }
+  .dialog-foot { padding: 12px 18px; }
+  .dialog-summary { gap: 15px; flex-wrap: wrap; }
+}
+@media (max-width: 650px) {
+  .summary-grid { gap: 10px; }
+  .composition-card { grid-column: span 2; }
+  .quota-card { grid-column: 2; grid-row: 1; }
+  .trend-card { grid-column: span 2; height: 190px; }
+  .composition-content { justify-content: flex-start; gap: 28px; }
+  #token-donut { width: 128px; height: 128px; flex-basis: 128px; }
+  .token-legend { max-width: 240px; }
+  .comparison-canvas { grid-template-columns: minmax(0, 1fr) 140px; }
+  .board-view { display: none; }
+  .matrix-project strong { font-size: 11px; }
+  .period-popover:popover-open { grid-template-columns: 110px 1fr; }
+  .period-presets { padding: 8px; }
+  .period-presets button { padding: 0 8px; font-size: 12px; }
+  .period-custom { padding: 14px; }
+  .session-search > span { display: none; }
+}
