@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "yg-token-usage": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["${PLUGIN_ROOT}/dist/token-usage.cjs"]
+    }
+  },
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: Task Continue
+  short_description: 恢复任务上下文并确定下一步工作
+  default_prompt: 使用 $trellis-continue 恢复当前任务，确定下一阶段与步骤并继续工作。

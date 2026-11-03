@@ -1,0 +1,104 @@
+/* 项目矩阵与桑基共用真实项目行高度。 */
+.matrix-scroll { overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.matrix-table { min-width: 100%; width: max-content; color: var(--fg); }
+.matrix-row, .matrix-head { display: grid; grid-template-columns: var(--matrix-cols); width: 100%; align-items: center; column-gap: 0; }
+.matrix-head { height: var(--matrix-head-height); font-size: 11px; color: var(--muted); border-bottom: 1px solid var(--line); }
+.matrix-head > span { text-align: center; font-weight: 400; }
+.matrix-row { height: var(--matrix-row-height); border-bottom: 1px solid var(--line); cursor: pointer; }
+.matrix-row:last-child { border-bottom: 0; }
+.matrix-row:hover, .matrix-row.is-highlighted { background: var(--accentsoft); }
+.matrix-project, .matrix-total { position: sticky; background: var(--surface); z-index: 2; height: 100%; display: flex; justify-content: center; flex-direction: column; }
+.matrix-row:hover .matrix-project, .matrix-row:hover .matrix-total, .matrix-row.is-highlighted .matrix-project, .matrix-row.is-highlighted .matrix-total { background: var(--accentsoft); }
+.matrix-head > span:first-child, .matrix-head > span:last-child { position: sticky; background: var(--surface); z-index: 3; height: 100%; display: flex; align-items: center; }
+.matrix-head > span:first-child { left: 0; text-align: left; padding-left: 4px; }
+.matrix-head > span:last-child { right: 0; text-align: right; padding-right: 6px; justify-content: flex-end; }
+.matrix-project { left: 0; padding: 0 10px 0 4px; overflow: hidden; text-align: left; }
+.matrix-project strong { font-size: 12px; font-weight: 550; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.matrix-project small, .matrix-project .project-meta { display: block; font-size: 11px; color: var(--muted); margin-top: 5px; }
+.matrix-total { right: 0; padding: 0 6px 0 8px; font-size: 13px; font-weight: 600; text-align: right; }
+.matrix-total small { font-size: 11px; color: var(--muted); font-weight: 400; margin-top: 3px; }
+/* 固定底部留白，命中区随柱高变化，短柱与长柱的底边一致。 */
+.day-cell { min-width: 24px; height: 100%; position: relative; display: flex; align-items: flex-end; justify-content: center; padding: 0 0 12px; cursor: default; }
+.day-cell::after { content: ''; position: absolute; bottom: 11px; height: 1px; left: 0; right: 0; background: var(--line); }
+button.day-hit { height: max(26px, calc(var(--value) * var(--bar-height))); width: 32px; min-width: 24px; max-width: 100%; display: flex; flex-direction: row; align-items: flex-end; justify-content: center; padding: 0; border: 0; border-radius: 3px 3px 0 0; background: transparent; position: relative; z-index: 1; transform-origin: bottom; }
+.day-hit:active { transform: scaleY(.96); }
+.day-bar { display: block; width: clamp(12px, 44%, 22px); height: calc(var(--value) * var(--bar-height)); max-height: var(--bar-height); min-height: 3px; background: var(--bar); border-radius: 3px 3px 0 0; position: relative; z-index: 1; opacity: .88; pointer-events: none; transform-origin: bottom; }
+.day-hit:hover .day-bar, .day-hit:focus-visible .day-bar { background: var(--accent); opacity: 1; }
+.day-hit.same-day::before { content: ''; position: absolute; inset: auto -4px -12px; height: var(--matrix-row-height); background: var(--accentsoft); opacity: .6; pointer-events: none; z-index: -1; }
+.day-hit.is-unknown .day-bar { display: none; }
+.unknown-day { color: var(--muted); font-size: 11px; line-height: 18px; }
+#flow-chart { width: 100%; height: auto; min-width: 0; min-height: 0; }
+#flow-chart svg { display: block; width: 100%; height: 100%; overflow: visible; }
+#flow-chart text { font-family: inherit; fill: var(--muted); font-size: 11px; }
+#flow-chart .flow-label { fill: var(--fg); font-size: 12px; font-weight: 500; }
+#flow-chart .flow-note { fill: var(--muted); font-size: 11px; }
+.flow-link { transition: opacity 140ms; cursor: pointer; }
+.flow-link:hover { opacity: .95; }
+.flow-node { cursor: pointer; }
+.flow-empty { display: grid; place-items: center; height: 100%; font-size: 12px; color: var(--muted); padding: 30px; }
+.type-strip { display: flex; height: 8px; border-radius: 3px; overflow: hidden; gap: 2px; }
+.type-strip > span { height: 100%; }
+.type-strip > span:nth-child(1) { background: var(--cache); }
+.type-strip > span:nth-child(2) { background: var(--uncached); }
+.type-strip > span:nth-child(3) { background: var(--output); }
+.type-dot { width: 7px; height: 7px; display: inline-block; border-radius: 2px; margin-right: 6px; }
+.type-dot.cached { background: var(--cache); }
+.type-dot.uncached { background: var(--uncached); }
+.type-dot.output { background: var(--output); }
+
+/* 日期浮层和表单随宿主主题切换。 */
+.date-trigger { height: 35px; border: 1px solid var(--line); background: var(--surface); padding: 0 12px; border-radius: 6px; display: inline-flex; align-items: center; gap: 9px; font-size: 12px; }
+.date-trigger:hover, .date-trigger[aria-expanded="true"] { background: var(--accentsoft); border-color: var(--accent); }
+.date-trigger:active { transform: translateY(1px); }
+.date-range { border-left: 1px solid var(--line); padding-left: 10px; color: var(--muted); font-size: 12px; }
+.calendar-icon { width: 12px; height: 12px; border: 1.2px solid var(--muted); border-radius: 2px; position: relative; }
+.calendar-icon::before { content: ''; position: absolute; left: 0; right: 0; top: 3px; border-top: 1px solid var(--muted); }
+.chevron { width: 5px; height: 5px; border-right: 1px solid; border-bottom: 1px solid; transform: rotate(45deg); margin: -3px 1px 0 6px; }
+.period-popover { padding: 0; margin: 0; position: fixed; inset: 78px 30px auto auto; width: 470px; max-width: calc(100vw - 24px); max-height: calc(100vh - 100px); overflow: auto; background: var(--surface); color: var(--fg); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); z-index: 30; font: inherit; }
+.period-popover:popover-open { display: grid; grid-template-columns: 140px 1fr; animation: popover-in 160ms cubic-bezier(.2, .7, .3, 1); transform-origin: top right; }
+.period-presets { padding: 12px; border-right: 1px solid var(--line); background: var(--surface2); border-radius: 12px 0 0 12px; }
+.period-presets button { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--fg); border-radius: 5px; height: 33px; padding: 0 11px; font-size: 13px; }
+.period-presets button:hover, .period-presets button.current { background: var(--accentsoft); }
+.period-presets button:active, .period-apply:active { transform: scale(.98); }
+.period-custom { padding: 18px; margin: 0; }
+.period-custom h3 { font-size: 14px; margin: 0 0 16px; font-weight: 600; }
+.period-custom label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 13px; }
+.period-custom input { display: block; margin-top: 5px; border: 1px solid var(--line); border-radius: 6px; height: 35px; width: 100%; padding: 0 9px; background: var(--surface); color: var(--fg); color-scheme: var(--color-scheme); }
+.period-apply { background: var(--fg); color: var(--surface); border: 0; border-radius: 6px; padding: 8px 14px; font-size: 12px; }
+.period-error { font-size: 12px; line-height: 1.6; margin: 0 0 12px; color: var(--fg); }
+.period-error:empty { display: none; }
+.timezone { display: block; margin-top: 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+
+/* 会话弹窗保留独立滚动与可见的键盘焦点。 */
+.session-dialog { width: min(1030px, calc(100vw - 64px)); max-height: min(800px, calc(100vh - 68px)); padding: 0; border: 1px solid var(--line); border-radius: 13px; background: var(--surface); color: var(--fg); box-shadow: var(--shadow); font-family: inherit; font-size: 13px; line-height: 1.5; }
+.session-dialog[open] { display: flex; flex-direction: column; animation: dialog-in 160ms cubic-bezier(.2, .7, .3, 1); }
+.session-dialog::backdrop { background: var(--backdrop); backdrop-filter: blur(2px); }
+.dialog-head { padding: 22px 26px 17px; border-bottom: 1px solid var(--line); display: flex; align-items: flex-start; justify-content: space-between; flex: none; }
+.dialog-head h2 { font-size: 18px; margin: 0 0 5px; font-weight: 600; }
+.dialog-scope { color: var(--muted); font-size: 12px; }
+.dialog-close { background: var(--surface2); color: var(--muted); border: 0; border-radius: 6px; font-size: 21px; width: 29px; height: 29px; line-height: 24px; }
+.dialog-content { overflow: auto; padding: 0 26px 15px; min-height: 0; scrollbar-gutter: stable; }
+.dialog-summary { display: flex; align-items: center; gap: 28px; padding: 16px 0; }
+.dialog-summary strong { font-size: 24px; font-weight: 600; letter-spacing: -.6px; }
+.dialog-summary span { color: var(--muted); font-size: 12px; }
+.session-table-scroll { overflow: auto; }
+.session-table { width: 100%; min-width: 700px; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+.session-table th { font-size: 11px; font-weight: 400; color: var(--muted); text-align: left; height: 35px; border-bottom: 1px solid var(--line); }
+.session-table td { height: 57px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.session-table th:first-child { width: 31%; }
+.session-table th:nth-child(2), .session-table th:nth-child(6) { width: 15%; }
+.session-table th:nth-child(3), .session-table th:nth-child(4) { width: 13%; }
+.session-table th:nth-child(5) { width: 11%; }
+.session-table th:nth-child(n+3), .session-table td:nth-child(n+3) { text-align: right; padding-left: 9px; }
+.session-table td:first-child > span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 12px; font-size: 13px; }
+.session-table td:nth-child(2) > span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.session-table small { display: block; font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.session-table td:last-child { font-weight: 600; color: var(--fg); }
+.dialog-foot { padding: 13px 26px; background: var(--surface2); border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; gap: 15px; align-items: center; flex-wrap: wrap; flex: none; }
+.dialog-foot > span { line-height: 1.6; }
+.dialog-pagination { display: flex; align-items: center; gap: 12px; white-space: nowrap; margin-left: auto; }
+.dialog-pagination button { background: transparent; color: var(--fg); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; font-size: 11px; min-height: 25px; }
+.dialog-pagination button:disabled { color: var(--muted); }
+.dialog-empty { padding: 30px 0; text-align: center; color: var(--muted); }
+.dialog-empty strong { font-size: 14px; color: var(--fg); }
+.dialog-empty p { font-size: 12px; margin: 6px 0 14px; }

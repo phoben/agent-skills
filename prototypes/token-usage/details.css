@@ -1,0 +1,31 @@
+/* 日期、图表和会话明细沿用已选定的对照板视觉语言。 */
+.day-cell{cursor:default}
+.day-cell .day-hit{height:max(26px,calc(var(--value)*var(--bar-height)));width:32px;min-width:24px;max-width:100%;display:flex;justify-content:center;align-items:flex-end;padding:0;border:0;border-radius:3px 3px 0 0;background:transparent;position:relative;z-index:1;transition:background 130ms,transform 90ms}
+.day-hit:active{transform:scaleY(.96);transform-origin:bottom}
+.day-hit .day-bar{height:calc(var(--value)*var(--bar-height));min-height:3px;pointer-events:none}
+.matrix-row.is-highlighted,.matrix-row.is-highlighted .matrix-project,.matrix-row.is-highlighted .matrix-total{background:#efede5}
+.day-hit.same-day:before{content:'';position:absolute;inset:auto -5px -12px;height:var(--matrix-row-height);background:#7866530b;pointer-events:none;z-index:-1}
+.day-hit:hover .day-bar,.day-hit:focus-visible .day-bar{background:var(--accent);opacity:1}
+.chart-tooltip{position:fixed;z-index:80;width:272px;padding:13px 15px;border:1px solid #ddd8ce;border-radius:9px;background:#fdfcf9;color:var(--fg);box-shadow:0 8px 30px #2f28151a;pointer-events:none;font:12px/1.6 'Segoe UI Variable','Segoe UI','Microsoft YaHei UI',sans-serif}
+.chart-tooltip>strong{display:block;font-weight:600;font-size:13px}.chart-tooltip>span{display:block;color:var(--muted);font-size:11px;margin-top:1px}.chart-tooltip>b{display:block;font-size:20px;font-weight:600;margin:6px 0}.chart-tooltip b small{font-size:11px;color:var(--muted);font-weight:400;margin-left:3px}.chart-tooltip>div{display:flex;gap:11px;font-size:10px;white-space:nowrap;color:var(--muted);border-top:1px solid var(--line);padding-top:7px}
+.session-dialog{width:min(1030px,calc(100vw - 64px));max-height:min(800px,calc(100vh - 68px))}
+.session-dialog[open]{animation:dialog-in 160ms cubic-bezier(.2,.7,.3,1)}
+.session-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;padding:15px 26px 0;flex:none}
+.session-search{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:12px;flex:1}.session-search>span{white-space:nowrap}.session-search input{width:min(340px,100%);min-width:100px;height:32px;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:0 10px;color:var(--fg);outline-offset:2px;font-size:12px}
+.session-sort{display:flex;gap:9px;align-items:center;font-size:12px;color:var(--muted)}.session-sort select{height:32px;padding:0 25px 0 9px;border:1px solid var(--line);background:var(--surface);border-radius:6px;color:var(--fg);font-size:12px}
+.session-table th:first-child{width:34%}.session-table th:nth-child(2){width:15%}.session-table th:nth-child(3),.session-table th:nth-child(4){width:13%}.session-table th:nth-child(5){width:11%}.session-table th:nth-child(6){width:14%}
+.session-table th:nth-child(n+3),.session-table td:nth-child(n+3){text-align:right;padding-left:9px;font-variant-numeric:tabular-nums}
+.session-table th{height:35px;font-size:11px}.session-table td{height:57px;font-size:12px}.session-table td:first-child>span{font-size:13px}.session-table small{font-size:11px;line-height:1.5}.session-table td:last-child{color:var(--fg)}
+.dialog-summary{padding:16px 0}.dialog-summary strong{font-size:24px}.dialog-summary>span{font-size:12px}.dialog-empty strong{font-size:14px;color:var(--fg)}.dialog-empty p{font-size:12px;margin:6px 0 14px}
+.dialog-pagination button{font-size:11px;font-family:inherit;min-height:25px}.dialog-foot{font-size:11px}
+.period-popover:popover-open{animation:popover-in 160ms cubic-bezier(.2,.7,.3,1);transform-origin:top right}
+.period-presets button:active,.period-apply:active,.state-action:active{transform:scale(.98)}
+.panel-state{min-height:calc(var(--matrix-head-height,36px) + 5*var(--matrix-row-height));padding:35px 35px;display:flex;align-items:center;justify-content:center;flex-direction:column}
+.state-heading{text-align:center}.state-heading h2{font-size:16px;margin:9px 0 8px}.state-heading p{font-size:13px;color:var(--muted);line-height:1.8;margin:0 0 16px}.state-symbol{display:grid;place-items:center;width:36px;height:36px;border:1px solid #d7d2c8;background:#f0ede7;border-radius:9px;margin:0 auto;color:#746550;font-size:21px}.state-action{padding:7px 13px;background:var(--fg);color:var(--surface);border:0;border-radius:6px;font-size:12px;cursor:pointer}
+.loading-spinner{display:block;width:20px;height:20px;border-radius:50%;border:2px solid var(--line);border-top-color:var(--accent);animation:spin 750ms linear infinite;margin:0 auto}
+.chart-skeleton{width:100%;margin-top:20px}.chart-skeleton>div{display:flex;gap:25px;align-items:center;height:43px;border-top:1px solid var(--line)}.chart-skeleton i{width:115px;height:9px;background:#e4e1d9;border-radius:3px;margin-right:20px}.chart-skeleton span{width:12%;height:15px;border-radius:3px;background:#e9e6df}.chart-skeleton span:nth-of-type(2){height:23px}.chart-skeleton span:nth-of-type(3){height:12px}
+@keyframes dialog-in{from{opacity:0;transform:translateY(7px) scale(.995)}to{opacity:1;transform:none}}
+@keyframes popover-in{from{opacity:0;transform:translateY(-3px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media(max-width:1300px){.session-dialog{width:calc(100vw - 48px)}.session-toolbar{padding-left:22px;padding-right:22px}.session-table td:first-child>span{font-size:12px}.session-table th:nth-child(2){width:13%}.session-table th:first-child{width:32%}.chart-tooltip{width:260px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

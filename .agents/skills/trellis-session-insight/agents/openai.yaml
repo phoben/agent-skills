@@ -1,0 +1,4 @@
+interface:
+  display_name: Session Insight
+  short_description: 检索历史对话中的解法、决策与任务进展
+  default_prompt: 使用 $trellis-session-insight 检索与当前问题相关的历史对话、解法和决策。

@@ -1,0 +1,4 @@
+interface:
+  display_name: Session Finish
+  short_description: 核对质量检查并归档任务、记录会话进展
+  default_prompt: 使用 $trellis-finish-work 核对当前任务的质量检查并完成本次会话收尾。

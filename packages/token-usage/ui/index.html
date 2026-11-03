@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>用量 · YG Toolkit</title>
+  <!-- APP_STYLE -->
+</head>
+<body>
+  <main class="workspace">
+    <header class="page-header">
+      <div class="page-path">YG Toolkit<span>/</span><h1>用量</h1><span id="plan-type"></span></div>
+      <div class="page-actions"><button id="refresh" type="button" class="refresh-button">刷新</button><button class="date-trigger" type="button" aria-haspopup="dialog" aria-controls="period-popover" aria-expanded="false"><span class="calendar-icon" aria-hidden="true"></span><span data-date-label>近7天</span><span class="date-range" data-date-range></span><span class="chevron" aria-hidden="true"></span></button></div>
+    </header>
+    <div id="connection-notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <section class="summary-grid" aria-label="用量概览">
+      <article class="summary-card account-card" aria-label="官方账号总量"><span class="section-eyebrow">官方账号 · 所选范围</span><div class="account-number"><span data-stat="account">—</span><span class="unit">Tokens</span></div><small id="account-lifetime"></small><span class="card-footnote">账号内全部使用</span></article>
+      <article class="summary-card trend-card" aria-label="账号每日用量"><div class="card-heading"><span class="section-eyebrow">每日趋势</span><span class="card-meta">官方账号</span></div><div id="account-trend" aria-label="账号每日用量趋势"></div><span class="card-footnote">所选范围 · 每日 Tokens</span></article>
+      <article class="summary-card composition-card" aria-label="本机 Tokens 构成"><div class="card-heading"><span class="section-eyebrow">Tokens 构成</span><span class="card-meta">本机 · 所选范围</span></div><div class="composition-content"><div id="token-donut" aria-label="本机 Tokens 构成环形图"></div><div class="token-legend"><div class="token-metric"><div class="metric-label"><i class="metric-dot cached"></i><span>缓存输入</span><span class="type-share" data-type-share="cachedInputTokens">—</span></div><strong class="metric-value" data-stat="cached">—</strong></div><div class="token-metric"><div class="metric-label"><i class="metric-dot uncached"></i><span>非缓存输入</span><span class="type-share" data-type-share="uncachedInputTokens">—</span></div><strong class="metric-value" data-stat="uncached">—</strong></div><div class="token-metric"><div class="metric-label"><i class="metric-dot output"></i><span>输出</span><span class="type-share" data-type-share="outputTokens">—</span></div><strong class="metric-value" data-stat="output">—</strong></div></div></div><div class="composition-notes"><span>缓存占输入 <span data-stat="cache-share">—</span></span><span>输出含推理 <span data-stat="reasoning">—</span></span></div></article>
+      <article class="summary-card quota-card" aria-label="当前官方额度"><span class="section-eyebrow" id="quota-title">当前周额度</span><div class="quota-ring" id="quota-meter" role="meter" aria-label="当前官方额度已用" aria-valuemin="0" aria-valuemax="100"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="quota-background" r="44" cx="60" cy="60"/><circle id="quota-progress" r="44" cx="60" cy="60"/></svg><strong id="quota-value">—</strong></div><small id="quota-message">正在读取当前窗口</small></article>
+    </section>
+    <section class="comparison-board" aria-labelledby="matrix-title">
+      <header class="board-header"><div class="board-title"><h2 id="matrix-title">项目每日用量</h2><p>本机 <strong data-stat="local">—</strong><span>·</span><span><strong data-stat="projects">—</strong> 项目</span><span>·</span><span><strong data-stat="sessions">—</strong> 会话</span></p></div><div class="board-actions"><button id="project-toggle" type="button" class="project-toggle" hidden>显示全部</button><div class="board-view"><span>项目</span><span class="view-arrow">→</span><span>Tokens 类型</span></div></div></header>
+      <div id="project-visibility-note" class="project-visibility-note" aria-live="polite"></div>
+      <div class="comparison-canvas" hidden><div id="project-matrix" aria-label="各项目每日 Tokens 用量"></div><div class="flow-region"><div id="flow-chart" aria-label="项目至 Tokens 类型的桑基图"></div></div></div>
+      <div id="panel-state" class="panel-state" role="status" aria-live="polite"><div class="state-heading"><span class="loading-spinner" aria-hidden="true"></span><h2>正在连接用量服务</h2><p>确认当前账号后读取项目与会话统计。</p></div></div>
+      <footer class="board-footer"><span><span class="hint-mark">↗</span>点击项目查看会话，点击日柱查看当天</span><span id="matrix-scale">日柱采用统一刻度</span></footer>
+    </section>
+    <div id="coverage" class="coverage" role="status" aria-live="polite"></div>
+    <footer class="page-footer"><span>本机统计仅含可确认属于当前账号的会话</span><span id="sampled-at"></span></footer>
+  </main>
+  <div id="period-popover" class="period-popover" popover="auto" role="dialog" aria-label="选择统计日期"><div class="period-presets"><button data-preset="本周">本周</button><button data-preset="近7天">近7天</button><button data-preset="近30天">近30天</button><button data-preset="本月">本月</button><button data-preset="本季度">本季度</button><button data-preset="本年">本年</button><button data-custom>自定义日期</button></div><form id="period-form" class="period-custom"><h3>自定义日期区间</h3><label>开始日期<input id="date-start" type="date" required></label><label>结束日期<input id="date-end" type="date" required></label><p class="period-error" role="alert" id="period-error"></p><button class="period-apply" type="submit">应用日期</button><small class="timezone" id="timezone"></small></form></div>
+  <dialog id="session-dialog" class="session-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-scope"><header class="dialog-head"><div><h2 id="dialog-title"></h2><div class="dialog-scope" id="dialog-scope"></div></div><button class="dialog-close" aria-label="关闭会话明细" autofocus>×</button></header><div class="session-toolbar"><label class="session-search"><span>搜索会话</span><input id="session-search" type="search" maxlength="200" placeholder="搜索会话名称或模型" autocomplete="off"></label><label class="session-sort">排序<select id="session-sort"><option value="tokens">用量最多</option><option value="recent">最近会话</option><option value="output">输出最多</option></select></label></div><div class="dialog-content" id="dialog-content" aria-live="polite"></div><footer class="dialog-foot" id="dialog-foot"></footer></dialog>
+  <div id="chart-tooltip" class="chart-tooltip" hidden role="tooltip"></div>
+  <!-- APP_SCRIPT -->
+<script type="module" src="./app.mjs"></script>
+</body>
+</html>

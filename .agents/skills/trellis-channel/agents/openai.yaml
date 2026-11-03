@@ -1,0 +1,4 @@
+interface:
+  display_name: Team Channel
+  short_description: 通过 Trellis 频道协作、审查并查看进度
+  default_prompt: 使用 $trellis-channel 处理当前任务的多代理协作、进度查看或频道排查。

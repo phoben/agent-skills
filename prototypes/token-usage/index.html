@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>用量 · 流量对照板</title>
+  <link rel="stylesheet" href="components.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="details.css">
+</head>
+<body>
+  <aside class="host-sidebar">
+    <a class="wordmark" href="#">Codex</a>
+    <nav class="host-navigation" aria-label="主导航">
+      <a href="#"><span class="nav-icon task-icon" aria-hidden="true"></span>任务<span class="shortcut">Ctrl J</span></a>
+      <a href="#"><span class="nav-icon search-icon" aria-hidden="true"></span>搜索<span class="shortcut">Ctrl K</span></a>
+      <a href="#"><span class="nav-icon plugin-icon" aria-hidden="true"></span>插件</a>
+    </nav>
+    <div class="sidebar-section">项目<span>＋</span></div>
+    <nav class="project-navigation" aria-label="项目">
+      <a href="#"><span class="folder-icon" aria-hidden="true"></span>Clue业务平台</a>
+      <a href="#"><span class="folder-icon" aria-hidden="true"></span>AOY ERP</a>
+      <a href="#"><span class="folder-icon" aria-hidden="true"></span>Branchkite</a>
+      <a href="#"><span class="folder-icon" aria-hidden="true"></span>YG Toolkit</a>
+      <a href="#"><span class="folder-icon" aria-hidden="true"></span>Showcase</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <a class="usage-nav" href="#"><span class="usage-icon" aria-hidden="true"></span>用量</a>
+      <button class="profile" type="button"><span class="avatar">N</span><span>NINGMEI<small>个人账户</small></span><span class="profile-menu">···</span></button>
+    </div>
+  </aside>
+
+  <main class="workspace">
+    <header class="page-header">
+      <div class="page-path">YG Toolkit<span>/</span><h1>用量</h1></div>
+      <button class="date-trigger" type="button" aria-haspopup="dialog"><span class="calendar-icon" aria-hidden="true"></span><span data-date-label>近 7 天</span><span class="date-range" data-date-range>10月28日 – 11月3日</span><span class="chevron" aria-hidden="true"></span></button>
+    </header>
+
+    <section class="account-overview" aria-label="官方账号用量">
+      <div class="account-heading"><span class="section-eyebrow">官方账号总量</span><div class="account-number"><span data-stat="account">28.64M</span><span class="unit">Tokens</span></div></div>
+      <div class="account-sparkline"><div class="trend-caption"><span>账号内全部使用</span><span>每日用量</span></div><div id="account-trend" aria-label="账号每日用量趋势"></div></div>
+      <div class="account-note"><span class="status-dot"></span>所选日期内的账号用量<small>包含其他设备及云端使用</small></div>
+    </section>
+
+    <section class="comparison-board" aria-labelledby="matrix-title">
+      <header class="board-header">
+        <div class="board-title"><h2 id="matrix-title">项目每日用量</h2><p>本机 <strong data-stat="local">22.18M</strong><span>·</span><span><strong data-stat="projects">5</strong> 项目</span><span>·</span><span><strong data-stat="sessions">148</strong> 会话</span></p></div>
+        <div class="board-view"><span>项目</span><span class="view-arrow">→</span><span>Tokens 类型</span></div>
+      </header>
+      <div class="comparison-canvas">
+        <div id="project-matrix" aria-label="各项目每日 Tokens 用量"></div>
+        <div class="flow-region"><div id="flow-chart" data-orientation="aligned" aria-label="各项目流向缓存、未缓存及输出 Tokens 的关系"></div></div>
+      </div>
+      <footer class="board-footer"><span><span class="hint-mark">↗</span>点击项目查看会话，点击日柱查看当天</span><span id="matrix-scale">日柱采用统一刻度</span></footer>
+    </section>
+
+    <section class="bottom-summary" aria-label="Tokens 构成与额度">
+      <div class="token-summary">
+        <div class="token-metric"><div class="metric-label"><i class="metric-dot cached"></i>缓存输入</div><div class="metric-value" data-stat="cached">16.84M</div><small>缓存占输入 <span data-stat="cache-share">81.3%</span></small></div>
+        <div class="token-metric"><div class="metric-label"><i class="metric-dot uncached"></i>非缓存输入</div><div class="metric-value" data-stat="uncached">3.87M</div><small>实际处理的输入内容</small></div>
+        <div class="token-metric"><div class="metric-label"><i class="metric-dot output"></i>输出</div><div class="metric-value" data-stat="output">1.47M</div><small>模型生成的内容</small></div>
+      </div>
+      <div class="quota-summary"><div class="quota-heading"><span>当前周额度 · 已用</span><strong>62<span>%</span></strong></div><div class="quota-track" role="meter" aria-label="当前周额度已用" aria-valuemin="0" aria-valuemax="100" aria-valuenow="62"><span></span></div><small>10月30日 – 11月6日<span>周五重置</span></small></div>
+    </section>
+    <footer class="page-footer"><span>本机项目统计 · 可归属到项目的本机会话</span><span>官方账号汇总 · 全部设备与云端用量</span></footer>
+  </main>
+  <script src="data.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

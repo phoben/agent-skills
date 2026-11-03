@@ -1,0 +1,20 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "yg-toolkit",
+  "version": "0.2.3",
+  "description": "约格的 Codex 工程、文档与 Tokens 用量工具集。",
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "YG Toolkit",
+        "shortDescription": "工程与文档工具，以及账号和项目 Tokens 用量统计",
+        "longDescription": "提供工程配置、数据库与文档工作流，并在 Codex 侧栏查看当前账号和本机项目的真实 Tokens 用量。",
+        "category": "Productivity",
+        "composerIcon": "./assets/usage-light.svg",
+        "composerIconDark": "./assets/usage-dark.svg",
+        "logo": "./assets/usage-light.svg",
+        "logoDark": "./assets/usage-dark.svg"
+      }
+    }
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: Trellis Meta
+  short_description: 理解并定制项目内的 Trellis 配置与运行机制
+  default_prompt: 使用 $trellis-meta 理解当前项目的 Trellis 架构并处理所需配置或工作流调整。

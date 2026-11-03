@@ -16,6 +16,12 @@
 | [`datapull`](./plugins/yg-toolkit/skills/datapull/SKILL.md) | 通过 DataPull CLI 安全导出 MySQL、PostgreSQL 或 SQL Server 的 DDL，处理环境、对象范围、证书异常与结果验收 |
 | [`version-release`](./plugins/yg-toolkit/skills/version-release/SKILL.md) | 检查工作区并完成提交、推送、发布、故障恢复和公开安装验证 |
 
+## Tokens 用量页面
+
+YG Toolkit 0.2.3提供Codex侧栏用量页：查看当前账号官方趋势、本机项目逐日分布、Tokens桑基关系与会话分项明细。界面采用已确认的C版流量对照板，固定项目→会话两层。
+
+账号与本机统计各自标明覆盖范围，身份未知的旧记录和其他账号会排除。使用方式见[用量页面说明](./docs/token-usage.md)，开发与验证见[模块说明](./packages/token-usage/README.md)。
+
 ## 仓库结构
 
 ```text

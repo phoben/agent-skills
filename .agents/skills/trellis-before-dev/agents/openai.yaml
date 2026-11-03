@@ -1,0 +1,4 @@
+interface:
+  display_name: Dev Guidelines
+  short_description: 实现前读取目标包的项目规范与检查项
+  default_prompt: 使用 $trellis-before-dev 读取本次开发涉及的项目规范与开发前检查项。
