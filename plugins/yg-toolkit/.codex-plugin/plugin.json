@@ -1,6 +1,6 @@
 {
   "name": "yg-toolkit",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "约格开源的 Codex 工作流工具集，提供工程、文档工具与账号 Tokens 用量统计。",
   "author": {
     "name": "约格",
