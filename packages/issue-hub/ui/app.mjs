@@ -315,6 +315,11 @@ function scheduleDraft() {
   }, 500);
 }
 let detailGeneration = 0;
+function restoreDetailDrafts(repo, number) {
+  const issueDraft = store.draft(repo, number, 'issue'), commentDraft = store.commentDraft(repo, number);
+  if (issueDraft && !state.editor && permission('edit')) { state.editor = issueDraft; state.draftSaved = true; }
+  if (commentDraft && !state.comment && !state.commentId && permission('comment')) { state.comment = commentDraft.text; state.commentId = commentDraft.commentId || null; state.commentBase = commentDraft.baseText ?? current()?.commentItems.find(comment => String(comment.id) === String(state.commentId))?.text ?? null; state.draftSaved = true; }
+}
 async function openIssue(number) {
   number = Number(number);
   if (state.selected === number && !state.detailError) { if (selection.isPreparing()) selection.invalidate(); return; }
@@ -332,10 +337,7 @@ async function openIssue(number) {
       await store.loadIssue(repo, number, { summary: true, cacheFirst: true });
       if (!isCurrent() || generation !== detailGeneration || repo !== state.repo) return;
       state.detailLoading = false;
-      const issueDraft = store.draft(repo, state.selected, 'issue');
-      const commentDraft = store.commentDraft(repo, state.selected);
-      if (issueDraft && permission('edit')) { state.editor = issueDraft; state.draftSaved = true; }
-      if (commentDraft && permission('comment')) { state.comment = commentDraft.text; state.commentId = commentDraft.commentId || null; state.commentBase = commentDraft.baseText ?? current()?.commentItems.find(comment => String(comment.id) === String(state.commentId))?.text ?? null; state.draftSaved = true; }
+      restoreDetailDrafts(repo, number);
       renderDetail({ focus: true }); $('#detail').scrollTop = 0;
       void hydrateIssue(repo, number, () => isCurrent() && generation === detailGeneration && repo === state.repo && number === state.selected);
     } catch (error) {
@@ -506,25 +508,34 @@ async function saveComment() {
 async function refresh(manual = false) {
   if (state.refreshing || state.saving || store.closed) return;
   state.refreshing = true; status();
-  const repo = state.repo, number = state.selected, generation = detailGeneration;
+  const repo = state.repo, number = state.selected, generation = detailGeneration, identity = store.identity;
   try {
     const result = await store.refresh({ manual, repo, number: !state.editor ? number : null });
     if (result.accountChanged || !state.repo || !store.repository(state.repo)) {
       state.repo = store.data.repositories[0]?.fullName || ''; state.filters = store.preference(state.repo); state.repoQuery = ''; state.queueFocus = null;
       if (state.repo) await store.loadRepository(state.repo);
       state.loading = false; state.globalMessage = '账号或仓库范围已变化，已重新读取。旧草稿保留在原账号下。'; renderAll();
-    } else if (repo === state.repo && generation === detailGeneration) {
+    } else if (repo === state.repo && number === state.selected && generation === detailGeneration && identity === store.identity) {
       const focusId = document.activeElement?.id;
+      let refreshedGeneration = generation;
       renderRows(); renderNav();
-      paintCurrentSummary();
+      if (number && result.detailLoaded && !state.editor && !state.saving && typeof current()?.body === 'string') {
+        const recover = (state.detailError || state.detailLoading) && !$('#detail-title', $('#detail'));
+        state.detailError = '';
+        if (recover) {
+          // 成功摘要才重建失败/加载页；使旧首次读取的迟到结果不能再画回错误。
+          refreshedGeneration = ++detailGeneration; state.detailLoading = false;
+          restoreDetailDrafts(repo, number); renderDetail();
+        } else paintCurrentSummary();
+      } else paintCurrentSummary();
       if (focusId) document.getElementById(focusId)?.focus({ preventScroll: true });
       if (manual) announce('检查完成，未发布输入和阅读位置已保留。');
       renderDetailStaleness();
-      if (number && !state.editor) void hydrateIssue(repo, number, () => repo === state.repo && number === state.selected && generation === detailGeneration);
+      if (number && !state.editor) void hydrateIssue(repo, number, () => repo === state.repo && number === state.selected && refreshedGeneration === detailGeneration);
     }
   } catch (error) {
     if (!store.identity) { state.repo = ''; state.selected = null; state.loading = false; state.loadError = error.message; renderAll(); }
-    else { announce(error.message); state.globalMessage = error.message; renderQueue(); }
+    else if (repo === state.repo && number === state.selected && generation === detailGeneration && identity === store.identity) { announce(error.message); state.globalMessage = error.message; renderQueue(); }
   } finally { state.refreshing = false; status(true); }
 }
 

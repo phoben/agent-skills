@@ -3,10 +3,106 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createContext, Script } from 'node:vm';
 import { createSummaryPainter } from '../ui/summary.mjs';
+import { LiveStore, StoreError } from '../ui/store.mjs';
 import { esc, safeUrl } from '../ui/ui.mjs';
 
 const source = await readFile(new URL('../ui/app.mjs', import.meta.url), 'utf8');
 const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start)));
+
+function failedDetailPage({ issueDraft = null, commentDraft = { text: '已存评论草稿' } } = {}) {
+  const issue = { number: 185, title: '最新标题', body: '最新正文', commentItems: [] };
+  const detail = { innerHTML: '<h1>详情读取失败</h1>', scrollTop: 10, ownerDocument: { activeElement: null }, querySelector: () => null, querySelectorAll: () => [] };
+  const state = { repo: 'team/one', selected: 185, editor: null, refreshing: false, saving: false, detailLoading: false, detailError: '暂时无法连接 GitHub', comment: '', commentId: null };
+  const renders = [];
+  const store = { identity: 42, online: false, closed: false, repository: () => ({}), draft: () => issueDraft, commentDraft: () => commentDraft, async refresh() { this.online = true; return { accountChanged: false, detailLoaded: true }; } };
+  const context = createContext({ state, store, document: { activeElement: null, getElementById: () => null }, current: () => issue, summaryPainter: createSummaryPainter(), permission: () => true, sourceLinks: () => '',
+    $: (selector, within) => selector === '#detail' ? detail : within?.querySelector(selector) || null,
+    renderRows() {}, renderNav() {}, renderDetailStaleness() {}, hydrateIssue() {}, status() {}, announce() {},
+    renderDetail() { renders.push({ editor: state.editor, comment: state.comment }); detail.innerHTML = '<h1>最新标题</h1>'; },
+  });
+  new Script(`${section('function resetDetail()', 'async function persistPreference(')}\n${section('let detailGeneration = 0;', 'function closeDetail(')}\n${section('function paintCurrentSummary()', 'function renderWriteOutcome(')}\n${section('async function refresh(manual = false)', 'function focusables(')}\nglobalThis.open = openIssue; globalThis.poll = refresh; globalThis.advance = () => detailGeneration++;`).runInContext(context);
+  return { state, store, detail, renders, context };
+}
+
+for (const manual of [false, true]) test(`${manual ? '手动' : '后台'}刷新取得摘要后恢复错误页并带回已存评论草稿`, async () => {
+  const page = failedDetailPage();
+  await page.context.poll(manual);
+  assert.equal(page.store.online, true); assert.equal(page.state.detailError, '');
+  assert.doesNotMatch(page.detail.innerHTML, /详情读取失败/);
+  assert.equal(page.renders.length, 1); assert.equal(page.renders[0].comment, '已存评论草稿');
+});
+
+for (const outcome of ['success', 'failure']) test(`严格刷新先恢复后，旧首次读取${outcome === 'success' ? '成功' : '失败'}均不能盖回错误或旧正文`, async () => {
+  const page = failedDetailPage(), repo = { key: 'a'.repeat(20), fullName: page.state.repo, workspaces: [], permissions: { read: true } };
+  const bootstrap = { account: { id: 42, login: 'member' }, repositories: [repo], catalog: { status: 'complete' }, drafts: {}, preferences: {} };
+  const envelope = (data, extra = {}) => ({ schemaVersion: 1, identity: 42, data, networkChecked: true, sampledAt: '2026-11-05T00:00:00Z', ...extra });
+  const issue = body => ({ number: 185, title: '标题', body, revision: body, state: 'closed', activities: [], commentItems: [], labels: [], assignees: [] });
+  let resolveOld, rejectOld; const old = new Promise((resolve, reject) => { resolveOld = resolve; rejectOld = reject; });
+  const store = new LiveStore(async (_group, action, payload) => {
+    if (action === 'bootstrap') return envelope(bootstrap);
+    if (action === 'list') return envelope({ repository: repo, issues: [issue('')], pageInfo: { complete: true } });
+    if (action === 'read-summary') return payload.cacheFirst ? old : envelope({ issue: issue('严格新正文') });
+    throw new Error('不应发出其他请求');
+  });
+  await store.load(); page.context.store = store; page.context.current = () => store.issue(page.state.repo, page.state.selected);
+  page.context.selection = { select: (_key, command) => command.commit(() => true) }; page.context.syncLayout = () => {};
+  page.context.renderDetail = () => { page.renders.push({}); page.detail.innerHTML = page.context.current().body; };
+  page.state.selected = null; page.state.detailError = '';
+  const initial = page.context.open(185); await page.context.poll(false);
+  assert.equal(page.state.detailLoading, false); assert.equal(page.detail.innerHTML, '严格新正文');
+  if (outcome === 'success') resolveOld(envelope({ issue: issue('旧缓存正文') }, { cached: true, networkChecked: false }));
+  else rejectOld(new StoreError('NETWORK_UNAVAILABLE', '旧请求超时'));
+  await initial;
+  assert.equal(page.detail.innerHTML, '严格新正文'); assert.equal(store.issue(repo.fullName, 185).body, '严格新正文'); assert.equal(page.state.detailError, ''); assert.equal(store.online, true);
+});
+
+test('错误页恢复应采用已保存正文草稿，不能用远端正文替代输入', async () => {
+  const draft = { title: '未发布标题', body: '未发布正文', revision: 'old' }, page = failedDetailPage({ issueDraft: draft });
+  await page.context.poll(false);
+  assert.equal(page.renders.length, 1); assert.equal(page.state.editor, draft); assert.equal(page.state.editor.body, '未发布正文');
+});
+
+test('只有列表更新没有详情读取证据时，不把列表正文当成错误恢复', async () => {
+  const page = failedDetailPage(); page.store.refresh = async () => ({ accountChanged: false, detailLoaded: false });
+  await page.context.poll(false);
+  assert.equal(page.renders.length, 0); assert.equal(page.state.detailError, '暂时无法连接 GitHub');
+});
+
+test('恢复在途切Issue或开始编辑保存时，不能重建当前输入', async () => {
+  for (const change of ['issue', 'identity', 'editor', 'saving']) {
+    const page = failedDetailPage(); let release; page.store.refresh = () => new Promise(resolve => { release = resolve; });
+    const pending = page.context.poll(false);
+    if (change === 'issue') { page.state.selected = 186; page.context.advance(); }
+    else if (change === 'identity') page.store.identity = 43;
+    else if (change === 'editor') page.state.editor = { title: '当前输入' };
+    else page.state.saving = true;
+    release({ accountChanged: false, detailLoaded: true }); await pending;
+    assert.equal(page.renders.length, 0, change);
+  }
+});
+
+for (const change of ['issue', 'repository', 'identity']) test(`旧刷新失败在切换${change}后不污染新页面提示`, async () => {
+  const page = failedDetailPage(); let reject; const waiting = new Promise((_, fail) => { reject = fail; });
+  let queueRenders = 0;
+  page.state.globalMessage = '新页面提示'; page.store.refresh = () => waiting; page.context.renderQueue = () => { queueRenders++; };
+  const pending = page.context.poll(false);
+  if (change === 'issue') { page.state.selected = 186; page.context.advance(); }
+  else if (change === 'repository') { page.state.repo = 'team/other'; page.context.advance(); }
+  else page.store.identity = 43;
+  reject(new StoreError('NETWORK_UNAVAILABLE', '旧页面请求失败')); await pending;
+  assert.equal(page.state.globalMessage, '新页面提示'); assert.equal(queueRenders, 0); assert.equal(page.state.refreshing, false);
+});
+
+test('刷新上下文守卫保留当前失败提示，账号撤销仍清除旧页面', async () => {
+  const current = failedDetailPage(); let queues = 0;
+  current.context.renderQueue = () => { queues++; }; current.store.refresh = async () => { throw new StoreError('NETWORK_UNAVAILABLE', '当前连接失败'); };
+  await current.context.poll(false);
+  assert.equal(current.state.globalMessage, '当前连接失败'); assert.equal(queues, 1); assert.equal(current.state.refreshing, false);
+  const revoked = failedDetailPage(); let cleared = 0;
+  revoked.context.renderAll = () => { cleared++; }; revoked.store.refresh = async () => { revoked.store.identity = null; revoked.context.advance(); throw new StoreError('AUTH_REQUIRED', '请重新登录'); };
+  await revoked.context.poll(false);
+  assert.equal(revoked.state.repo, ''); assert.equal(revoked.state.selected, null); assert.equal(revoked.state.loadError, '请重新登录'); assert.equal(cleared, 1); assert.equal(revoked.state.refreshing, false);
+});
 
 test('来源链接空态明确区分正文附件暂无、活动未读与完整读取后无关联PR', () => {
   const context = createContext({ esc, safeUrl });

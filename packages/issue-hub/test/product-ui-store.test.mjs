@@ -13,6 +13,81 @@ const issue = (extra = {}) => ({ id: 90, number: 7, title: '原始标题', body:
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { resolve, reject, promise }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 
+test('较早网络失败不能覆盖较新严格读取的联网成功', async () => {
+  const older = deferred();
+  const store = new LiveStore(async (_group, action) => action === 'bootstrap' ? envelope(bootstrap()) : action === 'options' ? older.promise : envelope({ issue: issue() }, 42, { networkChecked: true, cached: false, offline: false }));
+  await store.load();
+  const first = store.request('query', 'options', { repositoryKey: repo.key });
+  await store.request('query', 'read-summary', { repositoryKey: repo.key, number: 7 });
+  older.reject(new StoreError('NETWORK_UNAVAILABLE', '旧连接失败')); await assert.rejects(first, { code: 'NETWORK_UNAVAILABLE' });
+  assert.equal(store.online, true);
+});
+
+test('旧首次摘要成功不能覆盖后完成的严格摘要投影', async () => {
+  const older = deferred();
+  const store = new LiveStore(async (_group, action, payload) => action === 'bootstrap' ? envelope(bootstrap()) : payload.cacheFirst ? older.promise : envelope({ issue: issue({ body: '严格新正文', revision: 'new' }) }, 42, { networkChecked: true }));
+  await store.load(); const initial = store.loadIssue(repo.fullName, 7, { summary: true, cacheFirst: true });
+  await store.loadIssue(repo.fullName, 7, { summary: true });
+  older.resolve(envelope({ issue: issue({ body: '旧缓存正文', revision: 'old' }) }, 42, { cached: true, networkChecked: false })); await initial;
+  assert.equal(store.issue(repo.fullName, 7).body, '严格新正文'); assert.equal(store.issue(repo.fullName, 7).revision, 'new');
+});
+
+test('仓库raw键归一后，旧首次摘要仍不能绕过同Issue的新读取序号', async () => {
+  const older = deferred(), canonical = { ...repo, key: 'b'.repeat(20), id: 99, sourceKeys: [repo.key] };
+  const store = new LiveStore(async (_group, action, payload) => action === 'bootstrap' ? envelope(bootstrap()) : payload.cacheFirst ? older.promise : envelope({ issue: issue({ body: '规范仓库新正文', revision: 'new' }) }, 42, { networkChecked: true }));
+  await store.load(); const initial = store.loadIssue(repo.fullName, 7, { summary: true, cacheFirst: true });
+  store.applyBootstrap({ ...bootstrap(), repositories: [canonical] });
+  await store.loadIssue(repo.fullName, 7, { summary: true });
+  const rejected = assert.rejects(initial, { code: 'stale' });
+  older.resolve(envelope({ issue: issue({ body: 'raw仓库旧正文', revision: 'old' }) }, 42, { cached: true, networkChecked: false })); await rejected;
+  assert.equal(store.issue(repo.fullName, 7).body, '规范仓库新正文'); assert.equal(store.issue(repo.fullName, 7).revision, 'new');
+});
+
+test('缓存、本机写入和任务成功都不能冒充GitHub联网证据', async () => {
+  const store = new LiveStore(async (_group, action) => action === 'bootstrap' ? envelope(bootstrap()) : envelope({}, 42, { networkChecked: false, cached: true }));
+  await store.load(); store.online = false; const last = store.data.lastSuccess;
+  for (const [group, action] of [['query', 'local-state'], ['mutate', 'draft-save'], ['task', 'latest']]) await store.request(group, action, { repositoryKey: repo.key });
+  assert.equal(store.online, false); assert.equal(store.data.lastSuccess, last);
+});
+
+test('旧授权与失权错误仍须撤销数据，不被较新联网成功屏蔽', async () => {
+  for (const code of ['AUTH_REQUIRED', 'PERMISSION_DENIED']) {
+    const older = deferred(); let invalidated = 0;
+    const store = new LiveStore(async (_group, action) => action === 'bootstrap' ? envelope(bootstrap()) : action === 'options' ? older.promise : envelope({}, 42, { networkChecked: true }), { onRepositoryAccessLost: () => invalidated++ });
+    await store.load(); const first = store.request('query', 'options', { repositoryKey: repo.key });
+    await store.request('query', 'read-summary', { repositoryKey: repo.key, number: 7 });
+    older.reject(new StoreError(code, '授权失败')); await assert.rejects(first, { code });
+    if (code === 'AUTH_REQUIRED') assert.equal(store.identity, null);
+    else { assert.equal(invalidated, 1); assert.equal(store.repository(repo.fullName).access, 'unavailable'); }
+  }
+});
+
+test('晚加入旧物理请求不能取得新序号并覆盖严格读取成功', async () => {
+  const older = deferred(); let calls = 0;
+  const store = new LiveStore(async (_group, action) => {
+    if (action === 'bootstrap') return envelope(bootstrap());
+    if (action === 'options') { calls++; return older.promise; }
+    return envelope({ issue: issue() }, 42, { networkChecked: true, offline: false });
+  });
+  await store.load(); const first = store.request('query', 'options', { repositoryKey: repo.key });
+  await store.request('query', 'read-summary', { repositoryKey: repo.key, number: 7 });
+  const joined = store.request('query', 'options', { repositoryKey: repo.key });
+  const failures = Promise.allSettled([first, joined]); older.reject(new StoreError('NETWORK_UNAVAILABLE', '旧请求超时')); await failures;
+  assert.equal(calls, 1); assert.equal(store.online, true);
+});
+
+test('最新网络失败仍显示离线，旧成功不能回退最新成功时间', async () => {
+  const older = deferred();
+  const store = new LiveStore(async (_group, action) => action === 'bootstrap' ? envelope(bootstrap()) : action === 'options' ? older.promise : envelope({ issue: issue() }, 42, { networkChecked: true, sampledAt: '2026-11-05T12:00:00Z' }));
+  await store.load(); const first = store.request('query', 'options', { repositoryKey: repo.key });
+  await store.request('query', 'read-summary', { repositoryKey: repo.key, number: 7 }); const successTime = store.data.lastSuccess;
+  older.resolve(envelope({}, 42, { networkChecked: true, sampledAt: '2026-11-05T01:00:00Z' })); await first;
+  assert.equal(store.data.lastSuccess, successTime);
+  store.call = async () => { throw new StoreError('NETWORK_UNAVAILABLE', '最新连接失败'); };
+  await assert.rejects(store.request('query', 'activity', { repositoryKey: repo.key, number: 7 }), { code: 'NETWORK_UNAVAILABLE' });
+  assert.equal(store.online, false);
+});
+
 test('冷目录选仓记忆在规范key替换后仍指向用户最后选择的仓库', async () => {
   const rawKey = 'b'.repeat(20), stableKey = 'c'.repeat(20), second = { ...repo, key: rawKey, fullName: 'team/second' };
   let normalized = false, persisted;

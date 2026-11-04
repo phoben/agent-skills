@@ -47,6 +47,11 @@ export class LiveStore {
     this.localMutationVersion = 0;
     this.retainedDrafts = new Map();
     this.inflight = new Map();
+    this.requestSequences = new WeakMap();
+    this.resultSequences = new WeakMap();
+    this.issueReadSequences = new Map();
+    this.requestSequence = 0;
+    this.networkEvidenceSequence = 0;
     this.readSignals = new Map();
     this.viewState = {};
     this.refreshNeeded = false;
@@ -66,6 +71,7 @@ export class LiveStore {
   clearIdentity(next = null) {
     this.generation++; this.identity = next; this.data = defaults(); this.pages = {}; this.optionSets = {}; this.taskRecords = {}; this.operations.clear(); this.retainedDrafts.clear(); this.inflight.clear(); this.readSignals.clear(); this.viewState = {}; this.pendingViewState = {}; this.initialBootstrap = null; this.accessVersions.clear(); this.taskVersions.clear(); this.issueWriteVersions.clear(); this.activeIssueWrites.clear();
     this.account = { id: next, login: '', name: '', initials: '' };
+    this.networkEvidenceSequence = 0; this.requestSequences = new WeakMap(); this.resultSequences = new WeakMap(); this.issueReadSequences.clear();
     this.onIdentityChange();
   }
   invalidateRepository(repo) {
@@ -73,6 +79,7 @@ export class LiveStore {
     if (repository) this.accessVersions.set(repository.key, (this.accessVersions.get(repository.key) || 0) + 1);
     if (repository) { repository.access = 'unavailable'; repository.permissions = { read: false, createIssue: false, comment: false, manage: false }; }
     delete this.data.issues[repo]; delete this.pages[repo]; delete this.optionSets[repo];
+    for (const key of this.issueReadSequences.keys()) if (key.startsWith(`${repository?.key}:`)) this.issueReadSequences.delete(key);
     for (const key of Object.keys(this.taskRecords)) if (key.startsWith(`${repo}#`)) delete this.taskRecords[key];
     this.onRepositoryAccessLost(repo);
   }
@@ -92,17 +99,21 @@ export class LiveStore {
       if (this.identity == null) throw new StoreError('identity', '请先确认 GitHub 身份，再保存或打开任务。');
       payload = { ...payload, expectedIdentity: String(this.identity) };
     }
+    let sequence = 0;
     try {
       const requestKey = JSON.stringify([generation, group, action, payload]);
       const canJoin = group === 'query' || group === 'task' && action === 'latest';
       let request = canJoin && this.inflight.get(requestKey);
       if (!request) {
         request = Promise.resolve().then(() => this.call(group, action, payload));
+        this.requestSequences.set(request, ++this.requestSequence);
         if (canJoin) {
           this.inflight.set(requestKey, request);
           void request.finally(() => { if (this.inflight.get(requestKey) === request) this.inflight.delete(requestKey); }).catch(() => {});
         }
       }
+      // 合并调用继承同一物理请求的序号，晚加入不能让旧请求重新取得优先级。
+      sequence = this.requestSequences.get(request);
       const envelope = await request;
       if (generation !== this.generation) throw new StoreError('stale', '账号已变化，已忽略旧请求结果。');
       if (group === 'query' && payload.repositoryKey && accessVersion !== (this.accessVersions.get(payload.repositoryKey) || 0)) throw new StoreError('stale', '仓库访问范围已变化，已忽略此前读取结果。');
@@ -113,12 +124,15 @@ export class LiveStore {
       if (changed && !bootstrap) throw new StoreError('identity', 'GitHub 账号已变化，已清除旧账号视图。请重新读取。');
       const offline = envelope.offline === true || envelope.data?.offline === true;
       // 在线元数据复用缓存并不等于断网；宿主任务的成功也不能证明GitHub已恢复。
-      if (offline) this.online = false;
-      else if (group !== 'task' && envelope.networkChecked !== false) this.online = true;
       const checking = envelope.checking || envelope.data?.checking;
-      if (group !== 'task' && envelope.networkChecked !== false && envelope.sampledAt && this.online && envelope.cached !== true && !checking) this.data.lastSuccess = new Date(envelope.sampledAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
-      else if (group !== 'task' && (envelope.cached === true || checking) && this.data.lastSuccess === '尚未成功') this.data.lastSuccess = '缓存，待后台检查';
+      if (sequence >= this.networkEvidenceSequence) {
+        const onlineEvidence = group !== 'task' && envelope.networkChecked !== false;
+        if (offline || onlineEvidence) { this.networkEvidenceSequence = sequence; this.online = !offline; }
+        if (group !== 'task' && envelope.networkChecked !== false && envelope.sampledAt && this.online && envelope.cached !== true && !checking) this.data.lastSuccess = new Date(envelope.sampledAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        else if (group !== 'task' && (envelope.cached === true || checking) && this.data.lastSuccess === '尚未成功') this.data.lastSuccess = '缓存，待后台检查';
+      }
       if (group === 'query') this.readSignals.set(`${action}:${payload.repositoryKey || ''}:${payload.number || ''}`, { cached: envelope.cached === true, offline, checking: envelope.checking || envelope.data?.checking, sampledAt: envelope.sampledAt });
+      if (envelope.data && typeof envelope.data === 'object') this.resultSequences.set(envelope.data, sequence);
       return envelope.data;
     } catch (error) {
       if (generation !== this.generation) throw new StoreError('stale', '账号已变化，已忽略旧请求错误。');
@@ -127,7 +141,7 @@ export class LiveStore {
         const repo = this.data.repositories.find(item => item.key === payload.repositoryKey);
         if (repo) { this.invalidateRepository(repo.fullName); repo.access = 'unavailable'; }
       }
-      if (!/^(?:HOST_|CATALOG_)/.test(String(error.code).toUpperCase()) && /OFFLINE|NETWORK|UNAVAILABLE|TIMEOUT|RATE_LIMIT/.test(String(error.code).toUpperCase())) this.online = false;
+      if (sequence >= this.networkEvidenceSequence && !/^(?:HOST_|CATALOG_)/.test(String(error.code).toUpperCase()) && /OFFLINE|NETWORK|UNAVAILABLE|TIMEOUT|RATE_LIMIT/.test(String(error.code).toUpperCase())) { this.networkEvidenceSequence = sequence; this.online = false; }
       throw error;
     } finally {
       if (writeKey && generation === this.generation) { this.issueWriteVersions.set(writeKey, (this.issueWriteVersions.get(writeKey) || 0) + 1); this.activeIssueWrites.set(writeKey, Math.max(0, (this.activeIssueWrites.get(writeKey) || 1) - 1)); }
@@ -245,6 +259,10 @@ export class LiveStore {
     const writeKey = `${this.repositoryKey(repo)}:${number}`, version = this.issueWriteVersions.get(writeKey) || 0;
     const data = await this.request('query', summary ? 'read-summary' : 'read', { repositoryKey: this.repositoryKey(repo), number: Number(number), ...(cacheFirst ? { cacheFirst: true } : {}) });
     if (version !== (this.issueWriteVersions.get(writeKey) || 0) || this.activeIssueWrites.get(writeKey)) return this.issue(repo, number);
+    const sequence = this.resultSequences.get(data);
+    // 同一Issue较新摘要已应用时，旧首次读取成功也不能把投影换回旧数据。
+    if (sequence < (this.issueReadSequences.get(writeKey) || 0)) return this.issue(repo, number);
+    if (sequence !== undefined) this.issueReadSequences.set(writeKey, sequence);
     const previous = this.issue(repo, number);
     const issue = summary && previous?.coverage ? { ...data.issue, commentItems: previous.commentItems, activities: previous.activities, relatedPr: previous.relatedPr, discussionRevision: previous.discussionRevision, detailStale: previous.detailStale || previous.revision !== data.issue.revision, coverage: { ...data.issue.coverage, comments: previous.coverage.comments, activity: previous.coverage.activity } } : data.issue;
     return this.installIssue(repo, issue);
@@ -352,14 +370,15 @@ export class LiveStore {
   }
   async refresh({ repo, number, manual = false } = {}) {
     const prior = this.identity;
+    let detailLoaded = false;
     await this.load();
     const accountChanged = prior != null && String(prior) !== String(this.identity);
     if (repo && this.repository(repo) && !accountChanged) {
       await this.loadRepository(repo);
-      if (number) await this.loadIssue(repo, number, { summary: true });
+      if (number) { await this.loadIssue(repo, number, { summary: true }); detailLoaded = true; }
     }
     if (manual && !this.data.repositories.length) await this.refreshCatalog();
-    return { accountChanged };
+    return { accountChanged, detailLoaded };
   }
   task(repo, number) { return copy(this.taskRecords[`${repo}#${number}`] || { current: null, history: [], binding: null, workspaces: [] }); }
   async prepareTask() {
