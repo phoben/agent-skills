@@ -1,8 +1,0 @@
-{
-  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
-  "name": "issue-hub",
-  "version": "0.3.5",
-  "description": "在 Codex 中浏览和管理 GitHub Issue，关联本机工作区会话。",
-  "license": "MIT",
-  "extensions": { "com.openai": { "interface": { "displayName": "Issue Hub", "shortDescription": "管理 GitHub Issue 与工作区会话", "longDescription": "自动发现本机项目仓库，浏览与编辑 Issue、评论和属性，保存离线草稿并在对应工作区预填任务。", "category": "Productivity", "composerIcon": "./assets/icon.svg", "logo": "./assets/icon.svg" } } }
-}

@@ -3,7 +3,16 @@
     "yg-token-usage": {
       "type": "stdio",
       "command": "node",
-      "args": ["${PLUGIN_ROOT}/dist/token-usage.cjs"]
+      "args": [
+        "${PLUGIN_ROOT}/dist/token-usage.cjs"
+      ]
+    },
+    "issue-hub": {
+      "type": "stdio",
+      "command": "node",
+      "args": [
+        "${PLUGIN_ROOT}/dist/issue-hub.cjs"
+      ]
     }
   },
   "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json"

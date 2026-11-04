@@ -9,8 +9,9 @@
     "check": "node scripts/check.mjs",
     "build": "node scripts/build.mjs",
     "verify:stdio": "node scripts/verify-stdio.mjs",
+    "verify:toolkit": "node scripts/verify-toolkit.mjs",
     "verify:live": "node scripts/verify-live.mjs",
-    "doctor": "node ../../plugins/issue-hub/dist/issue-hub.cjs --doctor",
+    "doctor": "node ../../plugins/yg-toolkit/dist/issue-hub.cjs --doctor",
     "package:windows": "node scripts/package-windows.mjs"
   },
   "dependencies": {

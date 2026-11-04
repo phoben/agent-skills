@@ -30,7 +30,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [State Management](./state-management.md) | Local state, global state, server state | To fill |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
-| [Issue Hub](./issue-hub.md) | A 连读队列、MCP投影、草稿、权限与会话状态 | 0.3.4，本机通过，原型已确认 |
+| [Issue Hub](./issue-hub.md) | YG内A连读队列、投影、草稿、权限与会话 | YG0.3.0整合，原型保持 |
 
 ---
 

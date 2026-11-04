@@ -9,7 +9,8 @@
 ## Pre-Development Checklist（开发前）
 
 - 修改`packages/token-usage/src/`、MCP或插件清单时，先读[Tokens服务规范](./token-usage.md)。
-- 修改 `packages/issue-hub/`、`plugins/issue-hub/` 时，先读 [Issue Hub 宿主验证契约](./issue-hub.md)，并区分 P0 证据与正式产品验收。
+- 修改 `packages/issue-hub/` 或YG内Issue分发时，先读 [Issue Hub 宿主验证契约](./issue-hub.md)，并区分P0证据、独立插件历史及当前整合验收。
+- YG Toolkit整合后的manifest、MCP、构建或升版变更同时读取Tokens与Issue Hub规范；统一构建两模块、两边回归及verify:toolkit，不能只检查一套服务。
 - 跨层改动同时读取任务PRD、设计与接口契约。下列通用模板尚未填充，不视为已验证的项目约定。
 
 ## Quality Check（质量检查）
@@ -29,7 +30,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Error Handling](./error-handling.md) | Error types, handling strategies | To fill |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
-| [Issue Hub](./issue-hub.md) | gh/SQLite、稳定身份、读写回执、目录与会话契约 | 0.3.4，本机通过，第二机暂缓 |
+| [Issue Hub](./issue-hub.md) | YG内Issue模块、gh/SQLite、稳定身份与会话 | YG0.3.0整合通过，第二机暂缓 |
 
 ---
 

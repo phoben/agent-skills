@@ -3,6 +3,7 @@ import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Script } from 'node:vm';
+import { execFileSync } from 'node:child_process';
 
 const packageDir = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = resolve(packageDir, '../..');
@@ -14,7 +15,7 @@ if (portable.name !== manifest.name || portable.version !== manifest.version) th
 const buildVersion=process.env.YG_TOKEN_BUILD_VERSION||manifest.version;
 if(!/^\d+\.\d+\.\d+$/.test(buildVersion))throw new Error('目标构建版本无效。');
 await mkdir(out, { recursive: true });
-const host = await build({ absWorkingDir: packageDir, entryPoints: ['src/main.mjs'], bundle: true, platform: 'node', format: 'cjs', target: 'node24', outfile: join(out, 'token-usage.cjs'), metafile: true, define: { __YG_VERSION__: JSON.stringify(buildVersion) }, minify: true, charset: 'utf8' });
+const host = await build({ absWorkingDir: packageDir, entryPoints: ['src/main.mjs'], bundle: true, platform: 'node', format: 'cjs', target: 'node24', outfile: join(out, 'token-usage.cjs'), metafile: true, define: { __YG_VERSION__: JSON.stringify(buildVersion) }, banner: { js: `// YG Toolkit 版本: ${buildVersion}` }, minify: true, charset: 'utf8' });
 const ui = await build({ absWorkingDir: packageDir, entryPoints: ['ui/app.mjs'], bundle: true, platform: 'browser', format: 'iife', target: 'chrome120', write: false, outdir: 'out', metafile: true, minify: true, charset: 'utf8', define: { __YG_VERSION__: JSON.stringify(buildVersion) } });
 const js = ui.outputFiles.find(file => file.path.endsWith('.js'))?.text;
 const css = ui.outputFiles.filter(file => file.path.endsWith('.css')).map(file => file.text).join('\n');
@@ -28,7 +29,7 @@ const embedded = html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 if (!embedded) throw new Error('页面没有内联脚本。');
 new Script(embedded, { filename: 'token-usage-ui.js' });
 if (/\b(?:src|href)=["'](?:\.\.\/|\.\/|https?:)/i.test(html)) throw new Error('构建页面仍引用外部资源。');
-await writeFile(join(out, 'token-usage.html'), html, 'utf8');
+await writeFile(join(out, 'token-usage.html'), `<!-- YG Toolkit 版本: ${buildVersion} -->\n${html}`, 'utf8');
 
 const licenses = new Map();
 for (const input of new Set([...Object.keys(host.metafile.inputs), ...Object.keys(ui.metafile.inputs)])) {
@@ -52,3 +53,7 @@ for (const input of new Set([...Object.keys(host.metafile.inputs), ...Object.key
 }
 await writeFile(join(out, 'THIRD-PARTY-LICENSES.txt'), [...licenses].map(([name, text]) => `${name}\n${text}`).join('\n\n'));
 process.stdout.write(`已构建 YG Toolkit ${buildVersion} 用量服务与内联页面。\n`);
+
+// 一个YG版本同时交付两服务；Issue构建只写自己的产物和许可，不反向调用本入口。
+const issueOutput = execFileSync(process.execPath, [join(repo, 'packages/issue-hub/scripts/build.mjs')], { cwd: repo, windowsHide: true, encoding: 'utf8', env: { ...process.env, YG_TOKEN_BUILD_VERSION: buildVersion }, stdio: ['ignore', 'pipe', 'pipe'] });
+process.stdout.write(issueOutput);

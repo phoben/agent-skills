@@ -40,7 +40,7 @@ test('正式服务只有一个主入口，写入与会话仅页面可见，模�
 });
 
 test('真实插件SVG通过serverInfo提供亮暗品牌图标，global工具的可选图标声明保持同源', async t => {
-  const svg = await readFile(new URL('../../../plugins/issue-hub/assets/icon.svg', import.meta.url), 'utf8');
+  const svg = await readFile(new URL('../../../plugins/yg-toolkit/assets/issue-hub.svg', import.meta.url), 'utf8');
   const icons = createIssueHubIcons(svg);
   const server = createIssueServer({ html: '<h1>Issue Hub</h1>', icons, issues: { execute: async () => ({ schemaVersion: 1, identity: '42', data: {} }) }, tasks: { execute: async () => ({ data: {} }) } });
   const client = new Client({ name: 'product-icons-test', version: '1' });

@@ -1,4 +1,4 @@
-"""在临时仓库验证推送钩子的版本、构建及暂存边界。"""
+"""用临时Git仓库验证统一YG的双服务构建、版本和暂存边界。"""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ import contextlib
 import importlib.util
 import io
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -14,394 +15,270 @@ from pathlib import Path
 from unittest.mock import patch
 
 
-spec = importlib.util.spec_from_file_location(
-    "version_hook", Path(__file__).with_name("bump_plugin_version_before_push.py")
-)
+source = Path(os.environ.get('YG_HOOK_TEST_SOURCE', Path(__file__).with_name('bump_plugin_version_before_push.py')))
+spec = importlib.util.spec_from_file_location('version_hook', source)
 hook = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(hook)
 
 
 class VersionHookTest(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="yg-version-hook-")
+        self.temporary = tempfile.TemporaryDirectory(prefix='yg-unified-hook-')
         self.addCleanup(self.temporary.cleanup)
-        self.base = Path(self.temporary.name)
-        self.root = self.base / "repo"
+        self.root = Path(self.temporary.name) / 'repo'
         self.root.mkdir()
-        self.run_git("init", "--initial-branch=main")
-        self.run_git("config", "user.name", "钩子测试")
-        self.run_git("config", "user.email", "hook@example.invalid")
-        self.run_git("config", "core.autocrlf", "false")
-        # 每次测试使用本地 bare 远端，绝不连接真实仓库或互联网。
-        subprocess.run(
-            ["git", "init", "--bare", str(self.base / "remote.git")],
-            check=True, capture_output=True,
-        )
-        self.run_git("remote", "add", "origin", str(self.base / "remote.git"))
+        self.git('init', '--initial-branch=main')
+        self.git('config', 'user.name', '版本测试')
+        self.git('config', 'user.email', 'hook@example.invalid')
+        self.git('config', 'core.autocrlf', 'false')
+        remote = Path(self.temporary.name) / 'remote.git'
+        subprocess.run(['git', 'init', '--bare', str(remote)], check=True, capture_output=True)
+        self.git('remote', 'add', 'origin', str(remote))
 
-    def run_git(self, *args):
+    def git(self, *args):
         return hook.git(self.root, *args)
 
-    def write(self, path, content):
-        target = self.root / path
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(content, encoding="utf-8", newline="\n")
+    def write(self, path, text):
+        path = self.root / path
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding='utf-8', newline='\n')
 
-    def initialize(self, *, portable=True, build=True, add_change=True):
-        self.write(hook.PLUGIN_MANIFEST, json.dumps({"version": "0.2.0"}) + "\n")
+    def commit(self, message='test: 准备场景'):
+        self.git('add', '.')
+        self.git('commit', '-m', message)
+
+    def initialize(self, *, build=True, portable=True, change=True, remote_without_plugin=False):
+        if remote_without_plugin:
+            self.write('other.txt', '原始内容\n')
+            self.commit('chore: 准备尚无插件的远端')
+            self.git('push', '--set-upstream', 'origin', 'main')
+        self.write(hook.PLUGIN_MANIFEST, '{"version":"0.2.0"}\n')
         if portable:
-            self.write(hook.PORTABLE_MANIFEST, json.dumps({"version": "0.2.0"}) + "\n")
-        self.write(Path("other.txt"), "原始内容\n")
+            self.write(hook.PORTABLE_MANIFEST, '{"version":"0.2.0"}\n')
+        self.write('other.txt', '原始内容\n')
+        self.write('packages/issue-hub/src/main.mjs', '// 已提交的Issue模块\n')
         if build:
-            # 本机 Node 执行真实构建入口；输出中的版本模拟 MCP serverInfo。
-            self.write(hook.BUILD_SCRIPT, """
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-const legacy = JSON.parse(readFileSync('plugins/yg-toolkit/.codex-plugin/plugin.json', 'utf8'));
-const portable = JSON.parse(readFileSync('plugins/yg-toolkit/plugin.json', 'utf8'));
-if (legacy.version !== portable.version) throw new Error('两份清单版本不同');
-mkdirSync('plugins/yg-toolkit/dist', { recursive: true });
-for (const name of ['token-usage.cjs', 'token-usage.html', 'THIRD-PARTY-LICENSES.txt']) {
-  writeFileSync(`plugins/yg-toolkit/dist/${name}`, JSON.stringify({ serverInfo: { version: legacy.version } }));
+            self.write(hook.BUILD_SCRIPT, '''
+import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
+const manifest=JSON.parse(readFileSync('plugins/yg-toolkit/plugin.json','utf8'));
+const version=process.env.YG_TOKEN_BUILD_VERSION||manifest.version;
+mkdirSync('plugins/yg-toolkit/dist',{recursive:true});
+for(const [name,marker] of [['token-usage.cjs','YG Toolkit'],['token-usage.html','YG Toolkit'],['issue-hub.cjs','Issue Hub'],['issue-hub.html','Issue Hub']]) {
+  writeFileSync('plugins/yg-toolkit/dist/'+name,(name.endsWith('.cjs')?'// '+marker+' 版本: '+version:'<!-- '+marker+' 版本: '+version+' -->')+String.fromCharCode(10));
 }
-""")
-            for path in hook.BUILD_OUTPUTS:
-                self.write(path, json.dumps({"serverInfo": {"version": "0.2.0"}}))
-        self.run_git("add", ".")
-        self.run_git("commit", "-m", "chore: 初始化临时仓库")
-        self.run_git("push", "--set-upstream", "origin", "main")
-        if add_change:
-            self.plugin_change("yg-toolkit")
-        self.original_head = self.run_git("rev-parse", "HEAD")
+for(const name of ['THIRD-PARTY-LICENSES.txt','issue-hub-THIRD-PARTY-LICENSES.txt']) writeFileSync('plugins/yg-toolkit/dist/'+name,'测试许可');
+''')
+            for name, marker in [('token-usage.cjs', 'YG Toolkit'), ('token-usage.html', 'YG Toolkit'), ('issue-hub.cjs', 'Issue Hub'), ('issue-hub.html', 'Issue Hub')]:
+                header = f'// {marker} 版本: 0.2.0\n' if name.endswith('.cjs') else f'<!-- {marker} 版本: 0.2.0 -->\n'
+                self.write(f'plugins/yg-toolkit/dist/{name}', header)
+            for name in ('THIRD-PARTY-LICENSES.txt', 'issue-hub-THIRD-PARTY-LICENSES.txt'):
+                self.write(f'plugins/yg-toolkit/dist/{name}', '测试许可')
+        self.commit('chore: 初始化本机测试仓库')
+        if not remote_without_plugin:
+            self.git('push', '--set-upstream', 'origin', 'main')
+        if change:
+            self.write('plugins/yg-toolkit/skills/test/SKILL.md', '新增工具能力\n')
+            self.commit()
+        self.before = self.git('rev-parse', 'HEAD')
 
-    def plugin_change(self, name):
-        path = Path(f"plugins/{name}/skills/release-test/SKILL.md")
-        old = (self.root / path).read_text(encoding="utf-8") if (self.root / path).exists() else ""
-        self.write(path, old + "新增已提交插件能力\n")
-        self.run_git("add", "--", path.as_posix())
-        self.run_git("commit", "-m", f"feat({name}): 增加测试能力")
+    def invoke(self, command='git push'):
+        with contextlib.redirect_stdout(io.StringIO()) as result:
+            hook.main({'cwd': str(self.root), 'tool_input': {'command': command}})
+        return result.getvalue()
 
-    def add_issue_plugin(self, *, publish=True):
-        plugin = hook.PLUGINS[1]
-        for path in (plugin.manifest, plugin.portable):
-            self.write(path, '{"version":"0.1.0"}\n')
-        self.write(plugin.build, """
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
-const { version } = JSON.parse(readFileSync('plugins/issue-hub/plugin.json', 'utf8'));
-mkdirSync('plugins/issue-hub/dist', { recursive: true });
-writeFileSync('plugins/issue-hub/dist/issue-hub.cjs', `// Issue Hub 版本: ${version}\\n`);
-writeFileSync('plugins/issue-hub/dist/app.html', `<!-- Issue Hub 版本: ${version} -->\\n`);
-writeFileSync('plugins/issue-hub/dist/THIRD-PARTY-LICENSES.txt', '测试许可');
-""")
-        self.write(plugin.outputs[0], "// Issue Hub 版本: 0.1.0\n")
-        self.write(plugin.outputs[1], "<!-- Issue Hub 版本: 0.1.0 -->\n")
-        self.write(plugin.outputs[2], "测试许可")
-        self.run_git("add", "--", "plugins/issue-hub", "packages/issue-hub")
-        self.run_git("commit", "-m", "feat(issue-hub): 新增独立插件")
-        if publish:
-            self.run_git("push", "origin", "main")
-        return plugin
+    def targets(self):
+        return [hook.PLUGIN_MANIFEST, hook.PORTABLE_MANIFEST, *hook.BUILD_OUTPUTS]
 
-    def invoke(self, command="git push"):
-        with contextlib.redirect_stdout(io.StringIO()) as output:
-            hook.main({"cwd": str(self.root), "tool_input": {"command": command}})
-        return output.getvalue()
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_issue_component_change_upgrades_only_unified_yg(self):
+        self.initialize(change=False)
+        self.write('packages/issue-hub/src/main.mjs', '// Issue模块变更\n')
+        self.commit('feat: 修改Issue模块')
+        self.assertIn('0.2.1', self.invoke())
+        self.assertEqual(hook.read_version(self.root, 'HEAD'), '0.2.1')
+        self.assertEqual(len(hook.PLUGINS), 1)
+        self.assertEqual(len(hook.BUILD_OUTPUTS), 6)
+        self.assertFalse((self.root / 'plugins/issue-hub').exists())
+        for path in hook.marker_paths(hook.PLUGINS[0]):
+            self.assertEqual((self.root / path).read_text(encoding='utf-8').strip(), hook.version_header(hook.PLUGINS[0], path, '0.2.1'))
 
-    @unittest.skipUnless(shutil.which("node"), "构建版本测试需要本机 Node")
-    def test_syncs_manifests_build_version_and_preserves_other_staged_files(self):
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_syncs_six_outputs_and_preserves_unrelated_index_and_worktree(self):
         self.initialize()
-        self.write(Path("other.txt"), "已经暂存\n")
-        self.run_git("add", "other.txt")
-        self.write(Path("other.txt"), "尚未暂存\n")
-        self.write(Path("plugins/yg-toolkit/dist/unrelated.txt"), "旁路文件\n")
-        output = self.invoke()
-        self.assertIn("0.2.1", output)
-        for path in (hook.PLUGIN_MANIFEST, hook.PORTABLE_MANIFEST):
-            self.assertEqual(hook.read_version(self.root, "HEAD", path), "0.2.1")
-        for path in hook.BUILD_OUTPUTS:
-            built = json.loads((self.root / path).read_text(encoding="utf-8"))
-            self.assertEqual(built["serverInfo"]["version"], "0.2.1")
-        owned_paths = {hook.PLUGIN_MANIFEST.as_posix(), hook.PORTABLE_MANIFEST.as_posix()}
-        owned_paths.update(path.as_posix() for path in hook.BUILD_OUTPUTS)
-        self.assertEqual(set(self.run_git("diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD").splitlines()), owned_paths)
-        self.assertEqual(self.run_git("show", ":other.txt"), "已经暂存")
-        self.assertEqual((self.root / "other.txt").read_text(encoding="utf-8"), "尚未暂存\n")
-        self.assertEqual(self.run_git("show", "HEAD:other.txt"), "原始内容")
-        self.assertEqual(self.run_git("diff", "--cached", "--name-only"), "other.txt")
-        self.assertEqual((self.root / "plugins/yg-toolkit/dist/unrelated.txt").read_text(encoding="utf-8"), "旁路文件\n")
-        # 未推送的独立版本提交可直接重试，不再次构建或递增。
-        with patch.object(hook, "bump_version", side_effect=AssertionError("不得再次升级")):
-            self.assertEqual(self.invoke(), "")
-
-    def test_legacy_manifest_without_portable_or_build_stays_supported(self):
-        self.initialize(portable=False, build=False)
+        self.write('other.txt', '已暂存\n')
+        self.git('add', 'other.txt')
+        self.write('other.txt', '未暂存\n')
         self.invoke()
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.1")
-        self.assertFalse((self.root / hook.PORTABLE_MANIFEST).exists())
-        self.assertEqual(self.run_git("diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD"), hook.PLUGIN_MANIFEST.as_posix())
+        self.assertEqual(self.git('show', ':other.txt'), '已暂存')
+        self.assertEqual((self.root / 'other.txt').read_text(encoding='utf-8'), '未暂存\n')
+        changed = set(self.git('diff-tree', '--no-commit-id', '--name-only', '-r', 'HEAD').splitlines())
+        owned = {p.as_posix() for p in self.targets()}
+        self.assertTrue(changed <= owned)
+        self.assertTrue({hook.PLUGIN_MANIFEST.as_posix(), hook.PORTABLE_MANIFEST.as_posix(), *(p.as_posix() for p in hook.marker_paths(hook.PLUGINS[0]))} <= changed)
+        self.assertEqual(self.git('diff', '--cached', '--name-only'), 'other.txt')
 
-    def test_rejects_mismatched_manifest_versions_without_modification(self):
-        self.initialize(build=False)
-        self.write(hook.PORTABLE_MANIFEST, '{"version":"0.2.1"}\n')
-        before = (self.root / hook.PLUGIN_MANIFEST).read_bytes()
-        with self.assertRaisesRegex(hook.HookError, "版本不一致"):
+    def test_legacy_manifest_without_build_remains_supported(self):
+        self.initialize(build=False, portable=False)
+        self.invoke()
+        self.assertEqual(hook.read_version(self.root, 'HEAD'), '0.2.1')
+
+    def test_first_unified_publication_keeps_declared_version(self):
+        self.initialize(change=False, remote_without_plugin=True)
+        self.assertEqual(self.invoke(), '')
+        self.assertEqual(self.git('rev-parse', 'HEAD'), self.before)
+        self.assertEqual(hook.read_version(self.root), '0.2.0')
+
+    def test_first_publication_requires_all_six_outputs(self):
+        self.initialize(change=False, remote_without_plugin=True)
+        self.git('rm', '--', 'plugins/yg-toolkit/dist/issue-hub.html')
+        self.git('commit', '-m', 'test: 首次发布缺失Issue页面')
+        with self.assertRaisesRegex(hook.HookError, '缺少已提交的分发产物'):
             self.invoke()
-        self.assertEqual((self.root / hook.PLUGIN_MANIFEST).read_bytes(), before)
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), self.original_head)
 
-    def test_rejects_dirty_targets_in_worktree_or_index(self):
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_build_target_overrides_inherited_version_environment(self):
         self.initialize()
-        for path in (hook.PLUGIN_MANIFEST, hook.PORTABLE_MANIFEST, *hook.BUILD_OUTPUTS):
+        with patch.dict(os.environ, {'YG_TOKEN_BUILD_VERSION': '99.1.2'}):
+            self.invoke()
+        self.assertEqual(hook.read_version(self.root), '0.2.1')
+        for path in hook.marker_paths(hook.PLUGINS[0]):
+            self.assertEqual((self.root / path).read_text(encoding='utf-8').strip(), hook.version_header(hook.PLUGINS[0], path, '0.2.1'))
+
+    def test_mismatched_manifests_refuse_without_writes(self):
+        self.initialize(build=False)
+        self.write(hook.PORTABLE_MANIFEST, '{"version":"0.2.1"}')
+        with self.assertRaisesRegex(hook.HookError, '版本不一致'):
+            self.invoke()
+        self.assertEqual(self.git('rev-parse', 'HEAD'), self.before)
+
+    def test_missing_integrated_portable_manifest_is_rejected(self):
+        self.initialize()
+        self.git('rm', '--', hook.PORTABLE_MANIFEST.as_posix())
+        self.git('commit', '-m', 'test: 移除便携清单')
+        with self.assertRaisesRegex(hook.HookError, '缺少双清单'):
+            self.invoke()
+
+    def test_all_manifest_and_six_output_dirty_targets_are_protected(self):
+        self.initialize()
+        for path in self.targets():
             for staged in (False, True):
                 with self.subTest(path=path, staged=staged):
                     original = (self.root / path).read_bytes()
-                    (self.root / path).write_bytes(original + b"\n")
+                    (self.root / path).write_bytes(original + b'\n')
                     if staged:
-                        self.run_git("add", "--", path.as_posix())
-                    before_status = self.run_git("status", "--porcelain")
-                    with self.assertRaisesRegex(hook.HookError, "已有未提交修改"):
+                        self.git('add', '--', path.as_posix())
+                    status = self.git('status', '--porcelain')
+                    with self.assertRaisesRegex(hook.HookError, '已有未提交修改'):
                         self.invoke()
-                    self.assertEqual((self.root / path).read_bytes(), original + b"\n")
-                    self.assertEqual(self.run_git("status", "--porcelain"), before_status)
-                    self.assertEqual(self.run_git("rev-parse", "HEAD"), self.original_head)
-                    self.run_git("restore", "--staged", "--worktree", "--", path.as_posix())
+                    self.assertEqual(self.git('status', '--porcelain'), status)
+                    self.assertEqual((self.root / path).read_bytes(), original + b'\n')
+                    self.git('restore', '--staged', '--worktree', '--', path.as_posix())
 
-    def test_rejects_deleted_portable_manifest(self):
+    def test_dirty_issue_build_input_is_protected(self):
+        self.initialize()
+        self.write('packages/issue-hub/src/main.mjs', '// 不能打进产物的未提交输入\n')
+        with self.assertRaisesRegex(hook.HookError, '构建输入已有未提交修改'):
+            self.invoke()
+
+    def test_missing_or_stale_issue_output_in_head_is_rejected(self):
+        self.initialize(change=False)
+        self.write(hook.PORTABLE_MANIFEST, '{"version":"0.3.0"}')
+        self.write(hook.PLUGIN_MANIFEST, '{"version":"0.3.0"}')
+        self.commit('feat: 声明已升版')
+        with self.assertRaisesRegex(hook.HookError, '构建版本与清单不一致'):
+            self.invoke()
+        self.git('rm', '--', 'plugins/yg-toolkit/dist/issue-hub.html')
+        self.git('commit', '-m', 'test: 移除Issue页面')
+        with self.assertRaisesRegex(hook.HookError, '缺少已提交的分发产物'):
+            self.invoke()
+
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_second_module_failure_restores_all_outputs_and_index(self):
+        self.initialize()
+        self.write(hook.BUILD_SCRIPT, "import {writeFileSync} from 'node:fs';writeFileSync('plugins/yg-toolkit/dist/token-usage.cjs','已写Tokens');process.exit(1);\n")
+        self.commit('test: 第二模块构建失败')
+        before = {p: (self.root / p).read_bytes() for p in self.targets()}
+        head = self.git('rev-parse', 'HEAD')
+        self.write('other.txt', '不能混入\n')
+        self.git('add', 'other.txt')
+        with self.assertRaisesRegex(hook.HookError, '已恢复版本目标'):
+            self.invoke()
+        self.assertEqual(head, self.git('rev-parse', 'HEAD'))
+        self.assertEqual(self.git('diff', '--cached', '--name-only'), 'other.txt')
+        for path, contents in before.items():
+            self.assertEqual((self.root / path).read_bytes(), contents)
+
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_success_exit_with_stale_issue_header_restores_both_modules(self):
+        self.initialize()
+        original_script = (self.root / hook.BUILD_SCRIPT).read_text(encoding='utf-8')
+        self.write(hook.BUILD_SCRIPT, original_script + "\nwriteFileSync('plugins/yg-toolkit/dist/issue-hub.html','<!-- Issue Hub 版本: 0.2.0 -->');\n")
+        self.commit('test: Issue构建退出成功但版本陈旧')
+        before = {p: (self.root / p).read_bytes() for p in self.targets()}
+        with self.assertRaisesRegex(hook.HookError, '已恢复版本目标'):
+            self.invoke()
+        for path, contents in before.items():
+            self.assertEqual((self.root / path).read_bytes(), contents)
+
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_commit_failure_restores_all_targets(self):
+        self.initialize()
+        before = {p: (self.root / p).read_bytes() for p in self.targets()}
+        original = hook.git
+        def fail_commit(root, *args):
+            if args[0] == 'commit':
+                raise subprocess.CalledProcessError(1, ['git', 'commit'])
+            return original(root, *args)
+        with patch.object(hook, 'git', side_effect=fail_commit), self.assertRaisesRegex(hook.HookError, '已恢复版本目标'):
+            self.invoke()
+        for path, contents in before.items():
+            self.assertEqual((self.root / path).read_bytes(), contents)
+        self.assertEqual(self.git('rev-parse', 'HEAD'), self.before)
+
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_repeated_failed_push_does_not_bump_twice(self):
+        self.initialize()
+        self.invoke()
+        head = self.git('rev-parse', 'HEAD')
+        self.assertEqual(self.invoke(), '')
+        self.assertEqual(self.git('rev-parse', 'HEAD'), head)
+
+    def test_no_upstream_refuses_push(self):
         self.initialize(build=False)
-        (self.root / hook.PORTABLE_MANIFEST).unlink()
-        with self.assertRaisesRegex(hook.HookError, "已有未提交修改"):
+        self.git('branch', '--unset-upstream')
+        with self.assertRaisesRegex(hook.HookError, '没有上游'):
             self.invoke()
-        self.assertFalse((self.root / hook.PORTABLE_MANIFEST).exists())
 
-    def test_portable_manifest_added_after_legacy_remote_is_supported(self):
-        self.initialize(portable=False, build=False)
-        self.write(hook.PORTABLE_MANIFEST, '{"version":"0.2.0"}\n')
-        self.run_git("add", "--", hook.PORTABLE_MANIFEST.as_posix())
-        self.run_git("commit", "-m", "feat: 增加便携插件清单")
-        self.invoke()
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.1")
-        self.assertEqual(hook.read_version(self.root, "HEAD", hook.PORTABLE_MANIFEST), "0.2.1")
+    def test_non_push_dry_run_and_unrelated_changes_do_not_bump(self):
+        self.initialize(build=False, change=False)
+        self.assertEqual(self.invoke('git push --dry-run'), '')
+        self.assertEqual(self.invoke('git status'), '')
+        self.assertEqual(self.invoke(), '')
+        self.write('other.txt', '普通文档\n')
+        self.commit()
+        self.assertEqual(self.invoke(), '')
+        self.assertEqual(hook.read_version(self.root), '0.2.0')
 
-    def test_rejects_untracked_and_ignored_build_targets(self):
-        self.initialize()
-        path = hook.BUILD_OUTPUTS[0]
-        self.run_git("rm", "--", path.as_posix())
-        self.run_git("commit", "-m", "chore: 移除临时产物")
-        self.write(path, "需要保留的未跟踪文件")
-        for ignored in (False, True):
-            with self.subTest(ignored=ignored):
-                if ignored:
-                    self.write(Path(".gitignore"), path.as_posix() + "\n")
-                with self.assertRaisesRegex(hook.HookError, "已有未提交修改"):
-                    self.invoke()
-                self.assertEqual((self.root / path).read_text(encoding="utf-8"), "需要保留的未跟踪文件")
-
-    @unittest.skipUnless(shutil.which("node"), "构建失败测试需要本机 Node")
-    def test_build_failure_removes_only_newly_created_owned_outputs(self):
-        self.initialize()
-        self.run_git("rm", "--", *(path.as_posix() for path in hook.BUILD_OUTPUTS))
-        self.run_git("commit", "-m", "chore: 移除临时构建产物")
-        self.write(hook.BUILD_SCRIPT, "import { writeFileSync } from 'node:fs';\nwriteFileSync('plugins/yg-toolkit/dist/token-usage.cjs', '构建中断');\nprocess.exit(1);\n")
-        self.run_git("add", "--", hook.BUILD_SCRIPT.as_posix())
-        self.run_git("commit", "-m", "test: 注入构建失败")
-        with self.assertRaisesRegex(hook.HookError, "已恢复版本目标"):
-            self.invoke()
-        for path in hook.BUILD_OUTPUTS:
-            self.assertFalse((self.root / path).exists())
-        self.assertEqual(hook.read_version(self.root), "0.2.0")
-
-    @unittest.skipUnless(shutil.which("node"), "构建失败测试需要本机 Node")
-    def test_build_failure_restores_owned_targets_only(self):
-        self.initialize()
-        self.write(hook.BUILD_SCRIPT, "import { writeFileSync } from 'node:fs';\nwriteFileSync('plugins/yg-toolkit/dist/token-usage.cjs', '构建中断');\nprocess.exit(1);\n")
-        self.run_git("add", "--", hook.BUILD_SCRIPT.as_posix())
-        self.run_git("commit", "-m", "test: 注入构建失败")
-        self.original_head = self.run_git("rev-parse", "HEAD")
-        self.write(Path("other.txt"), "需要保留\n")
-        self.run_git("add", "other.txt")
-        before_status = self.run_git("status", "--porcelain")
-        with self.assertRaisesRegex(hook.HookError, "已恢复版本目标"):
-            self.invoke()
-        self.assertEqual(self.run_git("status", "--porcelain"), before_status)
-        self.assertEqual(self.run_git("diff", "HEAD", "--", *(path.as_posix() for path in (hook.PLUGIN_MANIFEST, hook.PORTABLE_MANIFEST, *hook.BUILD_OUTPUTS))), "")
-        self.assertEqual(self.run_git("show", ":other.txt"), "需要保留")
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), self.original_head)
-
-    @unittest.skipUnless(shutil.which("node"), "提交失败测试需要本机 Node")
-    def test_commit_failure_restores_targets_and_preserves_index(self):
-        self.initialize()
-        self.write(Path("other.txt"), "需要保留\n")
-        self.run_git("add", "other.txt")
-        real_git = hook.git
-
-        def failing_commit(root, *args):
-            if args[0] == "commit":
-                raise subprocess.CalledProcessError(1, ["git", "commit"])
-            return real_git(root, *args)
-
-        with patch.object(hook, "git", side_effect=failing_commit):
-            with self.assertRaisesRegex(hook.HookError, "已恢复版本目标"):
-                self.invoke()
-        self.assertEqual(self.run_git("status", "--porcelain"), "M  other.txt")
-        self.assertEqual(self.run_git("show", ":other.txt"), "需要保留")
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), self.original_head)
-
-    def test_dry_run_and_non_push_have_no_side_effects(self):
-        self.initialize(build=False)
-        self.assertEqual(self.invoke("git push --dry-run"), "")
-        self.assertEqual(self.invoke("git status"), "")
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), self.original_head)
-        self.assertEqual(self.run_git("status", "--porcelain"), "")
-
-    def test_unrelated_commits_and_empty_push_do_not_bump_any_plugin(self):
-        self.initialize(build=False, add_change=False)
-        self.assertEqual(self.invoke(), "")
-        self.write(Path("other.txt"), "与插件无关的已提交修改\n")
-        self.run_git("add", "other.txt")
-        self.run_git("commit", "-m", "docs: 修改普通文档")
-        head = self.run_git("rev-parse", "HEAD")
-        self.assertEqual(self.invoke(), "")
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), head)
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.0")
-
-    @unittest.skipUnless(shutil.which("node"), "多插件测试需要本机 Node")
-    def test_issue_only_change_does_not_upgrade_yg(self):
-        self.initialize(add_change=False)
-        issue = self.add_issue_plugin()
-        self.plugin_change("issue-hub")
-        self.invoke()
-        self.assertEqual(hook.read_version(self.root, "HEAD", issue.manifest), "0.1.1")
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.0")
-        paths = set(self.run_git("diff-tree", "--no-commit-id", "--name-only", "-r", "HEAD").splitlines())
-        self.assertTrue(paths <= {path.as_posix() for path in (issue.manifest, issue.portable, *issue.outputs)})
-        self.assertTrue({path.as_posix() for path in (issue.manifest, issue.portable, *issue.outputs[:2])} <= paths)
-        head = self.run_git("rev-parse", "HEAD")
-        self.assertEqual(self.invoke(), "")
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), head)
-
-    @unittest.skipUnless(shutil.which("node"), "多插件测试需要本机 Node")
-    def test_yg_only_and_both_plugin_changes_are_isolated(self):
-        self.initialize(add_change=False)
-        issue = self.add_issue_plugin()
-        self.plugin_change("yg-toolkit")
-        self.invoke()
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.1")
-        self.assertEqual(hook.read_version(self.root, "HEAD", issue.manifest), "0.1.0")
-        self.run_git("push", "origin", "main")
-        self.plugin_change("yg-toolkit")
-        self.plugin_change("issue-hub")
-        before = self.run_git("rev-parse", "HEAD")
-        self.invoke()
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.2")
-        self.assertEqual(hook.read_version(self.root, "HEAD", issue.manifest), "0.1.1")
-        self.assertEqual(self.run_git("rev-list", "--count", f"{before}..HEAD"), "1")
-
-    @unittest.skipUnless(shutil.which("node"), "市场归属测试需要本机 Node")
-    def test_marketplace_diff_only_affects_the_changed_plugin_entry(self):
-        self.initialize(add_change=False)
-        issue = self.add_issue_plugin()
-        value = {"name": "测试市场", "plugins": [{"name": "yg-toolkit", "description": "工具"}, {"name": "issue-hub", "description": "Issue"}]}
+    def test_marketplace_yg_entry_change_is_attributed_to_yg(self):
+        self.initialize(build=False, change=False)
+        value = {'plugins': [{'name': 'yg-toolkit', 'description': '原始'}]}
         self.write(hook.MARKETPLACE, json.dumps(value))
-        self.run_git("add", ".agents/plugins/marketplace.json")
-        self.run_git("commit", "-m", "chore: 登记测试市场")
-        self.run_git("push", "origin", "main")
-        value["plugins"][1]["description"] = "完整 Issue 管理"
+        self.commit()
+        self.git('push', 'origin', 'main')
+        value['plugins'][0]['description'] = '包含Issue管理'
         self.write(hook.MARKETPLACE, json.dumps(value))
-        self.run_git("add", ".agents/plugins/marketplace.json")
-        self.run_git("commit", "-m", "docs: 修改 Issue 插件介绍")
+        self.commit()
         self.invoke()
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.0")
-        self.assertEqual(hook.read_version(self.root, "HEAD", issue.manifest), "0.1.1")
+        self.assertEqual(hook.read_version(self.root), '0.2.1')
 
-    def test_first_release_keeps_declared_version_and_does_not_upgrade_yg(self):
-        self.initialize(build=False, add_change=False)
-        issue = self.add_issue_plugin(publish=False)
-        head = self.run_git("rev-parse", "HEAD")
-        self.assertEqual(self.invoke(), "")
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), head)
-        self.assertEqual(hook.read_version(self.root, "HEAD", issue.manifest), "0.1.0")
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.0")
-
-    def test_first_release_rejects_stale_or_missing_committed_artifacts(self):
-        self.initialize(build=False, add_change=False)
-        issue = self.add_issue_plugin(publish=False)
-        self.write(issue.outputs[0], "// Issue Hub 版本: 0.0.9\n")
-        self.run_git("add", "--", issue.outputs[0].as_posix())
-        self.run_git("commit", "-m", "test: 注入旧构建")
-        with self.assertRaisesRegex(hook.HookError, "构建版本与清单不一致"):
-            self.invoke()
-        self.run_git("rm", "--", issue.outputs[1].as_posix())
-        self.run_git("commit", "-m", "test: 移除分发页面")
-        with self.assertRaisesRegex(hook.HookError, "缺少已提交的分发产物"):
-            self.invoke()
-
-    def test_first_release_requires_both_issue_manifests(self):
-        self.initialize(build=False, add_change=False)
-        issue = self.add_issue_plugin(publish=False)
-        self.run_git("rm", "--", issue.portable.as_posix())
-        self.run_git("commit", "-m", "test: 移除 Issue 便携清单")
-        with self.assertRaisesRegex(hook.HookError, "缺少双清单"):
-            self.invoke()
-
-    @unittest.skipUnless(shutil.which("node"), "多插件失败测试需要本机 Node")
-    def test_all_targets_are_preflighted_before_any_plugin_changes(self):
-        self.initialize(add_change=False)
-        issue = self.add_issue_plugin()
-        self.plugin_change("yg-toolkit")
-        self.plugin_change("issue-hub")
-        self.write(issue.outputs[0], "必须保留的脏产物\n")
-        before = self.run_git("status", "--porcelain")
-        with self.assertRaisesRegex(hook.HookError, "已有未提交修改"):
-            self.invoke()
-        self.assertEqual(self.run_git("status", "--porcelain"), before)
-        self.assertEqual(hook.read_version(self.root), "0.2.0")
-        self.assertEqual((self.root / issue.outputs[0]).read_text(encoding="utf-8"), "必须保留的脏产物\n")
-
-    @unittest.skipUnless(shutil.which("node"), "多插件失败测试需要本机 Node")
-    def test_second_plugin_build_failure_restores_both_and_preserves_other_index(self):
-        self.initialize(add_change=False)
-        issue = self.add_issue_plugin()
-        self.plugin_change("yg-toolkit")
-        self.plugin_change("issue-hub")
-        self.write(issue.build, "process.exit(1);\n")
-        self.run_git("add", "--", issue.build.as_posix())
-        self.run_git("commit", "-m", "test: 注入第二插件构建失败")
-        head = self.run_git("rev-parse", "HEAD")
-        self.write(Path("other.txt"), "已暂存但不能提交\n")
-        self.run_git("add", "other.txt")
-        with self.assertRaisesRegex(hook.HookError, "已恢复版本目标"):
-            self.invoke()
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), head)
-        self.assertEqual(hook.read_version(self.root), "0.2.0")
-        self.assertEqual(hook.read_version(self.root, path=issue.manifest), "0.1.0")
-        self.assertEqual(self.run_git("status", "--porcelain"), "M  other.txt")
-        self.assertEqual(self.run_git("show", ":other.txt"), "已暂存但不能提交")
-
-    def test_dirty_build_input_is_not_committed_into_artifacts(self):
-        self.initialize()
-        self.write(hook.BUILD_SCRIPT, "throw new Error('不应执行未提交脚本');\n")
-        head = self.run_git("rev-parse", "HEAD")
-        with self.assertRaisesRegex(hook.HookError, "构建输入已有未提交修改"):
-            self.invoke()
-        self.assertEqual(self.run_git("rev-parse", "HEAD"), head)
-        self.assertEqual(hook.read_version(self.root), "0.2.0")
-
-    def test_no_upstream_still_refuses_push(self):
-        self.initialize(build=False)
-        self.run_git("branch", "--unset-upstream")
-        with self.assertRaisesRegex(hook.HookError, "没有上游"):
-            self.invoke()
-
-    @unittest.skipUnless(shutil.which("node"), "中文路径测试需要本机 Node")
-    def test_chinese_plugin_source_path_is_attributed_without_git_quote_errors(self):
-        self.initialize(add_change=False)
-        issue = self.add_issue_plugin()
-        self.write(Path("plugins/issue-hub/skills/中文路径.md"), "已提交的插件说明\n")
-        self.run_git("add", "plugins/issue-hub")
-        self.run_git("commit", "-m", "docs(issue-hub): 增加中文资料")
+    @unittest.skipUnless(shutil.which('node'), '需要本机Node')
+    def test_chinese_component_path_is_attributed(self):
+        self.initialize(change=False)
+        self.write('packages/issue-hub/说明/页面.md', '中文资料\n')
+        self.commit()
         self.invoke()
-        self.assertEqual(hook.read_version(self.root, "HEAD", issue.manifest), "0.1.1")
-        self.assertEqual(hook.read_version(self.root, "HEAD"), "0.2.0")
+        self.assertEqual(hook.read_version(self.root), '0.2.1')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

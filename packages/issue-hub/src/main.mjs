@@ -24,8 +24,8 @@ async function main() {
   if(process.argv.slice(2).includes('--doctor')){
     try{const result=await diagnostics.diagnose();process.stdout.write(`${JSON.stringify(result,null,2)}\n`);if(result.data.status==='error')process.exitCode=1;}finally{await bridge.close();}return;
   }
-  const html = await readFile(join(dirname(process.argv[1]), 'app.html'), 'utf8');
-  const icons = createIssueHubIcons(await readFile(join(dirname(process.argv[1]), '..', 'assets', 'icon.svg'), 'utf8'));
+  const html = await readFile(join(dirname(process.argv[1]), 'issue-hub.html'), 'utf8');
+  const icons = createIssueHubIcons(await readFile(join(dirname(process.argv[1]), '..', 'assets', 'issue-hub.svg'), 'utf8'));
   const storage = createStorage({ directory });
   const issues = createIssueService({ github, storage, catalog });
   const tasks = createIssueTasks({ bridge, catalog, storage, issues });

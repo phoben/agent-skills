@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
-const source = resolve(dirname(fileURLToPath(import.meta.url)), '../../../plugins/issue-hub');
+const source = resolve(dirname(fileURLToPath(import.meta.url)), '../../../plugins/yg-toolkit');
 const expectedVersion = JSON.parse(await readFile(join(source, 'plugin.json'), 'utf8')).version;
 const temporary = await mkdtemp(join(tmpdir(), 'issue-hub-stdio-'));
 let client;
@@ -22,7 +22,7 @@ try {
   assert.deepEqual(primary.map(tool => tool.name), ['issue-hub-open']);
   assert.equal(primary[0].title, 'Issue Hub');
   const icons = client.getServerVersion()?.icons;
-  const iconAsset = await readFile(join(plugin, 'assets/icon.svg'), 'utf8');
+  const iconAsset = await readFile(join(plugin, 'assets/issue-hub.svg'), 'utf8');
   assert.equal(icons?.length, 2, '服务必须声明实际插件图标，不能回退默认图标。');
   assert.deepEqual(icons.map(icon => icon.theme).sort(), ['dark', 'light']);
   for (const icon of icons) {
@@ -48,6 +48,6 @@ try {
   process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, version: expectedVersion, primaryEntrypoints: primary.length, iconVariants: icons.length, iconMatchesAsset: true, appOnlyWrites: true, uiResource: true, invalidArgumentsRejected: true, bootstrapAvailable: !bootstrap.isError, bootstrapError: bootstrap.isError ? bootstrap.structuredContent.error.code : null, remoteWrites: false, desktopVerified: false })}\n`);
 } finally {
   await client?.close();
-  assert.ok(resolve(temporary).startsWith(`${resolve(tmpdir())}${sep}`));
-  await rm(temporary, { recursive: true, force: true });
+  assert.ok(resolve(temporary).startsWith(`${resolve(tmpdir())}${sep}issue-hub-stdio-`));
+  await rm(temporary, { recursive: true, force: true, maxRetries: 8, retryDelay: 150 });
 }

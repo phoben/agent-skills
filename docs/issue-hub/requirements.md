@@ -1,11 +1,11 @@
 # Issue Hub 需求与范围
 
-Issue Hub 是独立的 Windows Codex MCP 插件。成员在一个插件页面里浏览本机项目对应的 GitHub Issue，处理日常管理，并在正确工作区打开任务草稿。
+Issue Hub 是 YG Toolkit 内的 Windows Issue 管理模块。成员统一安装YG Toolkit，在Issue Hub页面浏览本机项目对应的GitHub Issue，处理日常管理，并在正确工作区打开任务草稿。
 
 ## 已确认的首版选择
 
-- Codex 只有一个 Issue Hub 全局入口。仓库放在插件页面内导航；首版不接入宿主原生悬浮仓库栏。
-- Windows 首发，成员预装 Node 24、Git、GitHub CLI、Codex，并使用自己的 gh 登录。只支持 github.com，不含 Enterprise Server 和 macOS。
+- YG Toolkit包含Tokens和Issue Hub两个页面入口，各自一个global，仓库放在Issue Hub页面内导航；不把多个仓库拆成主入口，不接入宿主原生悬浮仓库栏。
+- Windows首发。Issue管理使用Node 24、Git、Codex及成员自己的gh登录；gh缺失只限制Issue Hub，不阻断Tokens/工程技能。只支持github.com，不含Enterprise Server和macOS。
 - GitHub 是唯一团队协作数据源，不建设团队后台；偏好、未发草稿和聊天关联留在成员本机。
 - 布局采用用户选定并确认的 A 连读队列：左侧仓库、中间 Issue、相邻详情。项目和 Issue 单击切换，两条分割线有宽度边界并保存到当前账号。
 
@@ -21,7 +21,7 @@ Issue Hub 是独立的 Windows Codex MCP 插件。成员在一个插件页面里
 | 写入异常 | 保留冲突输入；结果未知不盲目重投；远端接受但读回失败只重新读取。GitHub 不提供通用原子 CAS。 |
 | 创建任务 | 单工作区直接预填，多路径首次选择并记住；可改后续默认路径。提示词可编辑，不自动发送，不覆盖已有未发草稿。 |
 | 关联与返回 | 优先返回已有可靠关联，保留另建和历史入口；只按当前双身份、工作区及首条完整唯一引用核实，不按标题或最近时间猜测。 |
-| 团队安装 | 提供自包含插件、依赖检查和 Windows 转交包。另一台电脑及成员自身授权独立验收，本机隔离配置不能替代。 |
+| 团队安装 | 提供包含完整YG技能、双MCP和许可的统一安装包与依赖检查，退休独立Issue Hub安装条目。另一台电脑及成员自身授权独立验收，本机隔离配置不能替代。 |
 
 ## 不包含
 

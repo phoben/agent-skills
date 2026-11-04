@@ -2,7 +2,17 @@
 
 ## 1. 适用范围
 
-修改 `packages/issue-hub/`、`plugins/issue-hub/` 或其市场入口时读取。0.3.4本机验收完成，原生工作区、草稿与聊天往返已获用户确认；第二台Windows暂缓。正式交接见[需求](../../../docs/issue-hub/requirements.md)、[架构](../../../docs/issue-hub/architecture.md)及[验收](../../../docs/issue-hub/acceptance.md)。原任务11-03-github-issue-plugin、11-04-issue-hub-product的本机历史材料留在本地，不属于插件分发。下方P0接口保留兼容测试，正式契约优先见本节。
+修改 `packages/issue-hub/`、YG Toolkit内Issue分发或其市场入口时读取。Issue功能0.3.4本机验收完成；现按用户选择纳入YG统一版本。正式交接见[需求](../../../docs/issue-hub/requirements.md)、[架构](../../../docs/issue-hub/architecture.md)及[验收](../../../docs/issue-hub/acceptance.md)。原任务本机历史不属于插件分发。下方P0接口仅保留兼容测试，正式契约优先见本节。
+
+## YG Toolkit统一分发
+
+- 唯一安装项为yg-toolkit。mcpServers包含yg-token-usage与issue-hub两个独立进程，各有一global和各自URI；原Issue工具名与ui://issue-hub/app.html不变。
+- 两MCP/页面版本从YG双清单确定；源码私有package版本不是安装版本。Issue源VERSION fallback读取YG manifest，正式bundle define canonical，不能按旧独立0.3.5与YG0.3.0比较数据降级。
+- Tokens原build入口串行构建两模块，Issuebuild不反向调用；Issue输出YG dist内issue-hub.cjs、issue-hub.html、issue-hub-THIRD-PARTY-LICENSES.txt，icon为YG assets/issue-hub.svg。Tokens原三件不覆盖，依赖分别安装，hook不能联网临时补依赖。
+- 自动升版仅YG归属，两个源码模块及六产物一同校验/重建，固定目标版本避免外部build override污染；脏输入拒绝，任何失败整体恢复。
+- 本机IssueHub/data、schema和双身份算法不变，禁复制/清空业务库做迁移。只从干净源安装完整YG，原独立缓存退役不删除业务目录。gh缺失只影响Issue功能，不能阻断Tokens。
+- 安装API的marketplacePath是marketplace JSON文件。已有源不盲删覆盖，首次成员才注册包源；已有本地源必须同步整合源码，不能将一次override安装冒充长期源更新。安装/配置管理只存在于setup工具，不扩展业务bridge允许的方法。
+- 验证必须在同一复制YG包分别启动两服务，确认11工具/2global、两个UI/独立许可/完整skills；故障注入Issue缺gh仍可Tokens打开。迁移前后只保存持久行摘要，不输出token或聊天正文。
 
 ## 正式管理契约（0.2.0）
 

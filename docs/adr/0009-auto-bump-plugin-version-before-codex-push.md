@@ -1,6 +1,6 @@
 # Codex 推送前自动升级插件版本
 
-日期：2026-10-29，2026-11-04 扩展独立插件隔离。
+日期：2026-10-29；2026-11-04扩展插件隔离，随后按用户要求将Issue Hub归入YG Toolkit。
 
 ## 背景
 
@@ -14,11 +14,11 @@ YG Toolkit 原来使用 `plugins/yg-toolkit/.codex-plugin/plugin.json` 的 `vers
 - 推送失败时自动版本提交留在本地，下次推送继续使用该版本，不重复增加版本号。
 - 分支没有上游、插件版本格式无效、或两份清单版本不同步时阻止推送，并给出可操作原因。只有旧清单的仓库继续按原规则处理；远端还没有根清单时，使用其旧清单版本比较。
 - 自动递增同时更新旧清单和已存在的根清单。仓库存在 `packages/token-usage/scripts/build.mjs` 时，使用本机 Node 重新构建用量服务与页面，使 MCP `serverInfo.version` 与插件版本一致；不联网或自动安装依赖。
-- 使用明确插件注册表：YG Toolkit 归属 `plugins/yg-toolkit/` 和 `packages/token-usage/`，Issue Hub 归属 `plugins/issue-hub/` 和 `packages/issue-hub/`。共享 marketplace 按每个插件条目内容比较，不因修改 Issue Hub 条目而升级 YG。
-- 自动版本提交只包含受影响插件的两份清单和明确分发产物。YG 为 `token-usage.cjs`、`token-usage.html`、`THIRD-PARTY-LICENSES.txt`；Issue Hub 为 `issue-hub.cjs`、`app.html`、`THIRD-PARTY-LICENSES.txt`，分别位于各自插件的 `dist/`。旧 P0 `host-proof.html` 不列为正式产物。
+- 使用明确插件注册表：生产安装项只保留YG Toolkit，归属 `plugins/yg-toolkit/`、`packages/token-usage/` 和 `packages/issue-hub/`。Issue组件修改现在升级同一个YG版本，不再维护独立Issue插件版本；共享marketplace仍按条目内容比较。
+- 自动版本提交只包含YG双清单及六个明确产物：`token-usage.cjs`、`token-usage.html`、`THIRD-PARTY-LICENSES.txt`、`issue-hub.cjs`、`issue-hub.html`、`issue-hub-THIRD-PARTY-LICENSES.txt`，全部位于YG的dist。两个服务的许可各自保留，四份服务/页面版本头逐项校验；旧P0与旧独立插件产物不发布。
 - 所有受影响插件先完成干净目标、符号链接和构建输入检查，再改任何文件。目标已有暂存、工作区、未跟踪或被忽略的改动时阻止自动升级；构建输入未提交时也阻止重建，避免把另一会话的代码打入版本产物。其他不被构建读取的文件保持原样。
-- 同时变更两个插件时，全部重建成功后创建一个只含版本目标的独立提交。任何一者构建或提交失败，恢复本轮全部版本目标和索引，不留下部分插件已升版的状态。
-- upstream 首次没有新插件时，保留已提交的初始版本；校验双清单和已提交构建入口/产物。Issue Hub 的 CJS/HTML 首行版本标记必须与清单一致；缺失、旧版或未提交的产物阻止推送。当前版本低于远端时拒绝自动补救，不创建仍然落后的补丁版本。
+- 既有Tokens构建入口串行构建两个模块；钩子显式把目标版本传给构建，外部`YG_TOKEN_BUILD_VERSION`不能改变实际升版目标。两个源码包依赖须预先准备，钩子不临时联网安装。任一模块构建、版本核验或提交失败，恢复全部八个版本目标及原索引，不留下只有Tokens升级的状态。
+- upstream首次没有插件时保留已提交初始版本；校验双清单和已提交构建入口/六产物。Tokens与Issue的CJS/HTML首行版本标记都须与YG清单一致，缺失、旧版或未提交产物阻止推送。当前版本低于远端时拒绝自动补救。旧Issue插件的0.3.5不与新的YG0.3.0跨插件比较，业务schema和身份保持原规则。
 - 其他文件的暂存和未暂存内容保持原样。构建或提交失败时，仅恢复本钩子预检干净的版本目标，并阻止原推送。不改 DataPull 的 NPM 包版本，也不提交未受影响插件的文件。
 
 ## 范围

@@ -1,20 +1,20 @@
 # Issue Hub
 
-Windows Codex 插件，用于在本机项目对应的 GitHub 仓库中浏览和处理 Issue。只有一个插件主入口，打开后在页面内切仓库；界面采用已确认的 A 连读队列，仓库、Issue 队列和详情相邻。
+YG Toolkit内的Windows Issue管理模块，用于浏览本机项目对应的GitHub仓库。统一安装YG Toolkit，Tokens与Issue Hub保留各自页面入口；Issue Hub只有一个global，打开后在页面内切仓库。界面沿用已确认的A连读队列。
 
 页面跟随桌面宿主的亮暗模式与基础颜色变量；宿主未提供颜色时使用中性白灰/炭黑，不再使用绿色暗色板。插件入口、页面标志和favicon统一为双票据连接图标。
 
 ## 安装与使用
 
-每位成员预先安装 Node 24、Git、GitHub CLI 和 Codex，并完成 `gh auth login --hostname github.com`。复用成员现有 gh 登录及其权限，不额外建设团队账号或后台。只支持 github.com，暂不支持 Enterprise Server 和 macOS。
+Issue管理使用Node 24、Git、Codex和成员自己的gh登录（`gh auth login --hostname github.com`）。gh缺失只限制Issue Hub，不阻止Tokens与工程技能。复用既有权限，不建设团队账号或后台。只支持github.com，暂不支持Enterprise Server和macOS。
 
-将包含 Issue Hub 的源码版本加入 `yg` 插件源并完成构建交付后运行：
+确认yg源已更新到整合版并使用干净构建后运行：
 
 ```powershell
-codex plugin add issue-hub@yg
+codex plugin add yg-toolkit@yg
 ```
 
-功能分支的推送不会自动更新仍跟踪其他分支的成员插件源。成员也可使用下方独立 Windows 验收包；团队源更新、成员安装与正式发布分别执行。
+不再新增独立`issue-hub@yg`。旧插件应保持停用，确认整合版后可通过官方卸载入口移除其插件缓存，原业务目录不删除。已有yg源若仍指旧源码，手动安装可能装回旧包；先同步源，或按交接说明从干净包安装。源码包私有版本不作为插件安装版本，统一版本来自YG双清单。
 
 打开 Issue Hub 后，插件通过 Codex 项目接口与 Git remote 自动发现仓库。父目录内的嵌套仓库也会有界检查，不扫描全盘。默认最多深入 5 层、检查 1500 个目录；跳过依赖、构建目录和链接，触限或目录失效会显示发现不完整。仓库旧名称和新名称在当前 gh 身份确认指向同一 GitHub ID 后合并，多个工作区仍保留。
 
@@ -42,6 +42,8 @@ codex plugin add issue-hub@yg
 
 0.3.5为首次入库的分发修订，清理HTML空白并同步构建版本，功能沿用已验收的0.3.4。
 
+独立分发0.3.5现已退休，功能纳入YG Toolkit 0.3.0。两者属于不同插件ID，旧业务schema和身份保持，不是数据降级；已有草稿、回执和会话关联原地恢复。
+
 项目栏的“连接检查”在首页加载失败时也可打开，检查运行环境、GitHub 登录、桌面项目接口、会话身份和本机存储。它只报告结果和处理建议，不安装工具或修改配置。确认写入成功但最新内容读取失败时，页面保留成功回执，只提供重新读取，避免重复发布。
 
 ## 数据、兼容与回滚
@@ -56,30 +58,39 @@ P0 的 `%LOCALAPPDATA%/IssueHub/host-proof/requests.json` 是独立诊断数据�
 
 ## 开发与检查
 
-在包目录安装依赖后运行：
+先在两个源码包分别安装依赖。整包构建沿用Tokens入口：
+
+```powershell
+npm --prefix packages/token-usage ci
+npm --prefix packages/issue-hub ci
+npm --prefix packages/token-usage run build
+```
+
+在本模块目录进行回归与协议检查：
 
 ```powershell
 npm test
 npm run check
 npm run build
 npm run verify:stdio
+npm run verify:toolkit
 npm run verify:live
 npm run doctor
 ```
 
-`check` 是 JavaScript 语法检查，项目没有独立类型检查或 lint 配置。测试使用隔离 API、真实临时 Git 仓库及 SQLite；`verify:stdio` 从包外启动完整分发产物并检查一个 global 和 app-only 写入。`verify:live` 只读核对项目与真实 GitHub，不创建 Issue、不发聊天、不输出正文或凭据。
+`check`是JavaScript语法检查，无独立类型检查或lint。`verify:stdio`检查YG包里的Issue单服；`verify:toolkit`从同一复制YG包分别启动两MCP，确认11工具、2个global、统一版本、双资源/许可/完整技能，并验证Issue缺gh时Tokens仍可打开。`verify:live`仅只读核对，不创建Issue或发送聊天。
 
-`doctor` 使用构建产物执行只读环境检查，返回 JSON 状态；也可直接运行 `node plugins/issue-hub/dist/issue-hub.cjs --doctor`。出现核心依赖错误时退出码为 1，连接警告单独展示。先构建再检查，避免运行旧产物。
+`doctor`使用构建产物执行Issue只读环境检查，返回JSON；也可从仓库根运行`node plugins/yg-toolkit/dist/issue-hub.cjs --doctor`。Issue诊断失败不等于Tokens或其他技能不可用。先统一构建再检查，避免运行旧产物。
 
-需要转交 Windows 验收时，可从仓库根目录生成独立包：
+需要转交Windows时，可从仓库根目录生成完整YG包：
 
 ```powershell
 node packages/issue-hub/scripts/package-windows.mjs --out E:/IssueHubReview
 ```
 
-将 ZIP 交给另一位 Windows 成员，解压后先运行 `powershell -ExecutionPolicy Bypass -File .\install.ps1 -CheckOnly`，再运行不带 `-CheckOnly` 的命令安装。包内有哈希清单、依赖检查和独立 `issue-hub-review` 源，不包含个人登录或业务数据。已有正式 Issue Hub 时会拒绝并装；正式 YG 源不受影响。这是转交验收材料，第二台机器通过后仍需单独执行正式发布流程。
+将ZIP交给Windows成员，解压后先执行`powershell -ExecutionPolicy Bypass -File .\install.ps1 -CheckOnly`，再不带CheckOnly安装。包包含完整YG技能、双MCP、许可及哈希，不含个人登录或业务数据。已有源保留指针，用官方API指定干净包的marketplace文件安装；首次成员注册包源以便CLI管理。源目录要长期保留并更新，具体迁移和旧插件处理见[交接](../../docs/issue-hub/windows-handoff.md)。第二台真实Windows仍须独立验收。
 
-构建输出 `plugins/issue-hub/dist/issue-hub.cjs`、`app.html` 与第三方许可，页面脚本和样式完全内联。正式包不引用原型、fixture、CDN 或 localhost。YG Toolkit 与 Issue Hub 有独立版本归属，Codex 推送钩子只为受影响插件升版；构建检查、源码推送、成员安装及正式发布分别执行。
+Issue输出位于`plugins/yg-toolkit/dist/`：`issue-hub.cjs`、`issue-hub.html`、`issue-hub-THIRD-PARTY-LICENSES.txt`。Tokens原三产物和许可独立保留。统一build与推送钩子按YG一份版本重建两模块，页面无外部依赖。构建、源码推送、成员安装及正式发布分别执行。
 
 浏览器联调可在构建后运行 `node scripts/preview.mjs`，默认 `http://127.0.0.1:18287/`。它使用正式 MCP 路由读取真实数据，允许保存本机草稿、偏好与工作区绑定；会话操作仅开放 latest/bind，拒绝 GitHub 写入及聊天打开、扫描和人工关联，不作为真实宿主验收。关闭由本次启动进程处理，勿清理其他会话的预览服务。
 

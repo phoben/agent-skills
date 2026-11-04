@@ -1,6 +1,6 @@
 # YG Toolkit
 
-> 约格维护并开源的 Codex Plugin，为工程配置迁移、数据库工具、文档工作和软件版本发布提供可复用的 Skills。
+> 约格维护并开源的 Codex Plugin，统一提供工程与文档 Skills、Tokens 用量页和 Issue Hub。
 
 ## 内置 Skills
 
@@ -18,9 +18,15 @@
 
 ## Tokens 用量页面
 
-YG Toolkit 0.2.5提供Codex侧栏用量页：查看当前账号官方趋势、本机项目逐日分布、Tokens桑基关系与会话分项明细。界面采用已确认的C版流量对照板，固定项目→会话两层。
+YG Toolkit提供Codex侧栏用量页：查看当前账号官方趋势、本机项目逐日分布、Tokens桑基关系与会话分项明细。界面采用已确认的C版流量对照板，固定项目→会话两层。
 
 账号与本机统计各自标明覆盖范围，身份未知的旧记录和其他账号会排除。使用方式见[用量页面说明](./docs/token-usage.md)，开发与验证见[模块说明](./packages/token-usage/README.md)。
+
+## Issue Hub
+
+YG Toolkit 0.3.0纳入Issue Hub。只安装一个YG插件，Tokens与Issue Hub保留各自页面入口和独立MCP进程，统一升级版本。Issue Hub可发现本机项目仓库、管理Issue与评论、保存离线草稿，并在正确工作区预填任务、关联和返回已有聊天。
+
+旧独立Issue Hub的缓存、草稿和聊天关联继续使用原本机目录，无需搬动或重新创建。使用Issue管理需要成员自己的gh登录；缺gh不阻断Tokens或工程技能。旧独立插件应保持停用，确认整合版后可卸载其插件缓存；不删除业务数据。见[整合架构](./docs/issue-hub/architecture.md)及[迁移交接](./docs/issue-hub/windows-handoff.md)。
 
 ## 仓库结构
 
@@ -50,6 +56,8 @@ YG Toolkit 0.2.5提供Codex侧栏用量页：查看当前账号官方趋势、�
 数据库结构导出统一使用 `$datapull`。旧 [`$database-schema`](./plugins/yg-toolkit/skills/database-schema/SKILL.md) 只保留显式调用的兼容入口，不再包含独立导出器。两者执行同一套 DataPull 流程；旧连接配置需通过 CLI 重新登记，已有旧快照不自动迁移或删除。对比与取舍见 [合并决策](./docs/adr/0008-unify-database-skills-on-datapull.md)。
 
 项目 Codex 会在推送前自动递增 YG Toolkit 插件补丁版本；规则与边界见 [自动版本升级决策](./docs/adr/0009-auto-bump-plugin-version-before-codex-push.md)。
+
+整合版统一构建入口为 `npm --prefix packages/token-usage run build`，串行构建Tokens与Issue Hub。先分别为 `packages/token-usage`、`packages/issue-hub` 执行 `npm ci`；私有源码包版本不作为插件安装版本。
 
 ## 在 Codex 中安装
 

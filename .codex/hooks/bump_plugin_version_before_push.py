@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -19,23 +20,17 @@ class Plugin(NamedTuple):
     sources: tuple[str, ...]
     build_inputs: tuple[str, ...]
     marker: str | None = None
+    markers: tuple[tuple[Path, str], ...] = ()
 
 
 PLUGINS = (
     Plugin(
         "yg-toolkit", Path("plugins/yg-toolkit/.codex-plugin/plugin.json"),
         Path("plugins/yg-toolkit/plugin.json"), Path("packages/token-usage/scripts/build.mjs"),
-        tuple(Path(f"plugins/yg-toolkit/dist/{name}") for name in ("token-usage.cjs", "token-usage.html", "THIRD-PARTY-LICENSES.txt")),
-        ("plugins/yg-toolkit/", "packages/token-usage/"),
-        ("packages/token-usage/src", "packages/token-usage/ui", "packages/token-usage/scripts", "packages/token-usage/package.json", "packages/token-usage/package-lock.json", "plugins/yg-toolkit/assets"),
-    ),
-    Plugin(
-        "issue-hub", Path("plugins/issue-hub/.codex-plugin/plugin.json"),
-        Path("plugins/issue-hub/plugin.json"), Path("packages/issue-hub/scripts/build.mjs"),
-        tuple(Path(f"plugins/issue-hub/dist/{name}") for name in ("issue-hub.cjs", "app.html", "THIRD-PARTY-LICENSES.txt")),
-        ("plugins/issue-hub/", "packages/issue-hub/"),
-        ("packages/issue-hub/src", "packages/issue-hub/ui", "packages/issue-hub/scripts", "packages/issue-hub/package.json", "packages/issue-hub/package-lock.json", "plugins/issue-hub/assets"),
-        "Issue Hub 版本: ",
+        tuple(Path(f"plugins/yg-toolkit/dist/{name}") for name in ("token-usage.cjs", "token-usage.html", "THIRD-PARTY-LICENSES.txt", "issue-hub.cjs", "issue-hub.html", "issue-hub-THIRD-PARTY-LICENSES.txt")),
+        ("plugins/yg-toolkit/", "packages/token-usage/", "packages/issue-hub/"),
+        ("packages/token-usage/src", "packages/token-usage/ui", "packages/token-usage/scripts", "packages/token-usage/package.json", "packages/token-usage/package-lock.json", "packages/issue-hub/src", "packages/issue-hub/ui", "packages/issue-hub/scripts", "packages/issue-hub/package.json", "packages/issue-hub/package-lock.json", "plugins/yg-toolkit/assets"),
+        markers=tuple((Path(f"plugins/yg-toolkit/dist/{name}"), marker) for name, marker in (("token-usage.cjs", "YG Toolkit 版本: "), ("token-usage.html", "YG Toolkit 版本: "), ("issue-hub.cjs", "Issue Hub 版本: "), ("issue-hub.html", "Issue Hub 版本: "))),
     ),
 )
 # 保留旧常量与单插件辅助入口，便于已有验证脚本调用；主流程始终走注册表。
@@ -85,8 +80,10 @@ def read_version(root: Path, revision: str | None = None, path: Path = PLUGIN_MA
 def checked_version(root: Path, revision: str | None = None, plugin: Plugin = PLUGINS[0]) -> str:
     version = read_version(root, revision, plugin.manifest)
     portable_exists = (root / plugin.portable).exists() if revision is None else tracked(root, revision, plugin.portable)
-    if plugin.name == 'issue-hub' and not portable_exists:
-        raise HookError("Issue Hub 缺少双清单，请先补齐并同步版本。")
+    modern_issue = Path('plugins/yg-toolkit/dist/issue-hub.cjs')
+    integrated = tracked(root, revision or 'HEAD', modern_issue)
+    if integrated and not portable_exists:
+        raise HookError("YG Toolkit 缺少双清单，请先补齐并同步版本。")
     if portable_exists and read_version(root, revision, plugin.portable) != version:
         raise HookError(f"{revision or '工作区'} 的 {plugin.name} 两份插件清单版本不一致，请先同步版本，再重试推送。")
     return version
@@ -146,16 +143,21 @@ def validate_artifacts(root: Path, plugin: Plugin, version: str, revision: str =
     for path in plugin.outputs:
         if not tracked(root, revision, path):
             raise HookError(f"{plugin.name} 缺少已提交的分发产物 {path.as_posix()}。")
-    if plugin.marker:
-        # 构建器写入专用头部版本标记；不依赖打包器压缩后的变量名。
-        for path in plugin.outputs[:2]:
+    if plugin.marker or plugin.markers:
+        # 四份服务/页面分别验证头部；不能只检查Tokens而漏掉Issue的旧产物。
+        for path in marker_paths(plugin):
             first = git(root, "show", f"{revision}:{path.as_posix()}").splitlines()[0]
             if first.strip() != version_header(plugin, path, version):
                 raise HookError(f"{plugin.name} 已提交构建版本与清单不一致，请重新构建并提交产物。")
 
 
 def version_header(plugin: Plugin, path: Path, version: str) -> str:
-    return f"// {plugin.marker}{version}" if path.suffix == '.cjs' else f"<!-- {plugin.marker}{version} -->"
+    marker = dict(plugin.markers).get(path, plugin.marker)
+    return f"// {marker}{version}" if path.suffix == '.cjs' else f"<!-- {marker}{version} -->"
+
+
+def marker_paths(plugin: Plugin) -> tuple[Path, ...]:
+    return tuple(path for path, _ in plugin.markers) if plugin.markers else plugin.outputs[:2]
 
 
 def bump_versions(root: Path, plans: list[tuple[Plugin, str]]) -> dict[str, str]:
@@ -177,11 +179,11 @@ def bump_versions(root: Path, plans: list[tuple[Plugin, str]]) -> dict[str, str]
                 manifest["version"] = next_version
                 (root / path).write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n")
             if build_required:
-                subprocess.run(["node", str(root / plugin.build)], cwd=root, check=True, capture_output=True, text=True, encoding="utf-8")
+                subprocess.run(["node", str(root / plugin.build)], cwd=root, check=True, capture_output=True, text=True, encoding="utf-8", env={**os.environ, 'YG_TOKEN_BUILD_VERSION': next_version})
                 if any(not (root / path).is_file() for path in plugin.outputs):
                     raise HookError(f"{plugin.name} 构建未生成全部分发文件。")
-                if plugin.marker:
-                    for path in plugin.outputs[:2]:
+                if plugin.marker or plugin.markers:
+                    for path in marker_paths(plugin):
                         if (root / path).read_text(encoding="utf-8").splitlines()[0].strip() != version_header(plugin, path, next_version):
                             raise HookError(f"{plugin.name} 构建版本与清单不一致。")
         git(root, "add", "--", *paths)

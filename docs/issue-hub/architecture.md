@@ -2,9 +2,11 @@
 
 ## 组件
 
+统一安装包为YG Toolkit，插件版本以YG双清单为准。两个服务仍各自运行：`yg-token-usage`提供Tokens页面，`issue-hub`提供Issue页面。模块的私有源码包版本不等于安装版本。原独立插件已退役，新包不继续提供第二套Issue Hub安装条目。
+
 | 层 | 责任 |
 | --- | --- |
-| MCP 服务 | 一个 `issue-hub-open` 全局入口和 `ui://issue-hub/app.html`。页面写入与会话工具仅 app 可见；模型仅有固定只读仓库、Issue、评论工具。 |
+| Issue MCP服务 | 一个 `issue-hub-open` 全局入口和 `ui://issue-hub/app.html`，与Tokens的入口/URI互不冲突。页面写入与会话工具仅app可见；模型仅有固定只读仓库、Issue、评论工具。 |
 | GitHub 客户端 | 无 shell 调用 gh 的固定 github.com REST 路径，写入 JSON 走 stdin，识别权限、限流、网络失败和未知写入。 |
 | 目录适配 | 使用 Codex 项目接口及 Git 检查，默认最多深入 5 层、1500 目录，跳过依赖/构建和链接；保留真实覆盖状态。 |
 | Issue 服务 | 处理分页、权限、账号隔离、冲突、读回及操作回执，按 GitHub 稳定仓库 ID 归一别名。 |
@@ -34,14 +36,20 @@ Codex 持久身份由配置目录及可信账号标识确定，与授权文件�
 
 正文先显示，评论、活动与候选分区更新。活动首批和后页 PR 按真实 URL 去重并局部绘制，未读/部分/不可用/暂无明确显示；分页更新保留评论、编辑表单、滚动及焦点。
 
-构建输出仅有自包含 CJS、HTML 与第三方许可；正式页没有原型场景、CDN 或 localhost 依赖。开发预览拒绝 GitHub 写入与聊天打开。
+统一构建保留Tokens原入口，并串行调用Issue Hub构建。两服务各有自包含CJS、HTML和第三方许可：Issue产物为YG dist内`issue-hub.cjs`、`issue-hub.html`、`issue-hub-THIRD-PARTY-LICENSES.txt`，不会覆盖Tokens许可。正式页没有原型场景、CDN或localhost依赖。开发预览拒绝GitHub写入与聊天打开。
 
 ## 代码入口
 
 - 服务：`packages/issue-hub/src/`。
 - 页面：`packages/issue-hub/ui/`。
 - 构建、检查、转交包：`packages/issue-hub/scripts/`。
-- 插件清单与分发：`plugins/issue-hub/`。
+- 统一插件清单与分发：`plugins/yg-toolkit/`；Issue图标为`assets/issue-hub.svg`。
 - [服务规范](../../.trellis/spec/backend/issue-hub.md)与[页面规范](../../.trellis/spec/frontend/issue-hub.md)。
 
 宿主项目和深链接口仍有实验性兼容边界。缺失时明确报错，不读写 Codex 私有数据库，不通过内部 UI 注入提供原生浮层。
+
+## 独立插件迁移
+
+业务目录、schema和稳定身份不含插件版本或包ID，因此旧独立0.3.5数据由YG整合版直接读取，不按两个不同插件的版本号判断数据降级。升级只换插件分发，草稿、操作回执及关联不搬动、不删除。
+
+安装必须使用干净源，避免将同一YG目录中的其他未提交技能改动打包。官方`plugin/install`可指定确切marketplace JSON文件；已有源保留其指针，初次成员才注册包源。同名旧源若仍指旧源码，之后手动CLI add确实可能装回旧版，必须同步源再长期使用。原生UI观察、协议、隔离profile和本机真实迁移分别记录。
