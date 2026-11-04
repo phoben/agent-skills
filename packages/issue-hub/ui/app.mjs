@@ -7,23 +7,27 @@ import { createThemeController } from './theme.mjs';
 import { taskDetailsMarkup, taskHistoryMarkup, workspacePickerMarkup } from './task-views.mjs';
 import { readDiagnostics, diagnosticsMarkup } from './diagnostics.mjs';
 import { createSummaryPainter } from './summary.mjs';
+import { createImageController } from './images.mjs';
 import './style.css';
 import { esc, icon, labels, button, options, taskText, taskAction, taskDestination, bodyMarkup, issueForm, safeUrl, issueCountLabels, brandMark } from './ui.mjs';
 
 const app = new App({ name: 'Issue Hub', version: VERSION });
 const themeController = createThemeController();
 const summaryPainter = createSummaryPainter();
+let imageController = null;
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 async function call(group, action, payload) {
-  const result = await app.callServerTool({ name: { query: 'issue-hub-query', mutate: 'issue-hub-mutate', task: 'issue-hub-task' }[group], arguments: { action, payload } });
+  const result = await app.callServerTool({ name: { query: 'issue-hub-query', mutate: 'issue-hub-mutate', task: 'issue-hub-task', image: 'issue-hub-image' }[group], arguments: group === 'image' ? payload : { action, payload } });
   if (result.isError || result.structuredContent?.error) {
     const error = result.structuredContent?.error;
     throw new StoreError(error?.code || 'server', error?.message || '操作未完成，请重试。', error || {});
   }
+  if (group === 'image') return { ...result.structuredContent, data: { ...result.structuredContent?.data, image: result._meta?.['issue-hub/image'] } };
   return result.structuredContent;
 }
 const store = new LiveStore(call, { onIdentityChange: () => {
+  imageController?.clear();
   selection.invalidate(); columnLayout.restore({});
   closeOverlay(false); resetDetail(); state.repo = ''; state.selected = null; state.loading = true; state.saving = false;
   state.filters = { query: '', state: 'open', label: '', assignee: '', scroll: 0 };
@@ -31,6 +35,7 @@ const store = new LiveStore(call, { onIdentityChange: () => {
   $('#queue').innerHTML = '<div class="initial-load" role="status">账号已变化，正在重新读取…</div>';
 }, onRepositoryAccessLost: repo => {
   if (repo !== state.repo) return;
+  imageController?.clear();
   clearTimeout(draftTimer); captureInputs();
   const inputs = [];
   if (state.editor) inputs.push(store.retainDraft(repo, state.editor.number || 'new', 'issue', state.editor));
@@ -55,6 +60,10 @@ const state = {
   summaryDeferred: false,
 };
 state.filters = store.preference(state.repo);
+imageController = createImageController({
+  getContext: () => store.identity == null || !state.repo || !state.selected || state.editor || state.detailLoading ? null : { identity: store.identity, repositoryKey: store.repositoryKey(state.repo), repo: state.repo, number: state.selected, generation: store.generation },
+  loadImage: (context, payload) => store.loadImage(context.repo, context.number, payload.url, payload.commentId),
+});
 let overlayReturn = null;
 let draftTimer = null;
 let statusTimer = null;
@@ -210,6 +219,7 @@ function renderDetail({ focus = false } = {}) {
   state.summaryDeferred = false;
   renderDetailStaleness();
   renderWriteOutcome();
+  imageController?.scan($('#detail'));
   if (focus) requestAnimationFrame(() => $('#detail-title')?.focus({ preventScroll: true }));
 }
 function renderDetailStaleness() {
@@ -227,6 +237,7 @@ function paintCurrentSummary() {
   if (!issue || state.editor || state.detailLoading || state.saving) { renderDetailStaleness(); return; }
   const result = summaryPainter.paint($('#detail'), issue, { manage: permission('manage'), linksMarkup: sourceLinks(issue) });
   state.summaryDeferred = result.deferred; renderDetailStaleness();
+  imageController?.scan($('#detail'));
 }
 function renderWriteOutcome() {
   $$('.write-outcome').forEach(node => node.remove());
@@ -249,6 +260,7 @@ function commentEditor() {
 }
 function renderAll() { renderNav(); renderQueue(); renderDetail(); status(); }
 function resetDetail() {
+  imageController?.clear();
   state.editor = null; state.comment = ''; state.commentId = null; state.commentBase = null; state.commentError = ''; state.formError = ''; state.conflict = null; state.notice = ''; state.draftSaved = false; state.visibleComments = 2; state.discussionTab = 'comments'; state.writeOutcome = null;
   state.detailLoading = false; state.detailError = '';
   state.summaryDeferred = false;
@@ -408,6 +420,7 @@ function renderDiscussionOnly({ activeControl = null } = {}) {
   // 显式翻页允许替换当前分页按钮，结束后将焦点交还可见入口；其他阅读控件仍保留。
   if (activeControl && focused === activeControl && activeControl.dataset?.action === 'more-activity') ($('button[data-action="more-activity"]', content) || $('.discussion-tabs [data-tab="activities"]'))?.focus({ preventScroll: true });
   if (detail) detail.scrollTop = scroll;
+  imageController?.scan($('#detail'));
 }
 function renderTaskOnly() {
   const task = store.task(state.repo, state.selected).current, row = $('.action-row'), primary = $('#task-primary');
@@ -680,6 +693,7 @@ async function handleAction(name, target, event) {
     case 'use-remote': await store.saveDraft(state.repo, state.selected, 'issue', null); if (state.conflict) store.installIssue(state.repo, state.conflict); state.editor = null; state.conflict = null; state.formError = ''; state.notice = '已采用远端版本。'; renderDetail({ focus: true }); break;
     case 'refresh': await refresh(true); break;
     case 'reconnect': await refresh(true); if (store.online) announce('连接已恢复，草稿仍未发布，请手动提交。'); break;
+    case 'retry-image': imageController?.retry(target.closest('[data-image-source]')); break;
     case 'filter-state': applyFilter('state', target.dataset.state); break;
     case 'clear-filters': clearFilters(); break;
     case 'more-comments': captureInputs(); if (state.visibleComments >= current().commentItems.length) await store.loadMore(state.repo, state.selected, 'comments'); state.visibleComments += 30; renderDetail(); $('button[data-action="more-comments"]')?.focus(); break;
@@ -935,6 +949,7 @@ app.ontoolresult = result => {
   store.acceptBootstrap(result.structuredContent);
 };
 app.onclose = () => {
+  imageController?.close();
   themeController.dispose();
   store.closed = true; detailGeneration++; closeOverlay(false); clearTimeout(draftTimer);
   state.globalMessage = '宿主连接已关闭，请重新打开 Issue Hub。未发布输入仍保留在当前页面。';

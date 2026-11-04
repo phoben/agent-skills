@@ -1,3 +1,5 @@
+import { IMAGE_TAG_SOURCE, parseImageTag, parseMarkdownImage, canPreviewImageUrl } from '../src/image-policy.mjs';
+
 // 所有来自数据与表单的文字在插入模板前统一转义。
 export const esc = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
 // 双票据与连接箭头为插件独立标记，Issue状态圆圈仍用于正文语义。
@@ -32,16 +34,25 @@ export function taskDestination(task) {
   return `<span class="relation relation-linked"><span class="relation-title" title="${esc(task.title)}">${esc(task.title)}</span><span class="relation-context">${icon('check')}<span>已确认关联</span>${task.path ? `<span class="relation-path" title="${esc(task.path)}">${esc(task.path)}</span>` : ''}</span></span>`;
 }
 
+function imageMarkup(image) {
+  if (!canPreviewImageUrl(image.url)) return `<a href="${esc(image.url)}" data-action="open-link" data-url="${esc(image.url)}">图片：${esc(image.alt)}（查看原图）</a>`;
+  const dimensions = ['width', 'height'].filter(name => image[name]).map(name => ` ${name}="${image[name]}"`).join('');
+  return `<span class="issue-image" data-image-source="${esc(image.url)}" data-image-state="waiting"><a class="image-open" href="${esc(image.url)}" data-action="open-link" data-url="${esc(image.url)}" aria-label="查看原图"><img alt="${esc(image.alt)}"${dimensions} loading="lazy" decoding="async" referrerpolicy="no-referrer" hidden></a><span class="image-status" role="status">正在读取图片…</span><span class="image-actions"><a href="${esc(image.url)}" data-action="open-link" data-url="${esc(image.url)}">查看原图</a><button type="button" class="button plain image-retry" data-action="retry-image" hidden>重试图片</button></span></span>`;
+}
 function inlineMarkup(raw) {
-  const pattern = /(!?\[([^\]\n]+)\]\((https?:\/\/[^\s)]+)\)|`([^`\n]+)`|\*\*([^*\n]+)\*\*)/g;
+  const pattern = new RegExp('`[^`\\n]+`|' + IMAGE_TAG_SOURCE + '|!?\\[[^\\]\\n]*\\]\\(https?:\\/\\/[^\\s)]+\\)|\\*\\*[^*\\n]+\\*\\*', 'gi');
   let offset = 0, result = '';
   for (const match of String(raw).matchAll(pattern)) {
     result += esc(String(raw).slice(offset, match.index));
-    if (match[2]) {
-      const url = safeUrl(match[3]);
-      result += url ? `<a href="${esc(url)}" data-action="open-link" data-url="${esc(url)}">${match[0][0] === '!' ? '图片：' : ''}${esc(match[2])}</a>` : esc(match[0]);
-    } else if (match[4]) result += `<code>${esc(match[4])}</code>`;
-    else result += `<strong>${esc(match[5])}</strong>`;
+    const token = match[0], image = token[0] === '<' ? parseImageTag(token) : parseMarkdownImage(token);
+    const link = /^(!?)\[([^\]\n]*)\]\((https?:\/\/[^\s)]+)\)$/i.exec(token);
+    if (image) result += imageMarkup(image);
+    else if (link) {
+      const url = safeUrl(link[3]);
+      result += url ? `<a href="${esc(url)}" data-action="open-link" data-url="${esc(url)}">${link[1] ? '图片：' : ''}${esc(link[2] || '查看原图')}</a>` : esc(token);
+    } else if (token[0] === '`') result += `<code>${esc(token.slice(1, -1))}</code>`;
+    else if (token.startsWith('**')) result += `<strong>${esc(token.slice(2, -2))}</strong>`;
+    else result += esc(token);
     offset = match.index + match[0].length;
   }
   return result + esc(String(raw).slice(offset));
@@ -67,7 +78,7 @@ export function bodyMarkup(body) {
       const content = lines.slice(1);
       if (content.every((line) => /^\d+\. /.test(line))) return `<h2>${esc(heading)}</h2><ol>${content.map((line) => `<li>${esc(line.replace(/^\d+\. /, ''))}</li>`).join('')}</ol>`;
       if (content.every((line) => /^- \[ \] /.test(line))) return `<h2>${esc(heading)}</h2><ul class="checks">${content.map((line) => `<li><span class="check-box" aria-hidden="true"></span>${esc(line.replace(/^- \[ \] /, ''))}</li>`).join('')}</ul>`;
-      return `<p>${lines.map(inlineMarkup).join('<br>')}</p>`;
+      return `<p>${inlineMarkup(block).replace(/\r?\n/g, '<br>')}</p>`;
     }).join('');
   }).join('');
 }

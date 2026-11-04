@@ -6,7 +6,7 @@
 
 | 层 | 责任 |
 | --- | --- |
-| Issue MCP服务 | 一个 `issue-hub-open` 全局入口和 `ui://issue-hub/app.html`，与Tokens的入口/URI互不冲突。页面写入与会话工具仅app可见；模型仅有固定只读仓库、Issue、评论工具。 |
+| Issue MCP服务 | 一个 `issue-hub-open` 全局入口和 `ui://issue-hub/app-v2.html`，旧 `app.html` 保留兼容别名。页面写入、会话及图片工具仅app可见；模型仅有固定只读仓库、Issue、评论工具。 |
 | GitHub 客户端 | 无 shell 调用 gh 的固定 github.com REST 路径，写入 JSON 走 stdin，识别权限、限流、网络失败和未知写入。 |
 | 目录适配 | 使用 Codex 项目接口及 Git 检查，默认最多深入 5 层、1500 目录，跳过依赖/构建和链接；保留真实覆盖状态。 |
 | Issue 服务 | 处理分页、权限、账号隔离、冲突、读回及操作回执，按 GitHub 稳定仓库 ID 归一别名。 |
@@ -21,6 +21,12 @@ GitHub 数据按稳定账号隔离，凭据只在进程内求散列。同凭据�
 每次写入携带页面身份并前后复核。SQLite 原子认领 operationId 与规范请求摘要，未知创建不自动重投。confirmed 回执是历史成功事实，重放时另外读取当前投影；读回不可用不降级为未知，不再次发布。
 
 Codex 持久身份由配置目录及可信账号标识确定，与授权文件时间和插件版本分开。API Key 或未知身份不猜测认领；无法证明归属的旧域保留，不枚举迁移。
+
+## 图片预览
+
+正文和评论的Markdown图片、受限HTML img统一解析为固定图片容器，其他HTML继续转义。认证预览仅接受现代github.com附件地址；旧图片域和外部来源保留链接。后端读取最新Issue验证权限和图片归属，评论另外核验父Issue，下载前后复核身份与凭据。
+
+图片限5 MiB及PNG/JPEG/GIF/WebP，核验MIME和文件签名。二进制只放在app工具结果的私有`_meta`，不进模型文本或SQLite；页面通过data图片显示，跨账号或详情代次清除。前台懒加载最多2路，局部失败提供原链接及重试，不覆盖全局GitHub联网状态。实际资源contents声明data图片CSP，内页策略同时禁止data脚本及联网。
 
 ## 任务准备与关联
 

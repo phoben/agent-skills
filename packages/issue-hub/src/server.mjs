@@ -1,14 +1,15 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { registerAppResource, registerAppTool, RESOURCE_MIME_TYPE } from '@modelcontextprotocol/ext-apps/server';
 import { z } from 'zod';
-import { safeFailure } from './errors.mjs';
+import { ProofError, safeFailure } from './errors.mjs';
 import { VERSION } from './version.mjs';
 
 export const UI_URI = 'ui://issue-hub/host-proof.html';
-export const APP_URI = 'ui://issue-hub/app.html';
+export const APP_URI = 'ui://issue-hub/app-v2.html';
+export const LEGACY_APP_URI = 'ui://issue-hub/app.html';
 
 // 正式页面固定一个主入口，读取与写入分别声明可见性。
-export function createIssueServer({ html, issues, tasks, diagnostics, icons = [], version = VERSION, close = async () => {} }) {
+export function createIssueServer({ html, issues, tasks, images, diagnostics, icons = [], version = VERSION, close = async () => {} }) {
   const server = new McpServer({ name: 'issue-hub', version, icons });
   const appMeta = { ui: { resourceUri: APP_URI, visibility: ['app'] } };
   const readHints = { readOnlyHint: true, destructiveHint: false, openWorldHint: true };
@@ -22,7 +23,9 @@ export function createIssueServer({ html, issues, tasks, diagnostics, icons = []
       return { isError: true, structuredContent: { error: failure }, content: [{ type: 'text', text: failure.message }] };
     }
   };
-  registerAppResource(server, 'Issue Hub', APP_URI, { mimeType: RESOURCE_MIME_TYPE, _meta: { ui: { csp: { connectDomains: [], resourceDomains: [] } } } }, async () => ({ contents: [{ uri: APP_URI, mimeType: RESOURCE_MIME_TYPE, text: html }] }));
+  const resourceMeta = { ui: { csp: { connectDomains: [], resourceDomains: ['data:'], frameDomains: [] } } };
+  // 新资源键避免宿主复用旧页面；旧地址仅作同内容资源别名，不新增插件入口。
+  for (const [name, uri] of [['Issue Hub', APP_URI], ['Issue Hub Compatibility', LEGACY_APP_URI]]) registerAppResource(server, name, uri, { mimeType: RESOURCE_MIME_TYPE, _meta: resourceMeta }, async () => ({ contents: [{ uri, mimeType: RESOURCE_MIME_TYPE, text: html, _meta: resourceMeta }] }));
   registerAppTool(server, 'issue-hub-open', { title: 'Issue Hub', description: '打开仓库 Issue 管理页面。', icons, inputSchema: z.object({}).strict(), annotations: readHints, _meta: { ...appMeta, 'openai/ui': { entrypoints: [{ type: 'global' }] } } }, safe(() => issues.execute('bootstrap')));
   registerAppTool(server, 'issue-hub-query', {
     title: '读取 Issue 数据', description: '读取当前身份的仓库、Issue、评论、活动、候选及本机状态。',
@@ -39,6 +42,19 @@ export function createIssueServer({ html, issues, tasks, diagnostics, icons = []
     annotations: { ...readHints, readOnlyHint: false, idempotentHint: false }, _meta: appMeta,
   }, safe(({ action, payload }) => tasks.execute(action, payload)));
   registerAppTool(server, 'issue-hub-diagnostics', { title: '连接检查', description: '检查本机依赖、登录、项目接口和存储，不修改GitHub或发送会话。', inputSchema: z.object({}).strict(), annotations: readHints, _meta: appMeta }, safe(() => diagnostics.diagnose()));
+  registerAppTool(server, 'issue-hub-image', {
+    title: '读取Issue图片', description: '只读核验当前正文或评论中的GitHub图片，私有字节仅返回当前页面。',
+    inputSchema: z.object({ repositoryKey: z.string().regex(/^[a-f0-9]{20}$/), number: z.number().int().positive(), url: z.string().max(4096), commentId: z.number().int().positive().optional(), expectedIdentity: z.string().min(1).max(256) }).strict(), annotations: readHints, _meta: appMeta,
+  }, async args => {
+    try {
+      if (!images) throw new ProofError('IMAGE_UNAVAILABLE', '当前图片预览暂不可用，请打开原图。');
+      const value = await images.execute(args);
+      return { structuredContent: value.envelope, content: [{ type: 'text', text: 'Issue图片已读取。' }], _meta: { 'issue-hub/image': value.image } };
+    } catch (error) {
+      const failure = safeFailure(error);
+      return { isError: true, structuredContent: { error: failure }, content: [{ type: 'text', text: failure.message }] };
+    }
+  });
   server.registerTool('issue-repositories', { title: '读取 Issue 仓库目录', description: '读取已发现 GitHub 仓库的键与名称，不包含本机工作区路径。', inputSchema: z.object({}).strict(), annotations: readHints }, safe(async () => {
     const value = await issues.execute('refresh');
     return { schemaVersion: value.schemaVersion, identity: value.identity, sampledAt: value.sampledAt, offline: value.offline, cached: value.cached, checking: value.checking, data: { repositories: value.data.repositories.map(({ key, fullName }) => ({ key, fullName })), catalog: { status: value.data.catalog?.status, warnings: value.data.catalog?.warnings, sampledAt: value.data.catalog?.sampledAt, checking: value.data.catalog?.checking } } };

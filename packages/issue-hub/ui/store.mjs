@@ -95,14 +95,14 @@ export class LiveStore {
     const accessVersion = this.accessVersions.get(payload.repositoryKey) || 0;
     const writeKey = group === 'mutate' && ['save-issue', 'save-comment', 'change-state'].includes(action) ? `${payload.repositoryKey}:${payload.number || payload.values?.number || 'new'}` : null;
     if (writeKey) { this.issueWriteVersions.set(writeKey, (this.issueWriteVersions.get(writeKey) || 0) + 1); this.activeIssueWrites.set(writeKey, (this.activeIssueWrites.get(writeKey) || 0) + 1); }
-    if (group === 'mutate' || group === 'task') {
+    if (group === 'mutate' || group === 'task' || group === 'image') {
       if (this.identity == null) throw new StoreError('identity', '请先确认 GitHub 身份，再保存或打开任务。');
       payload = { ...payload, expectedIdentity: String(this.identity) };
     }
     let sequence = 0;
     try {
       const requestKey = JSON.stringify([generation, group, action, payload]);
-      const canJoin = group === 'query' || group === 'task' && action === 'latest';
+      const canJoin = group === 'query' || group === 'image' || group === 'task' && action === 'latest';
       let request = canJoin && this.inflight.get(requestKey);
       if (!request) {
         request = Promise.resolve().then(() => this.call(group, action, payload));
@@ -116,7 +116,7 @@ export class LiveStore {
       sequence = this.requestSequences.get(request);
       const envelope = await request;
       if (generation !== this.generation) throw new StoreError('stale', '账号已变化，已忽略旧请求结果。');
-      if (group === 'query' && payload.repositoryKey && accessVersion !== (this.accessVersions.get(payload.repositoryKey) || 0)) throw new StoreError('stale', '仓库访问范围已变化，已忽略此前读取结果。');
+      if ((group === 'query' || group === 'image') && payload.repositoryKey && accessVersion !== (this.accessVersions.get(payload.repositoryKey) || 0)) throw new StoreError('stale', '仓库访问范围已变化，已忽略此前读取结果。');
       if (!envelope || envelope.schemaVersion !== 1 || !envelope.identity) throw new StoreError('protocol', '服务返回格式不可识别，请更新插件后重试。');
       const changed = this.identity != null && String(envelope.identity) !== String(this.identity);
       if (changed) this.clearIdentity(envelope.identity);
@@ -125,7 +125,7 @@ export class LiveStore {
       const offline = envelope.offline === true || envelope.data?.offline === true;
       // 在线元数据复用缓存并不等于断网；宿主任务的成功也不能证明GitHub已恢复。
       const checking = envelope.checking || envelope.data?.checking;
-      if (sequence >= this.networkEvidenceSequence) {
+      if (group !== 'image' && sequence >= this.networkEvidenceSequence) {
         const onlineEvidence = group !== 'task' && envelope.networkChecked !== false;
         if (offline || onlineEvidence) { this.networkEvidenceSequence = sequence; this.online = !offline; }
         if (group !== 'task' && envelope.networkChecked !== false && envelope.sampledAt && this.online && envelope.cached !== true && !checking) this.data.lastSuccess = new Date(envelope.sampledAt).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
@@ -137,15 +137,18 @@ export class LiveStore {
     } catch (error) {
       if (generation !== this.generation) throw new StoreError('stale', '账号已变化，已忽略旧请求错误。');
       if (identityErrors.has(String(error.code).toUpperCase())) this.clearIdentity();
-      if (group === 'query' && ['PERMISSION_DENIED', 'NOT_FOUND', 'REPOSITORY_CHANGED'].includes(String(error.code).toUpperCase()) && payload.repositoryKey) {
+      if ((group === 'query' || group === 'image') && ['PERMISSION_DENIED', 'NOT_FOUND', 'REPOSITORY_CHANGED'].includes(String(error.code).toUpperCase()) && payload.repositoryKey) {
         const repo = this.data.repositories.find(item => item.key === payload.repositoryKey);
         if (repo) { this.invalidateRepository(repo.fullName); repo.access = 'unavailable'; }
       }
-      if (sequence >= this.networkEvidenceSequence && !/^(?:HOST_|CATALOG_)/.test(String(error.code).toUpperCase()) && /OFFLINE|NETWORK|UNAVAILABLE|TIMEOUT|RATE_LIMIT/.test(String(error.code).toUpperCase())) { this.networkEvidenceSequence = sequence; this.online = false; }
+      if (group !== 'image' && sequence >= this.networkEvidenceSequence && !/^(?:HOST_|CATALOG_)/.test(String(error.code).toUpperCase()) && /OFFLINE|NETWORK|UNAVAILABLE|TIMEOUT|RATE_LIMIT/.test(String(error.code).toUpperCase())) { this.networkEvidenceSequence = sequence; this.online = false; }
       throw error;
     } finally {
       if (writeKey && generation === this.generation) { this.issueWriteVersions.set(writeKey, (this.issueWriteVersions.get(writeKey) || 0) + 1); this.activeIssueWrites.set(writeKey, Math.max(0, (this.activeIssueWrites.get(writeKey) || 1) - 1)); }
     }
+  }
+  loadImage(repo, number, url, commentId) {
+    return this.request('image', 'read', { repositoryKey: this.repositoryKey(repo), number: Number(number), url, ...(commentId ? { commentId } : {}) });
   }
   acceptBootstrap(envelope) {
     // 初始工具通知不能覆盖已经开始的显式读取，更不能把页面切回旧账号。

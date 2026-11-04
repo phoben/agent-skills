@@ -1,12 +1,13 @@
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { ProofError, requireValue } from '../errors.mjs';
+import { IMAGE_MAX_BYTES, normalizeImageUrl } from '../image-policy.mjs';
 
 export class GithubError extends ProofError {}
 const digest = value => createHash('sha256').update(value).digest('hex');
-function execute(args, input, { command, timeout, maxBuffer }) {
+function execute(args, input, { command, timeout, maxBuffer, binary = false }) {
   return new Promise((resolve, reject) => {
-    const child = execFile(command, args, { encoding: 'utf8', shell: false, windowsHide: true, timeout, maxBuffer, env: { ...process.env, GH_HOST: 'github.com', GH_PROMPT_DISABLED: '1', GIT_TERMINAL_PROMPT: '0', GH_PAGER: 'cat', NO_COLOR: '1' } }, (error, stdout, stderr) => {
+    const child = execFile(command, args, { encoding: binary ? null : 'utf8', shell: false, windowsHide: true, timeout, maxBuffer, env: { ...process.env, GH_HOST: 'github.com', GH_PROMPT_DISABLED: '1', GIT_TERMINAL_PROMPT: '0', GH_PAGER: 'cat', NO_COLOR: '1' } }, (error, stdout, stderr) => {
       if (error) { error.stdout = stdout; error.stderr = stderr; reject(error); } else resolve({ stdout, stderr });
     });
     child.stdin?.on('error', () => {});
@@ -37,8 +38,9 @@ function classify(error, response, method) {
   return new GithubError('GITHUB_REJECTED', 'GitHub 未接受本次操作，请重新读取后检查。', { definitelyRejected: status < 500 });
 }
 
-export function createGithubClient({ run = execute, command = 'gh', timeout = 20000, maxBuffer = 20 * 1024 * 1024 } = {}) {
+export function createGithubClient({ run = execute, command = 'gh', timeout = 20000, maxBuffer = 20 * 1024 * 1024, imageMaxBytes = IMAGE_MAX_BYTES } = {}) {
   const options = { command, timeout, maxBuffer };
+  requireValue(Number.isSafeInteger(imageMaxBytes) && imageMaxBytes > 0 && imageMaxBytes <= IMAGE_MAX_BYTES, 'INVALID_ARGUMENT', '图片读取大小上限无效。');
   const identities = new Map();
   async function fingerprint() {
     try {
@@ -71,5 +73,37 @@ export function createGithubClient({ run = execute, command = 'gh', timeout = 20
     identities.set(credentialFingerprint, pending);
     try { return await pending; } finally { if (identities.get(credentialFingerprint) === pending) identities.delete(credentialFingerprint); }
   }
-  return { request, identity, fingerprint };
+  async function readImage(value) {
+    const url = normalizeImageUrl(value);
+    // gh按初始URL主机选择凭据；历史图片域保留原链接，避免给它们附加企业凭据。
+    requireValue(url && new URL(url).hostname === 'github.com', 'IMAGE_SOURCE_REJECTED', '此图片地址请通过原链接查看。');
+    let raw;
+    try {
+      // 媒体与JSON路径分开，令牌只由gh使用；二进制stdout先限量，不回传重定向头。
+      raw = await run(['api', '--hostname', 'github.com', '--method', 'GET', '--include', '-H', 'Accept: application/octet-stream', url], null, { ...options, binary: true, maxBuffer: imageMaxBytes + 64 * 1024 });
+    } catch (error) {
+      if (error?.code === 'ERR_CHILD_PROCESS_STDIO_MAXBUFFER') throw new GithubError('IMAGE_TOO_LARGE', '图片超过预览大小上限，请打开原图。');
+      throw new GithubError('IMAGE_UNAVAILABLE', '图片暂时无法读取，可稍后重试或打开原图。');
+    }
+    requireValue(Buffer.isBuffer(raw?.stdout), 'IMAGE_UNAVAILABLE', '图片响应格式不可识别，请打开原图。');
+    const output = raw.stdout;
+    let boundary = output.indexOf('\r\n\r\n'), separator = 4;
+    if (boundary < 0) { boundary = output.indexOf('\n\n'); separator = 2; }
+    requireValue(boundary > 0 && boundary <= 64 * 1024, 'IMAGE_UNAVAILABLE', '图片响应格式不可识别，请打开原图。');
+    const header = output.subarray(0, boundary).toString('utf8');
+    const status = Number(/^HTTP\/[\d.]+\s+(\d+)/.exec(header)?.[1]);
+    requireValue(status === 200, 'IMAGE_UNAVAILABLE', '图片访问未获确认，请打开原图核对权限。');
+    const mimeType = /^content-type:\s*([^;\r\n]+)/im.exec(header)?.[1]?.trim().toLowerCase();
+    const bytes = output.subarray(boundary + separator);
+    requireValue(bytes.length <= imageMaxBytes, 'IMAGE_TOO_LARGE', '图片超过预览大小上限，请打开原图。');
+    const signatures = {
+      'image/png': () => bytes.length >= 8 && bytes.subarray(0, 8).equals(Buffer.from('89504e470d0a1a0a', 'hex')),
+      'image/jpeg': () => bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff,
+      'image/gif': () => bytes.length >= 6 && ['GIF87a', 'GIF89a'].includes(bytes.subarray(0, 6).toString('ascii')),
+      'image/webp': () => bytes.length >= 12 && bytes.subarray(0, 4).toString('ascii') === 'RIFF' && bytes.subarray(8, 12).toString('ascii') === 'WEBP',
+    };
+    requireValue(Object.hasOwn(signatures, mimeType || '') && signatures[mimeType](), 'IMAGE_UNSUPPORTED', '此图片格式暂不支持预览，请打开原图。');
+    return { mimeType, bytes };
+  }
+  return { request, identity, fingerprint, readImage };
 }

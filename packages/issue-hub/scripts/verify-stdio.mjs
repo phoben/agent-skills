@@ -18,6 +18,7 @@ try {
   await client.connect(transport, { timeout: 120000 });
   assert.equal(client.getServerVersion()?.version, expectedVersion);
   const { tools } = await client.listTools();
+  assert.equal(tools.length, 9);
   const primary = tools.filter(tool => tool._meta?.['openai/ui']?.entrypoints?.some(entry => entry.type === 'global'));
   assert.deepEqual(primary.map(tool => tool.name), ['issue-hub-open']);
   assert.equal(primary[0].title, 'Issue Hub');
@@ -31,14 +32,19 @@ try {
   }
   // 当前SDK可能省略Tool.icons；原生入口仍可使用公开的服务图标。
   if (primary[0].icons) assert.deepEqual(primary[0].icons, icons, '已提供的主入口图标必须与服务一致。');
-  for (const name of ['issue-hub-query', 'issue-hub-mutate', 'issue-hub-task']) {
+  for (const name of ['issue-hub-query', 'issue-hub-mutate', 'issue-hub-task', 'issue-hub-image']) {
     const tool = tools.find(entry => entry.name === name); assert.ok(tool); assert.deepEqual(tool._meta.ui.visibility, ['app']); assert.equal(tool._meta['openai/ui'], undefined);
   }
   assert.ok(!tools.some(tool => tool.name.startsWith('issue-proof-')));
-  const resource = await client.readResource({ uri: 'ui://issue-hub/app.html' });
+  assert.equal(primary[0]._meta.ui.resourceUri, 'ui://issue-hub/app-v2.html');
+  const resource = await client.readResource({ uri: 'ui://issue-hub/app-v2.html' });
   assert.match(resource.contents[0].mimeType, /mcp-app/);
   assert.ok(resource.contents[0].text.length > 1000);
   assert.ok(!resource.contents[0].text.includes('fixture.json'));
+  assert.deepEqual(resource.contents[0]._meta.ui.csp, { connectDomains: [], resourceDomains: ['data:'], frameDomains: [] });
+  const compatibilityResource = await client.readResource({ uri: 'ui://issue-hub/app.html' });
+  assert.equal(compatibilityResource.contents[0].text, resource.contents[0].text);
+  assert.deepEqual(compatibilityResource.contents[0]._meta, resource.contents[0]._meta);
   const invalid = await client.callTool({ name: 'issue-hub-query', arguments: { action: 'save-issue', payload: {} } });
   assert.equal(invalid.isError, true);
   const bootstrap = await client.callTool({ name: 'issue-hub-open', arguments: {} }, undefined, { timeout: 120000 });

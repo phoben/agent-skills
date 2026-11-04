@@ -12,6 +12,7 @@ import { createCatalog } from '../src/catalog.mjs';
 import { createStorage } from '../src/storage/database.mjs';
 import { createGithubClient } from '../src/github/client.mjs';
 import { createIssueService } from '../src/services/issues.mjs';
+import { createIssueImages } from '../src/services/images.mjs';
 import { createIssueTasks } from '../src/services/issue-tasks.mjs';
 import { createIssueServer } from '../src/server.mjs';
 import { createIssueHubIcons } from '../src/icons.mjs';
@@ -29,9 +30,10 @@ const catalog = createCatalog({ bridge });
 const storage = createStorage({ directory: await mkdtemp(join(tmpdir(), 'issue-hub-preview-')) });
 const github = createGithubClient();
 const issues = createIssueService({ github, storage, catalog });
+const images = createIssueImages({ github, issues });
 const diagnostics = createRuntimeDiagnostics({bridge,github,catalog,directory:dirname(storage.filename)});
 const tasks = createIssueTasks({ catalog, bridge, storage, issues });
-const mcp = createIssueServer({ html, issues, tasks, diagnostics, icons });
+const mcp = createIssueServer({ html, issues, images, tasks, diagnostics, icons });
 const client = new Client({ name: 'issue-hub-readonly-preview', version: '1.0.0' });
 const [left, right] = InMemoryTransport.createLinkedPair(); await mcp.connect(left); await client.connect(right);
 const browser = await build({ absWorkingDir: root, stdin: { contents: `
@@ -84,7 +86,7 @@ const server = createServer(async (request, response) => {
     // 仅允许读任务或保存本机工作区偏好，打开/检查/确认会话仍不放行。
     const isTaskRead = input.name === 'issue-hub-task' && ['latest', 'bind'].includes(input.arguments?.action);
     const isLocalDraft = input.name === 'issue-hub-mutate' && ['draft-save', 'preference-save', 'view-state-save'].includes(input.arguments?.action);
-    if (!isTaskRead && !isLocalDraft && !['issue-hub-open', 'issue-hub-query', 'issue-hub-diagnostics', 'issue-read', 'issue-comments', 'issue-repositories'].includes(input.name)) {
+    if (!isTaskRead && !isLocalDraft && !['issue-hub-open', 'issue-hub-query', 'issue-hub-image', 'issue-hub-diagnostics', 'issue-read', 'issue-comments', 'issue-repositories'].includes(input.name)) {
       response.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify({ isError: true, structuredContent: { error: { code: 'READONLY_PREVIEW', message: '此浏览器联调入口只读，写入及会话请在 Codex 插件内操作。' } }, content: [] })); return;
     }
     const result = await client.callTool(input, undefined, { timeout: 120000 });

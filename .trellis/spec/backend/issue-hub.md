@@ -6,17 +6,17 @@
 
 ## YG Toolkit统一分发
 
-- 唯一安装项为yg-toolkit。mcpServers包含yg-token-usage与issue-hub两个独立进程，各有一global和各自URI；原Issue工具名与ui://issue-hub/app.html不变。
+- 唯一安装项为yg-toolkit。mcpServers包含yg-token-usage与issue-hub两个独立进程，各有一global和各自URI；既有Issue工具名保留，当前UI为ui://issue-hub/app-v2.html，旧app.html保留兼容别名。
 - 两MCP/页面版本从YG双清单确定；源码私有package版本不是安装版本。Issue源VERSION fallback读取YG manifest，正式bundle define canonical，不能按旧独立0.3.5与YG0.3.0比较数据降级。
 - Tokens原build入口串行构建两模块，Issuebuild不反向调用；Issue输出YG dist内issue-hub.cjs、issue-hub.html、issue-hub-THIRD-PARTY-LICENSES.txt，icon为YG assets/issue-hub.svg。Tokens原三件不覆盖，依赖分别安装，hook不能联网临时补依赖。
 - 自动升版仅YG归属，两个源码模块及六产物一同校验/重建，固定目标版本避免外部build override污染；脏输入拒绝，任何失败整体恢复。
 - 本机IssueHub/data、schema和双身份算法不变，禁复制/清空业务库做迁移。只从干净源安装完整YG，原独立缓存退役不删除业务目录。gh缺失只影响Issue功能，不能阻断Tokens。
 - 安装API的marketplacePath是marketplace JSON文件。已有源不盲删覆盖，首次成员才注册包源；已有本地源必须同步整合源码，不能将一次override安装冒充长期源更新。安装/配置管理只存在于setup工具，不扩展业务bridge允许的方法。
-- 验证必须在同一复制YG包分别启动两服务，确认11工具/2global、两个UI/独立许可/完整skills；故障注入Issue缺gh仍可Tokens打开。迁移前后只保存持久行摘要，不输出token或聊天正文。
+- 验证必须在同一复制YG包分别启动两服务，确认12工具/2global（Issue9、Tokens3）、两个UI/独立许可/完整skills；故障注入Issue缺gh仍可Tokens打开。迁移前后只保存持久行摘要，不输出token或聊天正文。
 
 ## 正式管理契约（0.2.0）
 
-- `createIssueServer` 只有 `issue-hub-open` 一个 global，资源为 `ui://issue-hub/app.html`。query/mutate/task 仅 app 可见；模型只有固定只读仓库目录、Issue 与评论入口，不暴露远端写或任意 shell/URL/API 路径。
+- `createIssueServer` 只有 `issue-hub-open` 一个 global，资源为 `ui://issue-hub/app-v2.html`并保留旧app.html别名。query/mutate/task/image 仅 app 可见；模型只有固定只读仓库目录、Issue 与评论入口，不暴露远端写或任意 shell/URL/API 路径。图片跨层契约见[图片预览](issue-hub-images.md)。
 - `createGithubClient` 通过无 shell 的 gh 执行固定 github.com REST，写入 JSON 走 stdin。身份使用远端稳定用户 ID；凭据仅在进程内求指纹。每个写请求必须携带页面 expectedIdentity，并在真实上下文前后复核；不能把旧页面输入应用到新账号。
 - SQLite 位于独立 IssueHub/data，schema 迁移、忙超时和较新版本拒绝由 `createStorage` 负责；事务同步，不跨 await。缓存/草稿/回执/偏好按 gh scope 隔离，任务另绑定 Codex 身份，不保存 token 或聊天正文。P0 JSON 请求不自动迁移成正式任务。
 - 已验证凭据不变时，网络失败可读对应离线缓存并存草稿；未知身份、凭据变化或401不可回退。资源403/404须撤销该仓库读取缓存，保留未发草稿；资源401同样撤销离线身份资格。`cached` 表示来源，不能据此推断离线，使用明确 `offline` 状态。

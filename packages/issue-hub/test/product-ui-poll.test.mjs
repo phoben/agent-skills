@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { createContext, Script } from 'node:vm';
+import { createContext as createVmContext, Script } from 'node:vm';
 import { createSummaryPainter } from '../ui/summary.mjs';
 import { LiveStore, StoreError } from '../ui/store.mjs';
 import { esc, safeUrl } from '../ui/ui.mjs';
 
 const source = await readFile(new URL('../ui/app.mjs', import.meta.url), 'utf8');
+const createContext = values => createVmContext({ imageController: null, ...values });
 const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start)));
 
 function failedDetailPage({ issueDraft = null, commentDraft = { text: '已存评论草稿' } } = {}) {

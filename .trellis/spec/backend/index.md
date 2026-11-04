@@ -31,6 +31,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Logging Guidelines](./logging-guidelines.md) | Structured logging, log levels | To fill |
 | [Issue Hub](./issue-hub.md) | YG内Issue模块、gh/SQLite、稳定身份与会话 | YG0.3.0整合通过，第二机暂缓 |
+| [Issue图片](./issue-hub-images.md) | 受限图片解析、认证读取、私有元数据与CSP | YG0.3.2本机协议与浏览器通过，原生像素另验 |
 
 ---
 

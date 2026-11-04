@@ -23,7 +23,7 @@ try {
   const snapshots = [];
   for (const definition of [
     { key: 'yg-token-usage', file: 'token-usage.cjs', entry: 'token_usage_open', uri: 'ui://yg-toolkit/token-usage.html', tools: 3 },
-    { key: 'issue-hub', file: 'issue-hub.cjs', entry: 'issue-hub-open', uri: 'ui://issue-hub/app.html', tools: 8 },
+    { key: 'issue-hub', file: 'issue-hub.cjs', entry: 'issue-hub-open', uri: 'ui://issue-hub/app-v2.html', tools: 9 },
   ]) {
     assert.deepEqual(mcp.mcpServers[definition.key].args, [`${'${PLUGIN_ROOT}'}/dist/${definition.file}`]);
     const env = { ...process.env, ISSUE_HUB_DATA_DIR: join(temporary, 'issue-state') };
@@ -43,6 +43,13 @@ try {
     const resource = await client.readResource({ uri: definition.uri });
     assert.match(resource.contents[0].mimeType, /mcp-app/); assert.ok(resource.contents[0].text.length > 1000);
     assert.ok(!resource.contents[0].text.includes('fixture.json'));
+    if (definition.key === 'issue-hub') {
+      assert.equal(global[0]._meta.ui.resourceUri, definition.uri);
+      assert.deepEqual(resource.contents[0]._meta.ui.csp, { connectDomains: [], resourceDomains: ['data:'], frameDomains: [] });
+      const compatibilityResource = await client.readResource({ uri: 'ui://issue-hub/app.html' });
+      assert.equal(compatibilityResource.contents[0].text, resource.contents[0].text);
+      assert.deepEqual(compatibilityResource.contents[0]._meta, resource.contents[0]._meta);
+    }
     snapshots.push({ service: definition.key, tools: tools.length, globalEntries: global.length, uri: definition.uri });
   }
   const unavailableIssue = await clients[1].callTool({ name: 'issue-hub-open', arguments: {} }, undefined, { timeout: 120000 });
@@ -51,7 +58,7 @@ try {
   const tokensOpen = await clients[0].callTool({ name: 'token_usage_open', arguments: {} });
   assert.ok(!tokensOpen.isError, 'Issue模块依赖缺失不能阻止Tokens页面');
   const stillTokens = await clients[0].listTools(); assert.equal(stillTokens.tools.length, 3);
-  process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, plugin: manifest.name, version: manifest.version, services: snapshots, totalTools: 11, totalGlobalEntries: 2, issueDependencyFailureIsolated: true, skillsAvailable: true, remoteWrites: false, chatOpened: false, desktopVerified: false })}\n`);
+  process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, plugin: manifest.name, version: manifest.version, services: snapshots, totalTools: 12, totalGlobalEntries: 2, issueDependencyFailureIsolated: true, skillsAvailable: true, remoteWrites: false, chatOpened: false, desktopVerified: false })}\n`);
 } finally {
   for (const client of clients) await client.close();
   assert.ok(resolve(temporary).startsWith(`${resolve(tmpdir())}${sep}yg-toolkit-stdio-`));
