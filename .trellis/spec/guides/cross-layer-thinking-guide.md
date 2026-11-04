@@ -1,5 +1,13 @@
 # Cross-Layer Thinking Guide
 
+## 宿主扩展的界面语义
+
+- “侧栏、面板、窗口”先区分主入口、宿主原生浮层和 iframe 内部区域，并写清触发位置与对象数量。
+- 追到宿主消费协议并呈现目标区域的路径，不能止于服务端注册成功或资源可读取。
+- 公开 SDK、内置 first-party bridge 与第三方可调用能力分别举证；内部方法存在不等于插件可接入。
+- 回归断言用户可观察的入口数量和状态变化；无法取得原生契约时明确待验证，不用自绘或多入口代替。
+- Issue Hub 的具体约束见 [宿主验证契约](../backend/issue-hub.md)，相关原生浮层保持未满足。
+
 > **Purpose**: Think through data flow across layers before implementing.
 
 ---

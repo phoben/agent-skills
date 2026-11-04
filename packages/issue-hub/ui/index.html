@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Issue Hub</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ctitle%3EIssue%20Hub%3C%2Ftitle%3E%3Crect%20x%3D%221%22%20y%3D%221%22%20width%3D%2230%22%20height%3D%2230%22%20rx%3D%227%22%20fill%3D%22%23262626%22%20stroke%3D%22%23737373%22%20stroke-width%3D%22.6%22%2F%3E%3Cg%20transform%3D%22translate(4%204)%22%20fill%3D%22none%22%20stroke%3D%22%23fff%22%20stroke-width%3D%221.7%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpath%20d%3D%22M7%2015H5a2%202%200%200%201-2-2V5a2%202%200%200%201%202-2h7a2%202%200%200%201%202%202v1%22%2F%3E%3Crect%20x%3D%2210%22%20y%3D%228%22%20width%3D%2211%22%20height%3D%2213%22%20rx%3D%222%22%2F%3E%3Cpath%20d%3D%22M6%206h4m4%2012h3M7%2010h2a3%203%200%200%201%203%203v1m-2-2%202%202%202-2%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E">
+  <!-- APP_STYLE -->
+
+</head>
+<body>
+  <div id="app" class="app">
+    <div class="mobile-bar"><button id="repository-drawer" class="button" aria-haspopup="dialog">仓库</button><span id="mobile-repository"></span></div>
+    <main id="workspace" class="workspace">
+      <aside id="navigation" class="navigation" aria-label="仓库导航"></aside>
+      <div class="column-separator" data-column="navigation" role="separator" aria-label="调整项目列表宽度" aria-orientation="vertical" aria-controls="navigation" aria-valuemin="164" aria-valuemax="420" aria-valuenow="164" tabindex="0" title="拖动调整项目列表宽度；方向键微调，Enter 恢复默认"></div>
+      <section id="queue" class="queue" aria-label="Issue 队列"><div class="initial-load" role="status">正在读取仓库…</div></section>
+      <div class="column-separator" data-column="queue" role="separator" aria-label="调整 Issue 队列宽度" aria-orientation="vertical" aria-controls="queue" aria-valuemin="280" aria-valuemax="640" aria-valuenow="316" tabindex="0" title="拖动调整 Issue 队列宽度；方向键微调，Enter 恢复默认" hidden></div>
+      <section id="detail" class="detail" aria-label="Issue 详情" hidden></section>
+    </main>
+    <footer id="statusbar" class="statusbar" aria-live="polite"></footer>
+  </div>
+  <div id="overlay-root"></div>
+  <div id="announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <noscript>请启用 JavaScript 以浏览 Issue 和保留本机草稿。</noscript>
+<!-- APP_SCRIPT -->
+</body>
+</html>

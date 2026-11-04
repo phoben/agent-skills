@@ -1,0 +1,22 @@
+{
+  "name": "@yg/issue-hub",
+  "version": "0.3.5",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24 <25" },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "node scripts/check.mjs",
+    "build": "node scripts/build.mjs",
+    "verify:stdio": "node scripts/verify-stdio.mjs",
+    "verify:live": "node scripts/verify-live.mjs",
+    "doctor": "node ../../plugins/issue-hub/dist/issue-hub.cjs --doctor",
+    "package:windows": "node scripts/package-windows.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/ext-apps": "1.2.2",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": { "esbuild": "0.28.2" }
+}

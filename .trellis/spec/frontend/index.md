@@ -9,6 +9,7 @@
 ## Pre-Development Checklist（开发前）
 
 - 修改`packages/token-usage/ui/`时，先读[Tokens页面规范](./token-usage.md)与`docs/design/token-usage.md`。
+- 修改 `packages/issue-hub/ui/` 时，先读 [Issue Hub 验证页与原型交接](./issue-hub.md)，正式界面以用户确认的 U1 原型为准。
 - 使用已确认C版设计；下列通用模板尚未填充，不视为现有产品模式。
 
 ## Quality Check（质量检查）
@@ -29,6 +30,7 @@ This directory contains guidelines for frontend development. Fill in each file w
 | [State Management](./state-management.md) | Local state, global state, server state | To fill |
 | [Quality Guidelines](./quality-guidelines.md) | Code standards, forbidden patterns | To fill |
 | [Type Safety](./type-safety.md) | Type patterns, validation | To fill |
+| [Issue Hub](./issue-hub.md) | A 连读队列、MCP投影、草稿、权限与会话状态 | 0.3.4，本机通过，原型已确认 |
 
 ---
 
