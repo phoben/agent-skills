@@ -12,28 +12,21 @@ export function formatPercent(part, total) {
   return part > 0 && percentage < 0.1 ? '<0.1%' : `${percentage.toFixed(1)}%`;
 }
 
-export function coverageNotes(local) {
+export function coverageWarnings(local) {
   if (!local) return [];
-  const coverage = local.coverage ?? {}, notes = [], scope = [], excluded = [], read = [];
-  if (count(coverage.attributedThreads) !== null) scope.push(`当前账号 ${coverage.attributedThreads} 条`);
-  if (count(coverage.unassignedAccountThreads) !== null) excluded.push(`未知归属 ${coverage.unassignedAccountThreads} 条`);
-  if (count(coverage.excludedAccountThreads) !== null) excluded.push(`其他账号 ${coverage.excludedAccountThreads} 条`);
-  if (excluded.length) scope.push(`已排除${excluded.join('、')}`);
-  if (scope.length) notes.push(`统计范围：${scope.join('；')}。`);
-  if (count(coverage.failedThreads) !== null) read.push(`读取失败 ${coverage.failedThreads} 条`);
-  if (count(coverage.partialRollouts) !== null) read.push(`部分覆盖 ${coverage.partialRollouts} 条`);
-  if (read.length) notes.push(`读取情况：${read.join('；')}。${coverage.partialRollouts > 0 ? '部分会话仅计可确认的新增用量。' : ''}`);
-  if (local.status === 'partial' && !scope.length && !read.length) notes.push('本机统计覆盖不完整，仅含已成功读取的记录。');
+  const coverage = local.coverage ?? {}, notes = [];
   const coveredWarnings = new Map([
     ['未确认账号归属的历史会话已排除。','unassignedAccountThreads'],
     ['其他账号的本机会话已排除。','excludedAccountThreads'],
     ['部分会话只有可确认的新增用量，统计可能不完整。','partialRollouts'],
     ['部分本机会话暂时无法读取。','failedThreads'],
   ]);
+  const hasCounts = ['attributedThreads', ...coveredWarnings.values()].some(key => count(coverage[key]) !== null);
+  if (local.status === 'partial' && !hasCounts) notes.push('本机统计覆盖不完整，仅含已成功读取的记录。');
   for (const warning of new Set(local.warnings ?? [])) {
     if (typeof warning !== 'string' || !/[\u4e00-\u9fff]/.test(warning) || /\b[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+\b/.test(warning)) continue;
     const key = coveredWarnings.get(warning);
-    if (!key || !(coverage[key] > 0)) notes.push(warning);
+    if (local.status === 'unavailable' || !key || !(count(coverage[key]) > 0)) notes.push(warning);
   }
   return notes;
 }

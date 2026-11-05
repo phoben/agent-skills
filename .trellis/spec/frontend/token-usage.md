@@ -57,3 +57,5 @@ model测试覆盖日期、空值、错误优先、额度选择、转义、趋势
 - projectPresentation按全量本机totalTokens严格比较>1%；<=1%聚为group:other，保留memberIds，分项/日桶/会话数相加，未知不冒充零。展开后恢复原项目，不重新归一化百分比。
 - 合并行通过projectIds调用会话接口，不把group:other作为真实projectId发送。
 - day-cell与day-hit均明确底部对齐，day-hit为row方向；截图之外实际测量非零bar的bottom坐标差应小于0.5px。
+
+底部统计覆盖用指标卡展示。本机记录数来自索引和日志读取情况，官方覆盖用所选区间已返回天数及区间总天数，历史起止日期单独标示。真实零照常展示，缺失计数用破折号，独立错误保留可见。每张卡的口径提示支持悬停、键盘聚焦和 Escape 关闭。
