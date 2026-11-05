@@ -1,6 +1,6 @@
 # Issue Hub Windows 交接
 
-当前交付为YG Toolkit 0.3.2，包含完整工程技能、Tokens与Issue Hub。本机管理与会话流程已验收，新增图片在真实GitHub只读预览页核对；Codex内图片显示仍需成员观察。另一台真实Windows按用户安排暂缓，设备到位后复用本清单。
+当前交付为YG Toolkit 0.3.3，包含完整工程技能、Tokens与Issue Hub。本机管理与会话流程已验收，图片及账号菜单在只读预览页核对；Codex内最终显示由成员观察。另一台真实Windows按用户安排暂缓，设备到位后复用本清单。
 
 ## 准备包
 
@@ -21,6 +21,7 @@ node packages/issue-hub/scripts/package-windows.mjs --out E:/YGToolkitTransfer
 2. 解压 ZIP，在解压目录运行 `powershell -ExecutionPolicy Bypass -File .\install.ps1 -CheckOnly`；按结果处理缺失依赖和连接问题。
 3. 通过后运行 `powershell -ExecutionPolicy Bypass -File .\install.ps1`。安装完整YG；已有同版只有文件匹配才复用，已装更高YG不自动降级。不要将旧独立Issue版本号与YG版本比较。
 4. 分别打开Tokens和Issue Hub。插件安装项只有YG，两个模块各保留页面入口；Issue页面内切仓库并核对列表/详情。
+   项目栏底部账号入口向上展开项目与布局操作，连接检查位于底部连接状态旁的图标按钮；窄窗仍可使用。
 5. 仅在明确获准的临时 Issue 验证写入，完成后关闭清理，不向业务 Issue 随意发测试评论。
 6. 核对工作区和未发送提示词。保留首行引用，将其余内容改为“仅回复验收收到，不读写项目、不运行命令、不操作 GitHub”，手动发送后检查关联并返回同一聊天。
 7. 如需切账号，先保存输入；新账号不能显示上一账号私有缓存或发布其草稿。失败时回报连接检查状态，不提交 token 或完整日志。

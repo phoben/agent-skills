@@ -15,6 +15,9 @@ export const icon = (name) => {
     close: '<path d="m4 4 8 8M12 4l-8 8"/>', check: '<path d="m3 8 3 3 7-7"/>',
     back: '<path d="M13 8H3m4-4L3 8l4 4"/>', more: '<circle cx="3" cy="8" r=".7"/><circle cx="8" cy="8" r=".7"/><circle cx="13" cy="8" r=".7"/>',
     filter: '<path d="M2 4h12M4 8h8M6 12h4"/>', file: '<path d="M4 2h5l3 3v9H4V2Zm5 0v4h3M6 9h4M6 11h3"/>',
+    user: '<circle cx="8" cy="5" r="2.5"/><path d="M3 14v-1a5 5 0 0 1 10 0v1"/>',
+    layout: '<rect x="2" y="3" width="12" height="10" rx="1.5"/><path d="M6 3v10M10 3v10"/>',
+    activity: '<path d="M2 8h3l2-5 3 10 2-5h2"/>',
   };
   return `<svg class="icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.issue}</svg>`;
 };

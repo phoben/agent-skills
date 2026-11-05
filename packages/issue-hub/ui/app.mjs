@@ -8,6 +8,7 @@ import { taskDetailsMarkup, taskHistoryMarkup, workspacePickerMarkup } from './t
 import { readDiagnostics, diagnosticsMarkup } from './diagnostics.mjs';
 import { createSummaryPainter } from './summary.mjs';
 import { createImageController } from './images.mjs';
+import { accountTriggerMarkup, accountMenuHeader } from './account-menu.mjs';
 import './style.css';
 import { esc, icon, labels, button, options, taskText, taskAction, taskDestination, bodyMarkup, issueForm, safeUrl, issueCountLabels, brandMark } from './ui.mjs';
 
@@ -89,7 +90,10 @@ const action = (name, text, className = '', extra = '') => button(name, text, { 
 const hasEditor = () => Boolean(state.editor || state.commentId || state.comment.trim() || (state.selected && store.draft(state.repo, state.selected, 'comment')));
 
 function status(updated = false) {
-  $('#statusbar').innerHTML = `${icon(store.online ? 'check' : 'issue')}<span>${state.refreshing ? '检查中…' : store.online ? '最近检查' : '离线缓存'}</span><span class="last-success">· 最后成功 ${esc(store.data.lastSuccess)}</span><span class="sync-cadence">· 每 60 秒检查</span><span class="status-account">当前账号 ${esc(store.account.login)}</span>${action('refresh', '手动刷新', 'plain', state.refreshing ? 'disabled' : '')}`;
+  const focused = document.activeElement?.closest('#statusbar button')?.id;
+  $('#statusbar').innerHTML = `<span class="connection-state">${icon(store.online ? 'check' : 'issue')}<span>${state.refreshing ? '检查中…' : store.online ? '最近检查' : '离线缓存'}</span>${button('diagnostics', '', { className: 'plain icon-button connection-check', symbol: 'activity', extra: 'id="connection-check" aria-label="连接检查" title="连接检查"' })}</span><span class="last-success">· 最后成功 ${esc(store.data.lastSuccess)}</span><span class="sync-cadence">· 每 60 秒检查</span><span class="status-account">${accountTriggerMarkup(store.account, store.catalog, { compact: true })}</span>${action('refresh', '手动刷新', 'plain status-refresh', `${state.refreshing ? 'disabled' : ''} id="status-refresh"`)}`;
+  restoreAccountMenuAnchor();
+  if (focused) document.getElementById(focused)?.focus({ preventScroll: true });
   if (updated) {
     $('#statusbar').dataset.updated = 'true';
     clearTimeout(statusTimer); statusTimer = setTimeout(() => delete $('#statusbar').dataset.updated, 600);
@@ -101,10 +105,19 @@ function repoButtons(query = '') {
   return repositories.map((repo) => `<button class="repo ${repo.fullName === state.repo ? 'current' : ''}" data-action="repository" data-repo="${esc(repo.fullName)}" title="${esc(repo.fullName)}" aria-label="${esc(repo.fullName)}" tabindex="${repo.fullName === focusRepo ? 0 : -1}" ${repo.fullName === state.repo ? 'aria-current="page"' : ''}>${icon('repo')}<span class="repo-name">${esc(repo.fullName)}</span><span class="repo-count">${store.pages[repo.fullName] ? `${store.list(repo.fullName).filter((issue) => issue.state === 'open').length}${store.pages[repo.fullName].complete ? '' : '+'}` : '—'}</span></button>`).join('') || '<p class="muted">没有匹配的仓库</p>';
 }
 function renderNav() {
-  $('#navigation').innerHTML = `<div class="brand">${brandMark()}Issue Hub</div><label class="repo-search-label" for="repository-search">搜索仓库</label><input class="repo-search" id="repository-search" value="${esc(state.repoQuery)}" autocomplete="off"><div class="nav-section">仓库 · ${esc(store.data.repositories.find((repo) => repo.fullName === state.repo)?.owner || '')}</div><div class="repository-list" id="repository-list">${repoButtons(state.repoQuery)}</div><div class="nav-bottom">${store.catalog?.status === 'complete' ? '项目已读取' : '项目发现范围不完整'}<strong>${action('discover', '重新发现项目', 'plain')}</strong></div>`;
+  const accountWasFocused = document.activeElement?.id === 'account-menu-trigger';
+  $('#navigation').innerHTML = `<div class="brand">${brandMark()}Issue Hub</div><label class="repo-search-label" for="repository-search">搜索仓库</label><input class="repo-search" id="repository-search" value="${esc(state.repoQuery)}" autocomplete="off"><div class="nav-section">仓库 · ${esc(store.data.repositories.find((repo) => repo.fullName === state.repo)?.owner || '')}</div><div class="repository-list" id="repository-list">${repoButtons(state.repoQuery)}</div><div class="nav-bottom">${accountTriggerMarkup(store.account, store.catalog)}</div>`;
   $('#mobile-repository').textContent = state.repo;
-  $('.nav-bottom')?.insertAdjacentHTML('beforeend', action('reset-layout', '恢复默认列宽', 'plain'));
-  $('.nav-bottom')?.insertAdjacentHTML('beforeend', action('diagnostics', '连接检查', 'plain'));
+  restoreAccountMenuAnchor();
+  if (accountWasFocused) $('#account-menu-trigger')?.focus({ preventScroll: true });
+}
+function restoreAccountMenuAnchor() {
+  const menu = $('.account-menu', overlay);
+  if (!menu) return;
+  const trigger = document.getElementById(overlayReturn?.id);
+  if (!trigger) { closeOverlay(false); return; }
+  overlayReturn = trigger; trigger.setAttribute('aria-expanded', 'true');
+  $('.account-menu-header', menu).innerHTML = accountMenuHeader(store.catalog);
 }
 function syncRepositoryHeader() {
   const detailOnly = matchMedia('(max-width:899px)').matches && Boolean(state.selected || state.editor);
@@ -571,13 +584,18 @@ function openModal(title, body, footer = '', { wide = false, drawer = false, onC
   const first = $('input,textarea,.modal-footer .primary', overlay) || $('.modal-header button', overlay);
   first?.focus();
 }
-function openMenu(trigger, items) {
+function openMenu(trigger, items, { account = false } = {}) {
   closeOverlay(false); overlayReturn = trigger; trigger.setAttribute('aria-expanded', 'true');
-  overlay.innerHTML = `<div class="menu" role="menu" aria-label="操作菜单">${items.map((item) => `<button role="menuitem" data-action="${item.action}" ${item.extra || ''}>${esc(item.text)}</button>`).join('')}</div>`;
+  overlay.innerHTML = `<div class="menu${account ? ' account-menu' : ''}" ${account ? 'id="account-menu"' : ''} role="menu" aria-label="${account ? '用户菜单' : '操作菜单'}">${account ? `<div class="account-menu-header" role="presentation">${accountMenuHeader(store.catalog)}</div>` : ''}${items.map((item) => `<button type="button" role="menuitem" data-action="${item.action}" ${item.extra || ''}>${item.symbol ? icon(item.symbol) : ''}${esc(item.text)}</button>`).join('')}</div>`;
   const menu = $('.menu', overlay); const rect = trigger.getBoundingClientRect();
-  menu.style.left = `${Math.max(10, Math.min(rect.right - 174, innerWidth - 190))}px`;
-  menu.style.top = `${Math.max(10, Math.min(rect.bottom + 5, innerHeight - menu.offsetHeight - 10))}px`;
+  if (account) menu.style.maxHeight = `${Math.max(80, Math.min(innerHeight - 20, rect.top - 16))}px`;
+  menu.style.left = `${Math.max(10, Math.min(account ? rect.left : rect.right - 174, innerWidth - menu.offsetWidth - 10))}px`;
+  menu.style.top = `${Math.max(10, account ? rect.top - menu.offsetHeight - 6 : Math.min(rect.bottom + 5, innerHeight - menu.offsetHeight - 10))}px`;
   $('button', menu)?.focus();
+}
+function showAccountMenu(trigger) {
+  if ($('.account-menu', overlay) && overlayReturn === trigger) { closeOverlay(); return; }
+  openMenu(trigger, [{ action: 'discover', text: '重新发现项目', symbol: 'refresh' }, { action: 'reset-layout', text: '恢复默认列宽', symbol: 'layout' }], { account: true });
 }
 function showTask() {
   const issue = current(); if (!issue) return;
@@ -669,7 +687,7 @@ async function showDiagnostics() {
   } catch (error) { if (generation === overlayGeneration) $('.modal-body', overlay).innerHTML = `<p class="form-error" role="alert">${esc(error.message)}</p>`; }
 }
 function showDrawer() {
-  openModal('仓库', `<label for="drawer-search">搜索仓库</label><input id="drawer-search" class="repo-search" type="search" autocomplete="off"><div class="repository-list" id="drawer-repositories">${repoButtons()}</div>${action('diagnostics', '连接检查', 'plain')}`, '', { drawer: true });
+  openModal('仓库', `<label for="drawer-search">搜索仓库</label><input id="drawer-search" class="repo-search" type="search" autocomplete="off"><div class="repository-list" id="drawer-repositories">${repoButtons()}</div>`, '', { drawer: true });
 }
 function clearFilters() { state.filters = { query: '', state: 'open', label: '', assignee: '', scroll: 0 }; void persistPreference(); renderQueue(); $('#issue-search').focus(); }
 function applyFilter(name, value) {
@@ -677,6 +695,7 @@ function applyFilter(name, value) {
 }
 async function handleAction(name, target, event) {
   switch (name) {
+    case 'account-menu': showAccountMenu(target); break;
     case 'repository': await switchRepository(target.dataset.repo); break;
     case 'open-issue': await openIssue(target.dataset.number); break;
     case 'close-detail': await closeDetail(); break;
@@ -706,8 +725,8 @@ async function handleAction(name, target, event) {
     }
     case 'more-issues': state.loading = true; renderRows(); try { await store.loadRepository(state.repo, { more: true }); } finally { state.loading = false; renderRows(); } break;
     case 'retry-detail': await openIssue(state.selected); break;
-    case 'discover': await store.request('query', 'refresh', {}); await load(); break;
-    case 'reset-layout': columnLayout.reset(); announce('列宽已恢复默认。'); break;
+    case 'discover': closeOverlay(); await store.request('query', 'refresh', {}); await load(); break;
+    case 'reset-layout': closeOverlay(); columnLayout.reset(); announce('列宽已恢复默认。'); break;
     case 'diagnostics': await showDiagnostics(); break;
     case 'discussion-tab': captureInputs(); state.discussionTab = target.dataset.tab; renderDetail(); $(`[data-tab="${state.discussionTab}"]`)?.focus(); break;
     case 'edit-comment': await preserveBefore(() => { const comment = current().commentItems.find((row) => String(row.id) === String(target.dataset.commentId)); if (comment?.login !== store.account.login) return; const draft = store.draft(state.repo, state.selected, `comment:${comment.id}`); state.commentId = comment.id; state.comment = draft ? draft.text : comment.text; state.commentBase = draft?.baseText ?? comment.text; state.commentError = ''; renderDetail(); $('#comment-body').focus(); }); break;
@@ -811,6 +830,7 @@ document.addEventListener('click', (event) => {
   const target = event.target.closest('[data-action]');
   if (target) {
     event.preventDefault();
+    if ($('.menu', overlay) && !target.closest('.menu') && target.dataset.action !== 'account-menu') closeOverlay(false);
     Promise.resolve(handleAction(target.dataset.action, target, event)).catch((error) => {
       announce(error.message); state.globalMessage = error.message;
       const node = document.createElement('div'); node.className = 'form-error'; node.setAttribute('role', 'alert'); node.textContent = error.message;
@@ -855,6 +875,11 @@ document.addEventListener('keydown', (event) => {
     else if (event.key === 'Tab') closeOverlay();
     return;
   }
+  if (event.target.matches('[data-action="account-menu"]') && ['ArrowDown', 'ArrowUp'].includes(event.key)) {
+    event.preventDefault(); showAccountMenu(event.target);
+    if (event.key === 'ArrowUp') $$('[role="menuitem"]', overlay).at(-1)?.focus();
+    return;
+  }
   // 文本编辑中的方向键、Enter 和 Esc 都保留原生输入用途。
   if (event.target.matches('input,textarea,select,[contenteditable="true"]')) return;
   const group = event.target.closest('.repository-list,.issue-list');
@@ -877,6 +902,11 @@ window.addEventListener('beforeunload', (event) => {
   event.preventDefault(); event.returnValue = '';
 });
 window.addEventListener('resize', () => { if ($('.menu', overlay)) closeOverlay(); syncRepositoryHeader(); });
+window.addEventListener('scroll', event => {
+  const menu = $('.menu', overlay);
+  // 账号锚点固定在底部，后台恢复列表滚动不应关闭正在操作的用户菜单。
+  if (menu && !$('.account-menu', overlay) && !menu.contains(event.target)) closeOverlay(false);
+}, true);
 // 后台只检查当前账号缓存，不抢焦点，也不重新挂载当前编辑器。
 setInterval(() => { if (!document.hidden && !state.loading && !state.refreshing) refresh(false); }, 60000);
 
