@@ -1,4 +1,4 @@
-import { IMAGE_TAG_SOURCE, parseImageTag, parseMarkdownImage, canPreviewImageUrl } from '../src/image-policy.mjs';
+import { IMAGE_TAG_SOURCE, parseImageTag, parseMarkdownImage, canPreviewImageUrl, withoutHtmlComments } from '../src/image-policy.mjs';
 
 // 所有来自数据与表单的文字在插入模板前统一转义。
 export const esc = (value = '') => String(value).replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);
@@ -65,10 +65,12 @@ export function safeUrl(value) {
 }
 
 export function bodyMarkup(body) {
-  const parts = String(body).split('```');
+  const parts = withoutHtmlComments(String(body).replace(/\r\n/g, '\n')).split('```');
   return parts.map((part, index) => {
     if (index % 2) return `<pre tabindex="0"><code>${esc(part.replace(/^\w*\n/, ''))}</code></pre>`;
-    return part.split('\n\n').map((block) => {
+    return part.split(/\n[ \t]*\n/).map((paragraph) => {
+      const block = paragraph.replace(/^(?:[ \t]*\n)+|(?:\n[ \t]*)+$/g, '');
+      if (!block.trim()) return '';
       const lines = block.split('\n');
       if (/^#{1,6}\s/.test(lines[0])) {
         const level = Math.min(4, lines[0].match(/^#+/)[0].length + 1);

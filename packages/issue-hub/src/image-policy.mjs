@@ -56,10 +56,34 @@ export function parseMarkdownImage(token) {
   return url ? { url, alt: entityText(match[1] || 'Issue 图片').replace(/\s+/g, ' ').slice(0, 300) } : null;
 }
 
+export function withoutHtmlComments(source) {
+  if (!source.includes('<!--')) return source;
+  // 按出现顺序识别转义、代码、图片标签及注释起点，避免注释内部的语法参与渲染。
+  const tokens = new RegExp([
+    '\\\\[\\\\<`]',
+    '```[\\s\\S]*?(?:```|$)',
+    '(?<!`)(`+)(?!`)[^\\n]*?(?<!`)\\1(?!`)',
+    IMAGE_TAG_SOURCE,
+    '<!--',
+  ].join('|'), 'gi');
+  let visible = '', offset = 0;
+  for (let token; (token = tokens.exec(source));) {
+    if (token[0] !== '<!--') continue;
+    const close = source.indexOf('-->', tokens.lastIndex);
+    if (close < 0) break;
+    visible += source.slice(offset, token.index);
+    offset = close + 3;
+    // 保留相邻语法的分隔，避免隐藏注释后拼接出原本不存在的图片或其他标记。
+    if (/\S/.test(source[token.index - 1] ?? '') && /\S/.test(source[offset] ?? '')) visible += ' ';
+    tokens.lastIndex = offset;
+  }
+  return visible + source.slice(offset);
+}
+
 export function imageReferences(text) {
   const references = new Map();
   const pattern = new RegExp('`[^`\\n]*`|' + IMAGE_TAG_SOURCE + '|!\\[[^\\]\\n]*\\]\\(https?:\\/\\/[^\\s)]+\\)', 'gi');
-  for (const [index, part] of String(text || '').split('```').entries()) {
+  for (const [index, part] of withoutHtmlComments(String(text || '')).split('```').entries()) {
     if (index % 2) continue;
     for (const match of part.matchAll(pattern)) {
       if (match[0].startsWith('`')) continue;

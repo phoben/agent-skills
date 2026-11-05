@@ -501,6 +501,22 @@ test('不可信Markdown保持可读且脚本、图片和危险协议不能执行
   assert.equal(safeUrl('javascript:alert(1)'), null); assert.match(taskText('requested'), /打开草稿/);
 });
 
+test('阅读 Markdown 时隐藏完整 HTML 注释并保留前后正文', () => {
+  const source = '<!-- issue-ai-status -->\r\n分析结果\r\n\r\n<!-- issue-ai:v2 H4sI_fixture\r\n```\r\n隐藏内容 -->\r\n\r\n## 可见结论';
+  assert.equal(bodyMarkup(source), '<p>分析结果</p><h3>可见结论</h3>');
+  assert.equal(bodyMarkup('<!-- 仅有注释 -->\n\n<!-- 另一条 -->'), '');
+});
+
+test('代码和显式转义示例中的注释写法仍可阅读', () => {
+  const source = '`<!-- 行内示例 -->`\n\n```html\n<!-- 围栏示例 -->\n```\n\n\\<!-- 转义示例 -->\n\n<!-- 应隐藏 -->';
+  const html = bodyMarkup(source);
+  assert.match(html, /<code>&lt;!-- 行内示例 --&gt;<\/code>/);
+  assert.match(html, /<pre tabindex="0"><code>&lt;!-- 围栏示例 --&gt;/);
+  assert.match(html, /&lt;!-- 转义示例 --&gt;/);
+  assert.doesNotMatch(html, /应隐藏/);
+  assert.match(bodyMarkup('<!-- 未闭合\n\n后续正文'), /&lt;!-- 未闭合<\/p><p>后续正文/);
+});
+
 test('属性编辑与正文编辑分开授权，现有属性不因候选缺页消失', () => {
   const html = issueForm(issue(), { labels: [], assignees: [''], milestones: [''] }, { isNew: false, offline: false, manage: false });
   assert.match(html, /<fieldset disabled>/); assert.match(html, /value="bug" checked/); assert.match(html, /id="issue-assignee"[^>]+disabled/);

@@ -23,6 +23,16 @@ test('Markdown图片含空alt也生成图片容器，代码中的示例保持文
   assert.doesNotMatch(literal, /data-image-source=/);
 });
 
+test('隐藏注释里的图片，同时保留正文图片且不拼接出新预览', () => {
+  const visibleUrl = url.replace('11111111', '22222222');
+  const source = `<!-- <img src="${url}">\n\`\`\`\n -->\n\n![正文截图](${visibleUrl})`;
+  const html = bodyMarkup(source);
+  assert.doesNotMatch(html, new RegExp(url));
+  assert.match(html, new RegExp(`data-image-source="${visibleUrl}"`));
+  assert.deepEqual(imageReferences(source).map(item => item.url), [visibleUrl]);
+  assert.doesNotMatch(bodyMarkup(`!<!-- 注释 -->[示例](${url})`), /data-image-source=/);
+});
+
 test('图片策略只接受固定Github HTTPS图片路径，拒绝任意域及附带凭据参数', () => {
   assert.equal(normalizeImageUrl(url), url);
   assert.ok(normalizeImageUrl('https://user-images.githubusercontent.com/7/example.png'));
