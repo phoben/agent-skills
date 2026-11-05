@@ -33,6 +33,7 @@ This directory contains guidelines for backend development. Fill in each file wi
 | [Issue Hub](./issue-hub.md) | YG内Issue模块、gh/SQLite、稳定身份与会话 | YG0.3.0整合通过，第二机暂缓 |
 | [Issue图片](./issue-hub-images.md) | 受限图片解析、认证读取、私有元数据与CSP | YG0.3.2本机协议与浏览器通过，原生像素另验 |
 | [Issue项目发现](./issue-hub-discovery.md) | 已登记根优先、3层.git候选及固定范围展示 | YG0.3.4用户明确取消覆盖提示 |
+| [页面工具可见性](./mcp-app-visibility.md) | 两模块全部app-only，保留global与页面调用 | YG0.3.5模型工具集合为空 |
 
 ---
 

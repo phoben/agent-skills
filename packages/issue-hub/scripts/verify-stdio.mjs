@@ -19,6 +19,9 @@ try {
   assert.equal(client.getServerVersion()?.version, expectedVersion);
   const { tools } = await client.listTools();
   assert.equal(tools.length, 9);
+  for (const tool of tools) { assert.deepEqual(tool._meta?.ui?.visibility, ['app']); assert.equal(tool._meta.ui.resourceUri, 'ui://issue-hub/app-v2.html'); }
+  const modelVisibleTools = tools.filter(tool => !tool._meta?.ui?.visibility || tool._meta.ui.visibility.includes('model')).length;
+  assert.equal(modelVisibleTools, 0);
   const primary = tools.filter(tool => tool._meta?.['openai/ui']?.entrypoints?.some(entry => entry.type === 'global'));
   assert.deepEqual(primary.map(tool => tool.name), ['issue-hub-open']);
   assert.equal(primary[0].title, 'Issue Hub');
@@ -51,7 +54,7 @@ try {
   // 授权缺失时也可发现页面，身份错误不能冒充空仓库。
   assert.ok(bootstrap.isError ? bootstrap.structuredContent?.error?.code : bootstrap.structuredContent?.schemaVersion === 1);
   await assert.rejects(client.readResource({ uri: 'ui://issue-hub/missing' }));
-  process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, version: expectedVersion, primaryEntrypoints: primary.length, iconVariants: icons.length, iconMatchesAsset: true, appOnlyWrites: true, uiResource: true, invalidArgumentsRejected: true, bootstrapAvailable: !bootstrap.isError, bootstrapError: bootstrap.isError ? bootstrap.structuredContent.error.code : null, remoteWrites: false, desktopVerified: false })}\n`);
+  process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, version: expectedVersion, primaryEntrypoints: primary.length, modelVisibleTools, iconVariants: icons.length, iconMatchesAsset: true, appOnlyWrites: true, uiResource: true, invalidArgumentsRejected: true, bootstrapAvailable: !bootstrap.isError, bootstrapError: bootstrap.isError ? bootstrap.structuredContent.error.code : null, remoteWrites: false, desktopVerified: false })}\n`);
 } finally {
   await client?.close();
   assert.ok(resolve(temporary).startsWith(`${resolve(tmpdir())}${sep}issue-hub-stdio-`));

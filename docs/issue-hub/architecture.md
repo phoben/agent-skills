@@ -6,7 +6,7 @@
 
 | 层 | 责任 |
 | --- | --- |
-| Issue MCP服务 | 一个 `issue-hub-open` 全局入口和 `ui://issue-hub/app-v2.html`，旧 `app.html` 保留兼容别名。页面写入、会话及图片工具仅app可见；模型仅有固定只读仓库、Issue、评论工具。 |
+| Issue MCP服务 | 一个`issue-hub-open`全局入口和`ui://issue-hub/app-v2.html`，旧app.html保留别名。YG0.3.5起全部9工具仅app可见，兼容读取入口保留实现但不向模型公开。 |
 | GitHub 客户端 | 无 shell 调用 gh 的固定 github.com REST 路径，写入 JSON 走 stdin，识别权限、限流、网络失败和未知写入。 |
 | 目录适配 | 使用Codex项目接口，先核验已登记目录，再在最多3层子目录中按.git标记定位候选并由Git验证remote；保留1500目录保护及依赖/构建/链接排除。扫描边界属于正常产品范围。 |
 | Issue 服务 | 处理分页、权限、账号隔离、冲突、读回及操作回执，按 GitHub 稳定仓库 ID 归一别名。 |

@@ -7,6 +7,7 @@ Issue Hub 是 YG Toolkit 内的 Windows Issue 管理模块。成员统一安装Y
 - YG Toolkit包含Tokens和Issue Hub两个页面入口，各自一个global，仓库放在Issue Hub页面内导航；不把多个仓库拆成主入口，不接入宿主原生悬浮仓库栏。
 - Windows首发。Issue管理使用Node 24、Git、Codex及成员自己的gh登录；gh缺失只限制Issue Hub，不阻断Tokens/工程技能。只支持github.com，不含Enterprise Server和macOS。
 - GitHub 是唯一团队协作数据源，不建设团队后台；偏好、未发草稿和聊天关联留在成员本机。
+- YG0.3.5起Tokens与Issue的全部MCP工具仅页面可见，保留两个侧边栏global入口与页面能力。对话中的Issue操作通过其他可用GitHub连接器或gh完成，不依赖本插件工具发现。
 - 布局采用用户选定并确认的 A 连读队列：左侧仓库、中间 Issue、相邻详情。项目和 Issue 单击切换，两条分割线有宽度边界并保存到当前账号。
 
 ## 功能与验收

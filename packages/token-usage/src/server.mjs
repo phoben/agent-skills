@@ -11,7 +11,7 @@ export function createUsageServer({ html, service = createUsageService(), versio
   registerAppResource(server, 'Tokens Usage', UI_URI, { mimeType: RESOURCE_MIME_TYPE, _meta: { ui: { csp: { connectDomains: [], resourceDomains: [] } } } }, async () => ({ contents: [{ uri: UI_URI, mimeType: RESOURCE_MIME_TYPE, text: html }] }));
   registerAppTool(server, 'token_usage_open', {
     title: 'Tokens 用量', description: '打开当前账号与本机项目的 Tokens 用量页面。', annotations,
-    inputSchema: {}, _meta: { ui: { resourceUri: UI_URI }, 'openai/ui': { entrypoints: [{ type: 'global' }] } },
+    inputSchema: {}, _meta: { ui: { resourceUri: UI_URI, visibility: ['app'] }, 'openai/ui': { entrypoints: [{ type: 'global' }] } },
   }, async () => ({ content: [{ type: 'text', text: '用量页面已准备好，将按当前登录账号读取统计。' }] }));
   const ui = { ui: { resourceUri: UI_URI, visibility: ['app'] } };
   function query(name, title, description, inputSchema, method) {

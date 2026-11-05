@@ -55,13 +55,13 @@ export function createIssueServer({ html, issues, tasks, images, diagnostics, ic
       return { isError: true, structuredContent: { error: failure }, content: [{ type: 'text', text: failure.message }] };
     }
   });
-  server.registerTool('issue-repositories', { title: '读取 Issue 仓库目录', description: '读取已发现 GitHub 仓库的键与名称，不包含本机工作区路径。', inputSchema: z.object({}).strict(), annotations: readHints }, safe(async () => {
+  server.registerTool('issue-repositories', { title: '读取 Issue 仓库目录', description: '读取已发现 GitHub 仓库的键与名称，不包含本机工作区路径。', inputSchema: z.object({}).strict(), annotations: readHints, _meta: appMeta }, safe(async () => {
     const value = await issues.execute('refresh');
     return { schemaVersion: value.schemaVersion, identity: value.identity, sampledAt: value.sampledAt, offline: value.offline, cached: value.cached, checking: value.checking, data: { repositories: value.data.repositories.map(({ key, fullName }) => ({ key, fullName })), catalog: { status: value.data.catalog?.status, warnings: value.data.catalog?.warnings, sampledAt: value.data.catalog?.sampledAt, checking: value.data.catalog?.checking } } };
   }));
   const readSchema = z.object({ repositoryKey: z.string().regex(/^[a-f0-9]{20}$/), number: z.number().int().positive() }).strict();
-  server.registerTool('issue-read', { title: '读取最新 Issue', description: '读取指定仓库 Issue 正文、属性、评论与覆盖情况。仓库键来自 issue-repositories。', inputSchema: readSchema, annotations: readHints }, safe(args => issues.execute('read', args)));
-  server.registerTool('issue-comments', { title: '读取 Issue 后续评论', description: '按服务返回的游标继续读取评论，直到覆盖完整。', inputSchema: readSchema.extend({ cursor: z.string().max(200).optional() }), annotations: readHints }, safe(args => issues.execute('comments', args)));
+  server.registerTool('issue-read', { title: '读取最新 Issue', description: '读取指定仓库 Issue 正文、属性、评论与覆盖情况。仓库键来自 issue-repositories。', inputSchema: readSchema, annotations: readHints, _meta: appMeta }, safe(args => issues.execute('read', args)));
+  server.registerTool('issue-comments', { title: '读取 Issue 后续评论', description: '按服务返回的游标继续读取评论，直到覆盖完整。', inputSchema: readSchema.extend({ cursor: z.string().max(200).optional() }), annotations: readHints, _meta: appMeta }, safe(args => issues.execute('comments', args)));
   server.server.onclose = () => { void close(); };
   return server;
 }

@@ -2,6 +2,8 @@
 
 YG Toolkit 的本地只读 MCP 服务和 C 版流量对照板。运行环境建议 Node24+、已登录的 Codex CLI；本期已在Windows/Codex0.163.0验证。
 
+YG Toolkit 0.3.5起，token_usage_open、token_usage_dashboard和token_usage_sessions均仅页面可见，保留Tokens侧边栏global入口及统计能力。模型不再发现本模块工具，raw MCP目录仍保留三个接口供页面调用；不以工具数量估算未经测量的上下文节省量。
+
 ## 开发与验证
 
 从仓库根目录执行：

@@ -23,6 +23,8 @@
 
 `createCollector({codexHome,cacheDir})`提供dashboard、sessions、close；`createCodexBridge({codexHome})`只提供snapshot、identity、close。MCP工具为token_usage_open、token_usage_dashboard、token_usage_sessions，资源ui://yg-toolkit/token-usage.html。
 
+YG0.3.5按用户要求三个工具均声明`_meta.ui.visibility=['app']`，token_usage_open仍保留global入口及原resourceUri；模型可见集合为空，原open/dashboard/sessions处理与页面调用保持。统一契约见[工具可见性](mcp-app-visibility.md)。
+
 ## 3. 契约
 
 查询参数startDate/endDate/timeZone，sessions额外projectId/date/search/sort/page/pageSize。totals字段为inputTokens、cachedInputTokens、cacheWriteInputTokens、uncachedInputTokens、outputTokens、reasoningOutputTokens、totalTokens。local.status仅ok/partial/unavailable，unavailable时totals=null。sessions.lastActivityAt必须位于所选范围，单日查询限制到当天。

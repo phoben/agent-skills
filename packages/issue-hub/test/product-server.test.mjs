@@ -7,7 +7,7 @@ import { ProofError } from '../src/errors.mjs';
 import { readFile } from 'node:fs/promises';
 import { createIssueHubIcons } from '../src/icons.mjs';
 
-test('正式服务只有一个主入口，写入与会话仅页面可见，模型只有固定读取入口', async t => {
+test('正式服务保留一个主入口和全部页面工具，不向模型开放工具', async t => {
   const calls = [];
   const issues = { execute: async (action, args = {}) => {
     calls.push({ action, args });
@@ -20,7 +20,9 @@ test('正式服务只有一个主入口，写入与会话仅页面可见，模�
   t.after(async () => { await client.close(); await server.close(); });
   const { tools } = await client.listTools();
   assert.deepEqual(tools.filter(tool => tool._meta?.['openai/ui']?.entrypoints?.some(entry => entry.type === 'global')).map(tool => tool.name), ['issue-hub-open']);
-  for (const name of ['issue-hub-open', 'issue-hub-query', 'issue-hub-mutate', 'issue-hub-task']) assert.deepEqual(tools.find(tool => tool.name === name)._meta.ui.visibility, ['app']);
+  assert.equal(tools.length, 9);
+  for (const tool of tools) { assert.deepEqual(tool._meta?.ui?.visibility, ['app'], tool.name); assert.equal(tool._meta.ui.resourceUri, APP_URI); }
+  assert.deepEqual(tools.filter(tool => !tool._meta?.ui?.visibility || tool._meta.ui.visibility.includes('model')).map(tool => tool.name), []);
   const diagnostic = tools.find(tool => tool.name === 'issue-hub-diagnostics');assert.deepEqual(diagnostic._meta.ui.visibility, ['app']);assert.equal(diagnostic.annotations.readOnlyHint, true);
   assert.equal((await client.callTool({ name: diagnostic.name, arguments: {} })).structuredContent.data.status, 'ok');
   assert.equal((await client.callTool({ name: diagnostic.name, arguments: { command: 'arbitrary' } })).isError, true);
@@ -30,6 +32,10 @@ test('正式服务只有一个主入口，写入与会话仅页面可见，模�
   assert.ok(!directory.isError); assert.equal(directory.structuredContent.data.repositories.length, 1);
   assert.equal(directory.structuredContent.offline, true); assert.equal(directory.structuredContent.cached, true);
   assert.equal(calls.at(-1).action, 'refresh'); assert.ok(!JSON.stringify(directory).includes('secret-path'));
+  const read = await client.callTool({ name: 'issue-read', arguments: { repositoryKey: 'a'.repeat(20), number: 7 } });
+  assert.equal(read.structuredContent.data.issue.number, 7); assert.equal(calls.at(-1).action, 'read');
+  const comments = await client.callTool({ name: 'issue-comments', arguments: { repositoryKey: 'a'.repeat(20), number: 7, cursor: '2' } });
+  assert.equal(comments.structuredContent.data.issue.number, 7); assert.equal(calls.at(-1).action, 'comments'); assert.equal(calls.at(-1).args.cursor, '2');
   assert.ok(tools.find(tool => tool.name === 'issue-hub-query').inputSchema.properties.action.enum.includes('read-summary'));
   assert.ok(tools.find(tool => tool.name === 'issue-hub-mutate').inputSchema.properties.action.enum.includes('view-state-save'));
   const opened = await client.callTool({ name: 'issue-hub-open', arguments: {} }); assert.equal(opened.structuredContent.identity, '42');

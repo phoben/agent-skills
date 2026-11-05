@@ -12,11 +12,11 @@
 - 自动升版仅YG归属，两个源码模块及六产物一同校验/重建，固定目标版本避免外部build override污染；脏输入拒绝，任何失败整体恢复。
 - 本机IssueHub/data、schema和双身份算法不变，禁复制/清空业务库做迁移。只从干净源安装完整YG，原独立缓存退役不删除业务目录。gh缺失只影响Issue功能，不能阻断Tokens。
 - 安装API的marketplacePath是marketplace JSON文件。已有源不盲删覆盖，首次成员才注册包源；已有本地源必须同步整合源码，不能将一次override安装冒充长期源更新。安装/配置管理只存在于setup工具，不扩展业务bridge允许的方法。
-- 验证必须在同一复制YG包分别启动两服务，确认12工具/2global（Issue9、Tokens3）、两个UI/独立许可/完整skills；故障注入Issue缺gh仍可Tokens打开。迁移前后只保存持久行摘要，不输出token或聊天正文。
+- 验证必须在同一复制YG包分别启动两服务，确认12工具/2global（Issue9、Tokens3），全部仅app可见、模型可见集合为空，两个UI/独立许可/完整skills；故障注入Issue缺gh仍可Tokens打开。raw tools/list仍12，不能误认为模型可见12。迁移前后只保存持久行摘要，不输出token或聊天正文。
 
 ## 正式管理契约（0.2.0）
 
-- `createIssueServer` 只有 `issue-hub-open` 一个 global，资源为 `ui://issue-hub/app-v2.html`并保留旧app.html别名。query/mutate/task/image 仅 app 可见；模型只有固定只读仓库目录、Issue 与评论入口，不暴露远端写或任意 shell/URL/API 路径。图片跨层契约见[图片预览](issue-hub-images.md)。
+- `createIssueServer`只有`issue-hub-open`一个global，资源为`ui://issue-hub/app-v2.html`并保留旧app.html别名。YG0.3.5按用户要求将全部9工具设为仅app可见，包括issue-repositories/read/comments，保留名称/参数/处理函数；不再向模型暴露本模块工具。两个global与visibility独立，不能为隐藏工具删除入口。详见[工具可见性](mcp-app-visibility.md)，图片契约见[图片预览](issue-hub-images.md)。
 - `createGithubClient` 通过无 shell 的 gh 执行固定 github.com REST，写入 JSON 走 stdin。身份使用远端稳定用户 ID；凭据仅在进程内求指纹。每个写请求必须携带页面 expectedIdentity，并在真实上下文前后复核；不能把旧页面输入应用到新账号。
 - SQLite 位于独立 IssueHub/data，schema 迁移、忙超时和较新版本拒绝由 `createStorage` 负责；事务同步，不跨 await。缓存/草稿/回执/偏好按 gh scope 隔离，任务另绑定 Codex 身份，不保存 token 或聊天正文。P0 JSON 请求不自动迁移成正式任务。
 - 已验证凭据不变时，网络失败可读对应离线缓存并存草稿；未知身份、凭据变化或401不可回退。资源403/404须撤销该仓库读取缓存，保留未发草稿；资源401同样撤销离线身份资格。`cached` 表示来源，不能据此推断离线，使用明确 `offline` 状态。
@@ -30,8 +30,8 @@
 
 ### 0.2.1 加载与宿主增量
 
-- 主服务先connect再按需发现目录。`bootstrap`仅在当前凭据指纹曾验证绑定稳定gh账号时读取账号内快照；冷目录可先检查注册roots直接仓库（4并发），明确partial/checking与DEEP_SCAN_PENDING，完整嵌套扫描由`refresh`后台完成。模型仓库目录走完整`refresh`，不把UI快照语义套到模型读取。
-- app-only新增`read-summary`，正文/属性先返回，讨论未获取的coverage不可标完整；`list/read-summary`的`cacheFirst:true`才优先可信缓存，默认仍严格读取，模型`issue-read`完整最新语义保留。
+- 主服务先connect再按需发现目录。`bootstrap`仅在当前凭据指纹曾验证绑定稳定gh账号时读取账号内快照；冷目录可先检查注册roots直接仓库（4并发），保留内部partial/checking与DEEP_SCAN_PENDING，嵌套扫描由`refresh`后台完成。兼容目录工具仍走`refresh`，不因改为app-only改变读取语义。
+- app-only新增`read-summary`，正文/属性先返回，讨论未获取的coverage不可标完整；`list/read-summary`的`cacheFirst:true`才优先可信缓存，默认仍严格读取；`issue-read`的完整最新语义保留，YG0.3.5起仅app可见。
 - `checking`是待查状态对象；`cached`不是离线，`networkChecked`才是本次GitHub联网证据。缓存/本机视图写入不能提升最后GitHub成功时间。fast请求结束仍复核身份映射有效，401在途撤销不能被旧缓存响应复活。
 - `view-state-save`参数为`{value:{navigationWidth?,queueWidth?,repositoryKey?},expectedIdentity}`，宽度164–420/280–640，存当前scope的view/layout。raw仓库键按已验证alias归一为stable key；旧记忆按sourceKeys兼容，不能因后台规范名/键变化丢掉当前选择或草稿。
 - 同scope同路径的在途只读可以合并，不缓存完成后的严格远端身份查询，不合并写入或不同凭据请求。

@@ -25,6 +25,9 @@ try {
   assert.ok(icons.every(icon => icon.src.startsWith('data:image/svg+xml;base64,')));
   assert.equal(entry._meta['openai/ui'].entrypoints[0].type, 'global');
   const uri = entry._meta.ui.resourceUri;
+  for (const tool of listed.tools) { assert.deepEqual(tool._meta?.ui?.visibility, ['app']); assert.equal(tool._meta.ui.resourceUri, uri); }
+  const modelVisibleTools = listed.tools.filter(tool => !tool._meta?.ui?.visibility || tool._meta.ui.visibility.includes('model')).length;
+  assert.equal(modelVisibleTools, 0);
   const resource = await client.readResource({ uri });
   assert.match(resource.contents[0].mimeType, /mcp-app/);
   assert.match(resource.contents[0].text, /项目每日用量/);
@@ -34,7 +37,7 @@ try {
   const invalid = await client.callTool({ name: 'token_usage_dashboard', arguments: { startDate: '2026-11-03', endDate: '2026-11-01', timeZone: 'UTC' } });
   assert.equal(invalid.isError, true);
   await assert.rejects(client.readResource({ uri: 'ui://yg-toolkit/not-found' }));
-  process.stdout.write('独立包stdio、全局入口、页面资源与失败路径验证通过。\n');
+  process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, version: expectedVersion, tools: listed.tools.length, modelVisibleTools, globalEntries: 1, uiResource: true, invalidArgumentsRejected: true, remoteWrites: false, desktopVerified: false })}\n`);
 } finally {
   await client?.close();
   assert.ok(resolve(directory).startsWith(`${resolve(tmpdir())}${sep}yg-usage-package-`));

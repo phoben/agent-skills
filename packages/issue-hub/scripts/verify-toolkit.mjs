@@ -38,6 +38,9 @@ try {
     await client.connect(transport, { timeout: 120000 });
     assert.equal(client.getServerVersion()?.version, manifest.version);
     const { tools } = await client.listTools(); assert.equal(tools.length, definition.tools);
+    for (const tool of tools) { assert.deepEqual(tool._meta?.ui?.visibility, ['app']); assert.equal(tool._meta.ui.resourceUri, definition.uri); }
+    const modelVisibleTools = tools.filter(tool => !tool._meta?.ui?.visibility || tool._meta.ui.visibility.includes('model')).length;
+    assert.equal(modelVisibleTools, 0);
     const global = tools.filter(tool => tool._meta?.['openai/ui']?.entrypoints?.some(entry => entry.type === 'global'));
     assert.deepEqual(global.map(tool => tool.name), [definition.entry]);
     const resource = await client.readResource({ uri: definition.uri });
@@ -50,7 +53,7 @@ try {
       assert.equal(compatibilityResource.contents[0].text, resource.contents[0].text);
       assert.deepEqual(compatibilityResource.contents[0]._meta, resource.contents[0]._meta);
     }
-    snapshots.push({ service: definition.key, tools: tools.length, globalEntries: global.length, uri: definition.uri });
+    snapshots.push({ service: definition.key, tools: tools.length, modelVisibleTools, globalEntries: global.length, uri: definition.uri });
   }
   const unavailableIssue = await clients[1].callTool({ name: 'issue-hub-open', arguments: {} }, undefined, { timeout: 120000 });
   assert.equal(unavailableIssue.isError, true, '缺少gh的Issue模块应说明不可用');
@@ -58,7 +61,7 @@ try {
   const tokensOpen = await clients[0].callTool({ name: 'token_usage_open', arguments: {} });
   assert.ok(!tokensOpen.isError, 'Issue模块依赖缺失不能阻止Tokens页面');
   const stillTokens = await clients[0].listTools(); assert.equal(stillTokens.tools.length, 3);
-  process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, plugin: manifest.name, version: manifest.version, services: snapshots, totalTools: 12, totalGlobalEntries: 2, issueDependencyFailureIsolated: true, skillsAvailable: true, remoteWrites: false, chatOpened: false, desktopVerified: false })}\n`);
+  process.stdout.write(`${JSON.stringify({ packageOutsideWorkspace: true, plugin: manifest.name, version: manifest.version, services: snapshots, totalTools: 12, modelVisibleTools: snapshots.reduce((total, service) => total + service.modelVisibleTools, 0), totalGlobalEntries: 2, issueDependencyFailureIsolated: true, skillsAvailable: true, remoteWrites: false, chatOpened: false, desktopVerified: false })}\n`);
 } finally {
   for (const client of clients) await client.close();
   assert.ok(resolve(temporary).startsWith(`${resolve(tmpdir())}${sep}yg-toolkit-stdio-`));
