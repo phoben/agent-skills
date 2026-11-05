@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {count, formatTokens, formatPercent, coverageNotes, dateToday, dateRange, presetRange, decodeToolResult, chooseQuotaWindow, escapeHtml, isIdentityError, trendSegments} from '../ui/model.mjs';
+import {count, formatTokens, formatPercent, coverageWarnings, dateToday, dateRange, presetRange, decodeToolResult, chooseQuotaWindow, escapeHtml, isIdentityError, trendSegments} from '../ui/model.mjs';
 
 test('缺失、字符串和异常计数保留未知，真实零正常显示', () => {
   for (const value of [null,undefined,'123',NaN,Infinity,-1,1.1,Number.MAX_SAFE_INTEGER+1]) {
@@ -48,11 +48,8 @@ test('微小非零占比不显示为零，HTML使用时可安全转义', () => {
   assert.equal(formatPercent(0,0),'—');
   assert.equal(escapeHtml(formatPercent(1,100000)),'&lt;0.1%');
 });
-test('覆盖说明按范围与读取分组，通用warning去重而独特中文错误保留', () => {
-  const notes = coverageNotes({status:'partial',coverage:{attributedThreads:411,unassignedAccountThreads:1882,excludedAccountThreads:383,failedThreads:2,partialRollouts:12},warnings:['未确认账号归属的历史会话已排除。','其他账号的本机会话已排除。','部分会话只有可确认的新增用量，统计可能不完整。','部分本机会话暂时无法读取。','ROLL_OUT_FAILED','统计目录暂时不可读。','统计目录暂时不可读。']});
-  assert.equal(notes.length,3);
-  assert.match(notes[0],/统计范围：当前账号 411 条/);
-  assert.match(notes[1],/读取失败 2 条；部分覆盖 12 条/);
-  assert.equal(notes[2],'统计目录暂时不可读。');
-  assert.equal(notes.join('').includes('ROLL_OUT_FAILED'),false);
+test('卡片已表达的覆盖提示去重，独立错误保留，未知计数不吞掉警告', () => {
+  const notes = coverageWarnings({status:'partial',coverage:{attributedThreads:411,unassignedAccountThreads:1882,excludedAccountThreads:383,failedThreads:2,partialRollouts:12},warnings:['未确认账号归属的历史会话已排除。','其他账号的本机会话已排除。','部分会话只有可确认的新增用量，统计可能不完整。','部分本机会话暂时无法读取。','ROLL_OUT_FAILED','统计目录暂时不可读。','统计目录暂时不可读。']});
+  assert.deepEqual(notes, ['统计目录暂时不可读。']);
+  assert.deepEqual(coverageWarnings({status:'partial', coverage:null, warnings:['部分本机会话暂时无法读取。']}), ['本机统计覆盖不完整，仅含已成功读取的记录。','部分本机会话暂时无法读取。']);
 });

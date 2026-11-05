@@ -3,7 +3,7 @@ import './components.css';
 import './styles.css';
 import './details.css';
 import './app.css';
-import {count, escapeHtml as esc, formatTokens as fmt, formatPercent as percent, coverageNotes, dateToday, dateRange, presetRange, decodeToolResult, chooseQuotaWindow, isIdentityError, trendSegments, projectPresentation} from './model.mjs';
+import {count, escapeHtml as esc, formatTokens as fmt, formatPercent as percent, coverageWarnings, dateToday, dateRange, validDate, presetRange, decodeToolResult, chooseQuotaWindow, isIdentityError, trendSegments, projectPresentation} from './model.mjs';
 import {createThemeController} from './theme.mjs';
 
 const $ = selector => document.querySelector(selector);
@@ -130,18 +130,51 @@ function renderQuota() {
   if (Number.isFinite(window?.resetsAt) && Number.isFinite(new Date(window.resetsAt * 1000).getTime())) reset = `${new Intl.DateTimeFormat('zh-CN', {timeZone, month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}).format(new Date(window.resetsAt * 1000))} 重置`;
   $('#quota-message').textContent = window ? reset || '官方未提供重置时间' : quota?.message || '当前官方额度暂不可用';
 }
+const coverageMetrics = [
+  {key:'attributedThreads', label:'当前账号记录', icon:'M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM5 21v-2a7 7 0 0 1 14 0v2', help:'本机索引中可确认属于当前登录账号的会话记录数。项目用量仍按所选日期统计。'},
+  {key:'unassignedAccountThreads', label:'未知归属 · 已排除', icon:'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.5 9a2.5 2.5 0 0 1 5 0c0 2-2.5 2-2.5 4m0 3h.01', help:'本机索引中缺少账号归属的会话记录数，已排除在当前账号的用量之外。'},
+  {key:'excludedAccountThreads', label:'其他账号 · 已排除', icon:'M9 11a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM3 20v-2a6 6 0 0 1 12 0v2m3-9a3.5 3.5 0 0 0 0-7m3 16v-2a6 6 0 0 0-3-5.2', help:'本机索引中明确属于其他账号的会话记录数，已排除在当前账号的用量之外。'},
+  {key:'failedThreads', label:'读取失败', icon:'M10.3 4.8 3 18a1 1 0 0 0 .9 1.5h16.2A1 1 0 0 0 21 18L13.7 4.8a2 2 0 0 0-3.4 0ZM12 9v4m0 3h.01', help:'当前账号下暂时无法读取的本机会话记录数，这些记录未计入用量。'},
+  {key:'partialRollouts', label:'部分覆盖', icon:'M12 3v9l6.4 6.4M12 3a9 9 0 1 0 6.4 15.4M16 3.9a9 9 0 0 1 4.1 4.2M21 12a9 9 0 0 1-.8 3.6', help:'日志不完整或读取期间仍在变化的本机会话记录数，只计入可确认的新增用量。'},
+];
+
+function coverageCard({key, label, icon, value, unit, detail, help}) {
+  return `<li class="coverage-card" tabindex="0" aria-labelledby="coverage-label-${key} coverage-value-${key}" aria-describedby="coverage-tip-${key}">
+    <span class="coverage-label" id="coverage-label-${key}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${icon}"/></svg>${label}</span>
+    <span class="coverage-value" id="coverage-value-${key}"><strong>${esc(value)}</strong>${unit ? `<span>${unit}</span>` : ''}</span>
+    ${detail ? `<small class="coverage-detail">${esc(detail)}</small>` : ''}
+    <span class="coverage-tooltip" id="coverage-tip-${key}" role="tooltip">${help}</span>
+  </li>`;
+}
+
 function renderCoverage() {
-  const notes = coverageNotes(state.data?.local);
-  const official = state.data?.account;
-  if(official && !['ok','partial'].includes(official.status) && official.message)notes.push(official.message);
-  if (official?.status === 'partial' && official.coverage) {
-    const coverage = official.coverage;
-    const start = coverage.startDate ?? coverage.firstDate, end = coverage.endDate ?? coverage.lastDate;
-    if (typeof start === 'string' && typeof end === 'string') notes.push(`官方所选区间覆盖不完整，已提供统计：${start} 至 ${end}。`);
-  }
-  $('#coverage').replaceChildren(...notes.filter(Boolean).map(note => { const paragraph = document.createElement('p'); paragraph.textContent = note; return paragraph; }));
-  $('#coverage').hidden = !notes.filter(Boolean).length;
-  const sampled = state.data?.sampledAt;
+  const {local, account: official, sampledAt: sampled} = state.data ?? {};
+  $('#coverage').hidden = !state.data;
+  const localCoverage = ['ok', 'partial'].includes(local?.status) ? local.coverage : null;
+  const cards = coverageMetrics.map(metric => {
+    const value = count(localCoverage?.[metric.key]);
+    return coverageCard({...metric, value: value?.toLocaleString('zh-CN') ?? '—', unit: value === null ? '' : '条'});
+  });
+  const officialCoverage = official?.coverage;
+  const start = officialCoverage?.startDate ?? officialCoverage?.firstDate;
+  const end = officialCoverage?.endDate ?? officialCoverage?.lastDate;
+  const available = count(officialCoverage?.availableDays), requested = count(officialCoverage?.requestedDays);
+  const officialUsable = ['ok', 'partial'].includes(official?.status);
+  const hasDayCounts = officialUsable && available !== null && requested > 0 && available <= requested;
+  const officialStatus = official?.status === 'ok' ? '区间完整覆盖' : official?.status === 'partial' ? '区间未完整覆盖' : '暂不可用';
+  const officialRange = officialUsable && validDate(start) && validDate(end) && start <= end ? `${start} 至 ${end}` : '';
+  cards.push(coverageCard({
+    key:'official', label:'官方日期覆盖',
+    icon:'M7 3v4m10-4v4M3 10h18M5 5h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Zm3 10h2m4 0h2',
+    value: hasDayCounts ? `${available} / ${requested}` : '—',
+    unit: hasDayCounts ? '天' : '',
+    detail: officialRange || officialStatus,
+    help: `所选区间内官方已提供的统计天数与区间总天数。${officialStatus}。${officialRange ? '卡片下方日期是官方已提供统计的起止日期，期间可能有缺日。' : ''}`,
+  }));
+  $('#coverage-grid').innerHTML = state.data ? cards.join('') : '';
+  const notices = coverageWarnings(local);
+  if (official && !officialUsable && official.message) notices.push(official.message);
+  $('#coverage-notices').innerHTML = [...new Set(notices)].map(note => `<p>${esc(note)}</p>`).join('');
   $('#sampled-at').textContent = sampled && Number.isFinite(Date.parse(sampled)) ? `更新于 ${new Intl.DateTimeFormat('zh-CN', {timeZone, hour:'2-digit', minute:'2-digit'}).format(new Date(sampled))} · ${timeZone}` : '';
 }
 function renderTokenDonut() {
@@ -288,6 +321,7 @@ document.addEventListener('click', event => {
   const node = event.target.closest('.flow-node,.flow-link'); if (node) { const id = node.dataset.project || node.dataset.flowProject; openSessions(id,null,all('.matrix-row').find(row => row.dataset.project === id)); }
 });
 document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') $('.coverage-card[data-tip-open]')?.removeAttribute('data-tip-open');
   if (event.target.classList?.contains('matrix-row') && ['Enter',' '].includes(event.key)) { event.preventDefault(); openSessions(event.target.dataset.project,null,event.target); return; }
   const cell = event.target.closest?.('[data-day]'); if (!cell) return;
   const projects = displayProjects(), dates = dateRange(state.startDate,state.endDate);
@@ -295,6 +329,21 @@ document.addEventListener('keydown', event => {
   if (event.key === 'ArrowRight') day = Math.min(day+1,dates.length-1); else if (event.key === 'ArrowLeft') day = Math.max(day-1,0); else if (event.key === 'ArrowDown') project = Math.min(project+1,projects.length-1); else if (event.key === 'ArrowUp') project = Math.max(project-1,0); else if (event.key === 'Home') day = 0; else if (event.key === 'End') day = dates.length-1; else return;
   event.preventDefault(); const next = all('[data-day]').find(item => item.dataset.project === projects[project].id && item.dataset.day === dates[day]); cell.tabIndex = -1; next.tabIndex = 0; next.focus(); next.scrollIntoView({block:'nearest',inline:'nearest'});
 });
+const coverageGrid = $('#coverage-grid');
+function showCoverageTip(event) {
+  const card = event.target.closest('.coverage-card');
+  if (!card || card.contains(event.relatedTarget)) return;
+  $('.coverage-card[data-tip-open]')?.removeAttribute('data-tip-open');
+  card.setAttribute('data-tip-open', '');
+}
+function hideCoverageTip(event) {
+  const card = event.target.closest('.coverage-card');
+  if (card && !card.contains(event.relatedTarget)) card.removeAttribute('data-tip-open');
+}
+coverageGrid.addEventListener('pointerover', showCoverageTip);
+coverageGrid.addEventListener('focusin', showCoverageTip);
+coverageGrid.addEventListener('pointerout', hideCoverageTip);
+coverageGrid.addEventListener('focusout', hideCoverageTip);
 const matrix = $('#project-matrix');
 matrix.addEventListener('pointerover', event => { const row = event.target.closest('.matrix-row'), cell = event.target.closest('[data-day]'); highlightProject(row?.dataset.project,cell?.dataset.day); if (cell) showTooltip(cell.dataset.project,cell.dataset.day,event); else hideTooltip(); });
 matrix.addEventListener('pointermove', event => { const cell = event.target.closest('[data-day]'); if (cell) showTooltip(cell.dataset.project,cell.dataset.day,event); });

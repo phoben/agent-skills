@@ -26,8 +26,12 @@
       <div id="panel-state" class="panel-state" role="status" aria-live="polite"><div class="state-heading"><span class="loading-spinner" aria-hidden="true"></span><h2>正在连接用量服务</h2><p>确认当前账号后读取项目与会话统计。</p></div></div>
       <footer class="board-footer"><span><span class="hint-mark">↗</span>点击项目查看会话，点击日柱查看当天</span><span id="matrix-scale">日柱采用统一刻度</span></footer>
     </section>
-    <div id="coverage" class="coverage" role="status" aria-live="polite"></div>
-    <footer class="page-footer"><span>本机统计仅含可确认属于当前账号的会话</span><span id="sampled-at"></span></footer>
+    <section id="coverage" class="coverage" aria-labelledby="coverage-title" hidden>
+      <h2 id="coverage-title">统计覆盖</h2>
+      <ul id="coverage-grid" class="coverage-grid"></ul>
+      <div id="coverage-notices" class="coverage-notices" role="status"></div>
+    </section>
+    <footer class="page-footer"><span id="sampled-at"></span></footer>
   </main>
   <div id="period-popover" class="period-popover" popover="auto" role="dialog" aria-label="选择统计日期"><div class="period-presets"><button data-preset="本周">本周</button><button data-preset="近7天">近7天</button><button data-preset="近30天">近30天</button><button data-preset="本月">本月</button><button data-preset="本季度">本季度</button><button data-preset="本年">本年</button><button data-custom>自定义日期</button></div><form id="period-form" class="period-custom"><h3>自定义日期区间</h3><label>开始日期<input id="date-start" type="date" required></label><label>结束日期<input id="date-end" type="date" required></label><p class="period-error" role="alert" id="period-error"></p><button class="period-apply" type="submit">应用日期</button><small class="timezone" id="timezone"></small></form></div>
   <dialog id="session-dialog" class="session-dialog" aria-labelledby="dialog-title" aria-describedby="dialog-scope"><header class="dialog-head"><div><h2 id="dialog-title"></h2><div class="dialog-scope" id="dialog-scope"></div></div><button class="dialog-close" aria-label="关闭会话明细" autofocus>×</button></header><div class="session-toolbar"><label class="session-search"><span>搜索会话</span><input id="session-search" type="search" maxlength="200" placeholder="搜索会话名称或模型" autocomplete="off"></label><label class="session-sort">排序<select id="session-sort"><option value="tokens">用量最多</option><option value="recent">最近会话</option><option value="output">输出最多</option></select></label></div><div class="dialog-content" id="dialog-content" aria-live="polite"></div><footer class="dialog-foot" id="dialog-foot"></footer></dialog>

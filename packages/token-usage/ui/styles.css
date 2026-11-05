@@ -150,11 +150,55 @@ h2 { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -.2px; }
 .board-footer { min-height: 33px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 7px 20px; color: var(--muted); font-size: 11px; border-top: 1px solid var(--line); }
 #matrix-scale { text-align: right; white-space: nowrap; }
 .hint-mark { font-size: 12px; margin-right: 5px; }
-.coverage { border-top: 1px solid var(--line); padding-top: 13px; margin-top: 16px; line-height: 1.7; font-size: 12px; color: var(--muted); }
-.coverage:empty { display: none; }
-.coverage p { max-width: 100ch; margin: 0 0 4px; }
-.coverage p:last-child { margin-bottom: 0; }
-.page-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 5px 20px; padding-top: 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+.coverage { margin-top: 20px; }
+.coverage h2 { margin: 0 0 10px; font-size: 13px; }
+.coverage-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.coverage-card {
+  position: relative;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.coverage-card:is(:hover, :focus-visible) { background: var(--surface2); }
+.coverage-card[data-tip-open] { z-index: 2; }
+.coverage-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.coverage-label { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 12px; }
+.coverage-label svg { width: 16px; height: 16px; flex: none; color: var(--accent); }
+.coverage-value { display: flex; align-items: baseline; gap: 5px; margin-top: 8px; }
+.coverage-value strong { font-size: 22px; line-height: 1.1; font-weight: 600; overflow-wrap: anywhere; }
+.coverage-value > span, .coverage-detail { color: var(--muted); font-size: 11px; }
+.coverage-detail { display: block; margin-top: 5px; overflow-wrap: anywhere; }
+.coverage-tooltip {
+  visibility: hidden;
+  position: absolute;
+  inset-inline: 0;
+  bottom: calc(100% + 8px);
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.coverage-tooltip::after { content: ''; position: absolute; inset-inline: 0; top: 100%; height: 9px; }
+.coverage-card[data-tip-open] .coverage-tooltip { visibility: visible; }
+.coverage-notices { margin-top: 10px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.coverage-notices:empty { display: none; }
+.coverage-notices p { margin: 4px 0 0; }
+.page-footer { display: flex; justify-content: flex-end; padding-top: 12px; color: var(--muted); font-size: 11px; line-height: 1.5; }
+@media (max-width: 1100px) { .coverage-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 650px) { .coverage-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 button, .matrix-row, .day-bar { transition: background-color 140ms ease, border-color 140ms ease, opacity 140ms ease, transform 140ms ease; }
 .page-header, .summary-grid, .comparison-board, .page-footer { animation: content-enter var(--content-enter) ease-out both; }
 .summary-grid { animation-delay: 20ms; }
