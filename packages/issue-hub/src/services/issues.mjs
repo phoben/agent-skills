@@ -549,5 +549,5 @@ export function createIssueService({ github, storage, catalog, pageLimit = 10, n
     const pending = executeAction(action, payload); inflight.set(key, pending);
     try { return await pending; } finally { if (inflight.get(key) === pending) inflight.delete(key); }
   }
-  return { execute, context };
+  return { execute, context, verifyContext: ctx => guard({ ...ctx, checkingIdentity: Boolean(ctx.fingerprint) }) };
 }

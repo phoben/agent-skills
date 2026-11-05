@@ -56,6 +56,8 @@
 
 0.3.3补充：桌面深链新聊天的thread元数据可能没有projectId，远端thread/list附projectId会将它排除。候选查询只按精确cwd列举，仍在本地拒绝显式不同projectId、不同cwd及不合时间窗的项；关联前继续由catalog复核当前注册项目/真实remote及双身份，不靠缺省项目号放行任意路径。
 
+从 0.3.8 起，待关联检查、已确认会话和历史会话返回使用现存目标工作区定位当前注册项目，并核验真实路径、发现范围及 Git remote。返回时，目标会话须匹配已确认的 threadId、cwd 和项目。缺少目标定位信息时使用整批发现。`issues.verifyContext(ctx)` 核验本次已确认的 GitHub 凭据指纹及身份缓存资格，本地任务也复核 Codex 身份。
+
 `thread/items/list.data`当前返回 `{turnId:string,item:ThreadItem,startedAtMs?,completedAtMs?}[]`。任务解析只解这一层官方包装，并兼容旧裸ThreadItem；外层同时自带type、缺失turnId、损坏item或未知无类型对象均HOST_PROTOCOL，不能当空且完整的页。自动检查与人工resolve共用firstUserLine，只匹配首条userMessage完整首行，不搜索代理消息、后续用户消息或任意正文内nonce。包装分页仍保留完整覆盖和重复游标保护。
 
 - confirmed 操作保存规范原请求的 `requestSignature`，与最终PATCH差量摘要分开。相同 operationId 在当前身份、仓库、对象、权限及请求内容匹配后重放成功回执，先于旧revision冲突；换对象或内容仍拒绝。旧回执无新摘要时只允许既有数据足以证明相同请求的兼容路径。

@@ -4,7 +4,7 @@ import { VERSION } from '../src/version.mjs';
 import { createColumnLayout } from './layout.mjs';
 import { createLatestSelection } from './selection.mjs';
 import { createThemeController } from './theme.mjs';
-import { taskDetailsMarkup, taskHistoryMarkup, workspacePickerMarkup } from './task-views.mjs';
+import { taskCandidatesMarkup, taskDescription, taskDetailsMarkup, taskHistoryMarkup, workspacePickerMarkup } from './task-views.mjs';
 import { readDiagnostics, diagnosticsMarkup } from './diagnostics.mjs';
 import { createSummaryPainter } from './summary.mjs';
 import { createImageController } from './images.mjs';
@@ -273,6 +273,7 @@ function commentEditor() {
 function renderAll() { renderNav(); renderQueue(); renderDetail(); status(); }
 function resetDetail() {
   imageController?.clear();
+  stopTaskAssociation();
   state.editor = null; state.comment = ''; state.commentId = null; state.commentBase = null; state.commentError = ''; state.formError = ''; state.conflict = null; state.notice = ''; state.draftSaved = false; state.visibleComments = 2; state.discussionTab = 'comments'; state.writeOutcome = null;
   state.detailLoading = false; state.detailError = '';
   state.summaryDeferred = false;
@@ -435,11 +436,14 @@ function renderDiscussionOnly({ activeControl = null } = {}) {
   imageController?.scan($('#detail'));
 }
 function renderTaskOnly() {
+  if (store.closed) return;
   const task = store.task(state.repo, state.selected).current, row = $('.action-row'), primary = $('#task-primary');
   if (!row || !primary || state.editor) return;
-  primary.disabled = taskBusy || taskPreparing;
-  primary.setAttribute('aria-busy', String(taskBusy || taskPreparing));
-  primary.innerHTML = `${icon('chat')}${esc(taskBusy || taskPreparing ? '正在核对工作区…' : taskAction(task?.status))}`;
+  const operation = currentTaskOperation();
+  const preparing = currentTaskPreparation();
+  primary.disabled = Boolean(operation || preparing);
+  primary.setAttribute('aria-busy', String(primary.disabled));
+  primary.innerHTML = `${icon('chat')}${esc(operation?.label || (preparing ? '正在核对工作区…' : taskAction(task?.status)))}`;
   row.classList.toggle('has-confirmed-destination', task?.status === 'linked');
   $('.relation', row)?.remove(); row.insertAdjacentHTML('beforeend', taskDestination(task));
 }
@@ -450,7 +454,9 @@ async function hydrateIssue(repo, number, isCurrent) {
   const discussion = freshSummary.then(() => Promise.allSettled(['comments', 'activity'].map(kind => store.loadDiscussion(repo, number, kind).then(() => {
     if (isCurrent() && !state.saving) { renderDiscussionOnly(); if (kind === 'activity') paintCurrentSummary(); }
   }).catch(error => { if (isCurrent()) announce(`${kind === 'comments' ? '评论' : '活动'}读取尚未完成：${error.message}`); }))));
-  const task = store.loadTask(repo, number).then(() => { if (isCurrent()) renderTaskOnly(); }).catch(error => { if (isCurrent()) announce(`会话状态尚未读取：${error.message}`); });
+  const task = store.loadTask(repo, number).then(() => {
+    if (isCurrent()) { renderTaskOnly(); scheduleTaskAssociation(); }
+  }).catch(error => { if (isCurrent()) announce(`会话状态尚未读取：${error.message}`); });
   await Promise.allSettled([discussion, task]);
   if (isCurrent()) { renderDetailStaleness(); status(); }
 }
@@ -599,44 +605,150 @@ function showAccountMenu(trigger) {
 function showTask() {
   const issue = current(); if (!issue) return;
   const record = store.task(state.repo, issue.number), task = record.current;
-  const main = !task ? action('task', '创建任务', 'primary') : task.status === 'linked' ? action('return-task', '返回会话', 'primary') : action('task-check', '检查关联', 'primary');
+  const attrs = `id="task-association-primary" data-request-id="${esc(task?.requestId || '')}"`;
+  const main = !task ? action('task', '创建任务', 'primary', attrs) : task.status === 'linked' ? action('return-task', '返回会话', 'primary', attrs) : action('task-check', '检查关联', 'primary', attrs);
   openModal(task?.status === 'linked' ? '关联会话' : '会话关联状态', taskDetailsMarkup(record), `${action('task-history', `历史记录${record.history?.length ? ` · ${record.history.length}` : ''}`)}${action('close-overlay', '关闭')}${main}`, { wide: true });
 }
-let taskBusy = false;
-let taskPreparing = false;
+let taskBusy = null;
+let taskPreparing = null;
 let workspaceSaving = false;
 let taskViewGeneration = 0;
-async function openTask(another, workspaceKey) {
-  if (taskBusy || !current()) return;
+const associationRetryDelays = [1000, 2500, 5000, 10000, 15000];
+let automaticAssociation = null;
+let automaticAssociationFlight = null;
+
+function currentTaskOperation() {
+  return taskBusy && taskBusy.generation === detailGeneration ? taskBusy : null;
+}
+
+function currentTaskPreparation() {
+  return taskPreparing && taskPreparing.generation === detailGeneration ? taskPreparing : null;
+}
+
+function showOpeningFeedback(target) {
+  if (!target) return () => {};
+  const label = target.textContent;
+  target.textContent = '正在打开会话…';
+  target.disabled = true;
+  target.setAttribute('aria-busy', 'true');
+  return () => {
+    if (!target.isConnected) return;
+    target.textContent = label;
+    target.disabled = false;
+    target.setAttribute('aria-busy', 'false');
+  };
+}
+
+function stopTaskAssociation() {
+  clearTimeout(automaticAssociation?.timer);
+  automaticAssociation = null;
+}
+
+function scheduleTaskAssociation(restart = false) {
+  if (document.hidden || store.closed) { stopTaskAssociation(); return; }
+  const repo = state.repo, number = state.selected, identity = store.identity, generation = detailGeneration;
+  const pending = task => task?.requestId && ['requested', 'pending', 'open-unconfirmed'].includes(task.status);
+  const task = store.task(repo, number).current;
+  if (!number || identity == null || !current() || !pending(task)) return;
+  const requestId = task.requestId;
+  const key = JSON.stringify([repo, number, identity, generation, requestId]);
+  if (automaticAssociation?.key === key && (!restart || automaticAssociation.checking || automaticAssociation.attempt === 0 && automaticAssociation.timer != null)) return;
+  stopTaskAssociation();
+  const run = { key, attempt: 0, checking: false, timer: null };
+  automaticAssociation = run;
+  const isCurrent = () => !store.closed
+    && repo === state.repo && number === state.selected && identity === store.identity
+    && generation === detailGeneration && store.task(repo, number).current?.requestId === requestId;
+  function retry() {
+    const delay = associationRetryDelays[run.attempt++];
+    if (automaticAssociation === run && !document.hidden && delay !== undefined) run.timer = setTimeout(check, delay);
+  }
+  async function check() {
+    run.timer = null;
+    if (automaticAssociationFlight) await automaticAssociationFlight;
+    const before = store.task(repo, number).current;
+    if (automaticAssociation !== run || !isCurrent() || document.hidden || !pending(before)) return;
+    if (state.saving || currentTaskOperation() || currentTaskPreparation() || workspaceSaving) { retry(); return; }
+    run.checking = true;
+    automaticAssociationFlight = (async () => {
+      try { await store.checkTask(repo, number); }
+      catch { /* 前台有限重试，显式检查仍可展示错误。 */ }
+      finally { automaticAssociationFlight = null; run.checking = false; }
+    })();
+    await automaticAssociationFlight;
+    if (!isCurrent()) return;
+    const after = store.task(repo, number).current;
+    if (before.status !== after.status || JSON.stringify(before.candidates) !== JSON.stringify(after.candidates)) {
+      renderTaskOnly();
+      paintTaskAssociation(after, before);
+    }
+    if (pending(after)) retry();
+  }
+  // 等本次显式打开结束后再检查，保留创建和绑定的操作反馈。
+  run.timer = setTimeout(check, 0);
+}
+
+function paintTaskAssociation(task, previous) {
+  const statusNode = $('.task-status', overlay), primary = $('#task-association-primary', overlay);
+  if (statusNode?.dataset.requestId !== task.requestId || primary?.dataset.requestId !== task.requestId) return;
+  statusNode.textContent = taskText(task.status);
+  $('.task-description', overlay).textContent = taskDescription(task);
+  const linked = task.status === 'linked';
+  $('#modal-title', overlay).textContent = linked ? '关联会话' : '会话关联状态';
+  primary.dataset.action = linked ? 'return-task' : 'task-check';
+  primary.textContent = linked ? '返回会话' : '检查关联';
+  const candidates = $('.task-candidate-list', overlay), markup = taskCandidatesMarkup(task);
+  if (markup !== taskCandidatesMarkup(previous)) {
+    const selected = $('input[name="task-candidate"]:checked', candidates)?.value;
+    candidates.innerHTML = markup;
+    for (const option of $$('input[name="task-candidate"]', candidates)) option.checked = option.value === selected;
+  }
+}
+
+async function openTask(another, workspaceKey, expectedRequestId, target) {
+  if (currentTaskOperation() || !current()) return;
   const repo = state.repo, number = state.selected, identity = store.identity;
   const overlayAtStart = overlayGeneration;
-  taskBusy = true;
+  const prior = store.task(repo, number).current;
+  const returning = !another && prior?.status === 'linked' && prior.threadId;
+  if (expectedRequestId !== undefined && (!returning || prior.requestId !== expectedRequestId)) throw new StoreError('task', '当前会话关联已变化，请重新选择。');
+  const operation = { generation: detailGeneration, label: returning ? '正在打开会话…' : '正在核对工作区…' };
+  taskBusy = operation;
+  const restoreButton = showOpeningFeedback(returning ? target : null);
   renderTaskOnly();
   try {
-    await flushDrafts();
-    if (overlayAtStart !== overlayGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
+    if (!returning || !state.draftSaved) await flushDrafts();
+    if (operation.generation !== detailGeneration || overlayAtStart !== overlayGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
+    const active = store.task(repo, number).current;
+    if (returning && (active?.requestId !== prior.requestId || active?.status !== 'linked' || active.threadId !== prior.threadId)) throw new StoreError('task', '当前会话关联已变化，请重新选择。');
     await store.createTask(repo, number, { another, workspaceKey });
-    if (repo !== state.repo || number !== state.selected || identity !== store.identity) return;
-    renderTaskOnly();
+    if (operation.generation !== detailGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
     if (overlayAtStart === overlayGeneration) { closeOverlay(false); if (store.task(repo, number).current?.status !== 'linked') showTask(); }
-  } finally { taskBusy = false; renderTaskOnly(); }
+  } finally {
+    restoreButton();
+    if (taskBusy === operation) { taskBusy = null; renderTaskOnly(); scheduleTaskAssociation(); }
+  }
 }
 async function createTask(another) {
-  if (taskBusy || taskPreparing || !current()) return;
+  if (currentTaskOperation() || currentTaskPreparation() || !current()) return;
   const generation = ++taskViewGeneration;
   const repo = state.repo, number = state.selected, identity = store.identity;
-  taskPreparing = true; renderTaskOnly();
+  const preparation = { generation: detailGeneration };
+  const isCurrent = () => preparation.generation === detailGeneration && generation === taskViewGeneration
+    && repo === state.repo && number === state.selected && identity === store.identity;
+  taskPreparing = preparation; renderTaskOnly();
   try { return await preserveBefore(async () => {
-    if (generation !== taskViewGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
+    if (!isCurrent()) return;
     const overlayAtStart = overlayGeneration;
     await store.prepareTask();
+    if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
     await store.loadTask(repo, number);
-    if (generation !== taskViewGeneration || overlayAtStart !== overlayGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
+    if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
     store.activeNumber = number;
     const valid = store.workspaces(repo).filter(workspace => workspace.valid), binding = store.binding(repo);
     if (binding?.valid || valid.length === 1) return openTask(another, binding?.valid ? binding.id : valid[0].id);
     showWorkspacePicker('create', another);
-  }); } finally { taskPreparing = false; renderTaskOnly(); }
+  }); } finally { if (taskPreparing === preparation) { taskPreparing = null; renderTaskOnly(); } }
 }
 function showWorkspacePicker(mode, another = false) {
   const workspaces = store.workspaces(state.repo), binding = store.binding(state.repo);
@@ -663,17 +775,25 @@ async function showTaskHistory() {
   captureInputs();
   openModal('历史任务与会话', taskHistoryMarkup(store.task(repo, number)), `${action('task-details', '当前任务')}${action('close-overlay', '关闭')}`, { wide: true });
 }
-async function openHistory(requestId) {
-  if (taskBusy || !current()) return;
+async function openHistory(requestId, target) {
+  if (currentTaskOperation() || !current()) return;
   const repo = state.repo, number = state.selected, identity = store.identity;
   const overlayAtStart = overlayGeneration;
-  taskBusy = true;
+  const operation = { generation: detailGeneration, label: '正在打开会话…' };
+  taskBusy = operation;
+  const restoreButton = showOpeningFeedback(target);
+  renderTaskOnly();
   try {
-    await flushDrafts(); await store.openHistory(repo, number, requestId);
-    if (repo !== state.repo || number !== state.selected || identity !== store.identity) return;
+    if (!state.draftSaved) await flushDrafts();
+    if (operation.generation !== detailGeneration || overlayAtStart !== overlayGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
+    await store.openHistory(repo, number, requestId);
+    if (operation.generation !== detailGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
     if (overlayAtStart === overlayGeneration) closeOverlay();
-    renderTaskOnly(); announce('已请求返回历史会话，当前优先关联保持不变。');
-  } finally { taskBusy = false; }
+    announce('已请求返回历史会话。');
+  } finally {
+    restoreButton();
+    if (taskBusy === operation) { taskBusy = null; renderTaskOnly(); }
+  }
 }
 async function showDiagnostics() {
   captureInputs();
@@ -742,17 +862,19 @@ async function handleAction(name, target, event) {
         finally { state.saving = false; }
       }); break;
     }
-    case 'task':
+    case 'task': {
       if (overlay.children.length) closeOverlay();
-      if (store.task(state.repo, state.selected).current?.status === 'linked') await openTask(false);
-      else if (store.task(state.repo, state.selected).current) showTask();
+      const task = store.task(state.repo, state.selected).current;
+      if (task?.status === 'linked') await openTask(false, undefined, task.requestId);
+      else if (task) showTask();
       else await createTask(false); break;
-    case 'return-task': await openTask(false); break;
+    }
+    case 'return-task': await openTask(false, undefined, target.dataset.requestId || '', target); break;
     case 'task-details': showTask(); break;
     case 'another-task': closeOverlay(); await createTask(true); break;
     case 'change-workspace': closeOverlay(); await changeWorkspace(); break;
     case 'task-history': await showTaskHistory(); break;
-    case 'task-history-open': await openHistory(target.dataset.requestId); break;
+    case 'task-history-open': await openHistory(target.dataset.requestId, target); break;
     case 'confirm-workspace': {
       const chosen = $('input[name="workspace"]:checked', overlay)?.value;
       const intent = taskIntent;
@@ -768,22 +890,39 @@ async function handleAction(name, target, event) {
       break;
     }
     case 'task-check': {
-      if (taskBusy) break;
+      if (currentTaskOperation()) break;
       const repo = state.repo, number = state.selected, identity = store.identity, overlayAtStart = overlayGeneration;
-      taskBusy = true; target.disabled = true;
-      try { await store.checkTask(repo, number); if (repo === state.repo && number === state.selected && identity === store.identity) { renderTaskOnly(); if (overlayAtStart === overlayGeneration) showTask(); } }
-      finally { taskBusy = false; if (target.isConnected) target.disabled = false; } break;
+      const before = store.task(repo, number).current;
+      if (!before || target.dataset.requestId !== before.requestId) break;
+      const operation = { generation: detailGeneration, label: '正在检查关联…' };
+      taskBusy = operation; target.disabled = true; renderTaskOnly();
+      try {
+        await store.checkTask(repo, number);
+        if (operation.generation !== detailGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) break;
+        const after = store.task(repo, number).current;
+        if (after?.requestId === before.requestId && overlayAtStart === overlayGeneration) paintTaskAssociation(after, before);
+      } finally {
+        if (taskBusy === operation) { taskBusy = null; renderTaskOnly(); }
+        if (target.isConnected) target.disabled = false;
+      }
+      break;
     }
     case 'task-resolve': {
       const threadId = $('input[name="task-candidate"]:checked', overlay)?.value;
       if (!threadId) throw new StoreError('task-candidate', '请选择一条已经核验的会话，再明确确认。');
-      if (taskBusy) break;
+      if (currentTaskOperation()) break;
       const repo = state.repo, number = state.selected, identity = store.identity, overlayAtStart = overlayGeneration;
-      taskBusy = true; target.disabled = true;
+      const operation = { generation: detailGeneration, label: '正在确认关联…' };
+      taskBusy = operation; target.disabled = true; renderTaskOnly();
       try {
-        await flushDrafts(); await store.resolveTask(repo, number, threadId, target.dataset.requestId);
-        if (repo === state.repo && number === state.selected && identity === store.identity) { renderTaskOnly(); if (overlayAtStart === overlayGeneration) showTask(); }
-      } finally { taskBusy = false; if (target.isConnected) target.disabled = false; }
+        await flushDrafts();
+        if (operation.generation !== detailGeneration || overlayAtStart !== overlayGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) break;
+        await store.resolveTask(repo, number, threadId, target.dataset.requestId);
+        if (operation.generation === detailGeneration && repo === state.repo && number === state.selected && identity === store.identity && overlayAtStart === overlayGeneration) showTask();
+      } finally {
+        if (taskBusy === operation) { taskBusy = null; renderTaskOnly(); }
+        if (target.isConnected) target.disabled = false;
+      }
       break;
     }
     case 'close-overlay': closeOverlay(); break;
@@ -908,6 +1047,8 @@ window.addEventListener('scroll', event => {
 }, true);
 // 后台只检查当前账号缓存，不抢焦点，也不重新挂载当前编辑器。
 setInterval(() => { if (!document.hidden && !state.loading && !state.refreshing) refresh(false); }, 60000);
+document.addEventListener('visibilitychange', () => scheduleTaskAssociation(true));
+window.addEventListener('focus', () => scheduleTaskAssociation(true));
 
 async function load() {
   state.loading = true; state.loadError = ''; renderAll();
@@ -980,6 +1121,7 @@ app.ontoolresult = result => {
 app.onclose = () => {
   imageController?.close();
   themeController.dispose();
+  stopTaskAssociation();
   store.closed = true; detailGeneration++; closeOverlay(false); clearTimeout(draftTimer);
   state.globalMessage = '宿主连接已关闭，请重新打开 Issue Hub。未发布输入仍保留在当前页面。';
   for (const node of $$('button,input,select,textarea')) node.disabled = node.dataset?.action !== 'diagnostics';

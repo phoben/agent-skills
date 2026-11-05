@@ -42,15 +42,21 @@ export function issueTaskPrompt({ nonce, fullName, number, title }) {
 }
 
 export function createIssueTasks({ catalog, bridge, storage, issues, openUri = openCodexUri, now = Date.now, maxCandidates = 40, maxCandidatePages = 3 } = {}) {
-  async function context() {
-    const github = await issues.context();
+  async function context(local = false) {
+    const github = await issues.context({ fast: local });
     const details = bridge.identityDetails ? await bridge.identityDetails() : { identity: await bridge.identity(), version: 1 };
     const codexIdentity = details.identity;
     requireValue(typeof github?.scope === 'string' && github.scope && github.account?.id !== undefined, 'IDENTITY_UNKNOWN', '请先确认 GitHub 当前身份。');
     requireValue(typeof codexIdentity === 'string' && codexIdentity, 'HOST_IDENTITY_UNAVAILABLE', '请先确认 Codex 当前身份，会话操作暂不可用。');
-    return { github, codexIdentity, identityVersion: details.version, legacyIdentity: details.legacyIdentity, scope: `${github.scope}:codex:${hash(codexIdentity)}` };
+    return { github, codexIdentity, identityVersion: details.version, legacyIdentity: details.legacyIdentity, scope: `${github.scope}:codex:${hash(codexIdentity)}`, local };
   }
   async function verify(ctx) {
+    if (ctx.local && issues.verifyContext) {
+      await issues.verifyContext(ctx.github);
+      const identity = bridge.identityDetails ? (await bridge.identityDetails()).identity : await bridge.identity();
+      requireValue(identity === ctx.codexIdentity, 'HOST_IDENTITY_CHANGED', 'Codex上下文已变化，旧任务操作已停止，请重新核对会话。');
+      return;
+    }
     const current = await context();
     requireValue(current.github.scope === ctx.github.scope && String(current.github.account.id) === String(ctx.github.account.id), 'IDENTITY_CHANGED', 'GitHub账号已变化，已停止旧账号的任务操作。');
     requireValue(current.codexIdentity === ctx.codexIdentity, 'HOST_IDENTITY_CHANGED', 'Codex上下文已变化，旧任务操作已停止，请重新核对会话。');
@@ -128,8 +134,7 @@ export function createIssueTasks({ catalog, bridge, storage, issues, openUri = o
     requireValue(value && value.codexIdentity === ctx.codexIdentity && String(value.githubAccountId) === String(ctx.github.account.id), 'REQUEST_UNKNOWN', '当前账号没有此任务请求。');
     return value;
   }
-  function projection(ctx, repositoryKey, number) {
-    const repo = repository(repositoryKey);
+  function projection(ctx, repositoryKey, number, repo = repository(repositoryKey)) {
     const index = storage.get(ctx.scope, indexKind, objectKey(repositoryKey, number));
     const binding = storage.get(ctx.scope, bindingKind, repositoryKey);
     const workspaces = repo.workspaces.map(item => ({ ...clone(item), id: item.key, name: item.projectName || '工作区', path: item.cwd, valid: true }));
@@ -139,8 +144,16 @@ export function createIssueTasks({ catalog, bridge, storage, issues, openUri = o
     return { current, history, binding: binding ? { ...clone(binding), id: binding.workspaceKey, path: chosen?.cwd || binding.cwd, valid: Boolean(chosen && samePath(chosen.cwd, binding.cwd)) } : null, workspaces };
   }
   function envelope(ctx, data) { return { schemaVersion: 1, identity: ctx.github.account.id, data, sampledAt: new Date(now()).toISOString() }; }
-  async function ensureWorkspace(request) {
-    const value = await catalog.resolveWorkspace(request.repositoryKey, request.workspaceKey);
+  async function ensureWorkspace(request, ctx = null) {
+    let recheckRegistration = false;
+    if (ctx) {
+      const snapshot = catalog.snapshot();
+      const repository = snapshot.repositories.find(entry => entry.key === request.repositoryKey);
+      const workspace = repository?.workspaces.find(entry => entry.key === request.workspaceKey);
+      recheckRegistration = snapshot.status !== 'unavailable' && Boolean(workspace?.authorizedRoot);
+      if (!recheckRegistration) await ensureCatalogReady(ctx);
+    }
+    const value = await catalog.resolveWorkspace(request.repositoryKey, request.workspaceKey, { recheckRegistration });
     requireValue(samePath(value.workspace.cwd, request.cwd) && value.workspace.projectId === request.projectId, 'WORKSPACE_CHANGED', '任务对应的工作区已变化，请重新选择。');
     return value;
   }
@@ -173,21 +186,24 @@ export function createIssueTasks({ catalog, bridge, storage, issues, openUri = o
     return resolved;
   }
   async function openLinked(ctx, request) {
-    await ensureWorkspace(request);
-    const result = await bridge.request('thread/read', { threadId: request.threadId, includeTurns: false });
+    const [resolved, result] = await Promise.all([
+      ensureWorkspace(request, ctx),
+      bridge.request('thread/read', { threadId: request.threadId, includeTurns: false }),
+    ]);
     requireValue(result?.thread?.id === request.threadId && isThreadId(request.threadId) && typeof result.thread.cwd === 'string' && samePath(result.thread.cwd, request.cwd) && (!result.thread.projectId || result.thread.projectId === request.projectId), 'THREAD_CHANGED', '关联会话不再属于原工作区，请核对后另建任务。');
     await verify(ctx);
     try { await openUri(`codex://threads/${request.threadId}`); }
     catch { throw new ProofError('OPEN_UNCONFIRMED', '打开关联会话的结果未确认，请先检查桌面。'); }
     await verify(ctx);
+    return resolved.repository;
   }
   async function openHistory(ctx, payload) {
     const index = storage.get(ctx.scope, indexKind, objectKey(payload.repositoryKey, payload.number));
     requireValue(index?.historyRequestIds?.includes(payload.requestId), 'TASK_HISTORY_UNKNOWN', '此记录不属于当前 Issue 的已有任务历史。');
     const request = readRequest(ctx, payload.requestId);
     requireValue(request.repositoryKey === payload.repositoryKey && request.number === payload.number && request.status === 'linked' && isThreadId(request.threadId), 'TASK_HISTORY_UNLINKED', '历史任务尚未确认会话，不能直接返回。');
-    await openLinked(ctx, request);
-    return envelope(ctx, { ...projection(ctx, payload.repositoryKey, payload.number), navigation: 'requested' });
+    const repo = await openLinked(ctx, request);
+    return envelope(ctx, { ...projection(ctx, payload.repositoryKey, payload.number, repo), navigation: 'requested' });
   }
   async function firstUserLine(threadId) {
     let cursor = null;
@@ -229,7 +245,6 @@ export function createIssueTasks({ catalog, bridge, storage, issues, openUri = o
     return envelope(ctx, projection(ctx, request.repositoryKey, request.number));
   }
   async function open(ctx, payload) {
-    repository(payload.repositoryKey);
     // 返回/恢复只认本作用域中的精确请求，账号切换或旧页面不能退化为新建。
     let existing = payload.reuseOnly ? readRequest(ctx, payload.requestId) : storage.get(ctx.scope, requestKind, payload.requestId);
     if (payload.reuseOnly) requireValue(existing.repositoryKey === payload.repositoryKey && existing.number === payload.number, 'REQUEST_UNKNOWN', '此请求不属于当前账号下的这个 Issue。');
@@ -238,10 +253,13 @@ export function createIssueTasks({ catalog, bridge, storage, issues, openUri = o
     const prior = index?.currentRequestId ? readRequest(ctx, index.currentRequestId) : null;
     if (!existing && !payload.another && prior) existing = prior;
     if (existing?.threadId && !payload.another) {
-      await openLinked(ctx, existing);
-      const data = projection(ctx, payload.repositoryKey, payload.number); data.current.navigation = 'requested';
+      const repo = await openLinked(ctx, existing);
+      const data = projection(ctx, payload.repositoryKey, payload.number, repo);
+      if (data.current?.requestId === existing.requestId) data.current.navigation = 'requested';
       return envelope(ctx, data);
     }
+    await ensureCatalogReady(ctx);
+    repository(payload.repositoryKey);
     if (existing && existing.status !== 'draft') {
       await ensureWorkspace(existing); await verify(ctx);
       return envelope(ctx, projection(ctx, payload.repositoryKey, payload.number));
@@ -297,8 +315,8 @@ export function createIssueTasks({ catalog, bridge, storage, issues, openUri = o
   }
   async function check(ctx, payload) {
     const request = readRequest(ctx, payload.requestId);
-    await ensureWorkspace(request);
-    if (request.threadId) { await verify(ctx); return envelope(ctx, projection(ctx, request.repositoryKey, request.number)); }
+    const { repository: repo } = await ensureWorkspace(request, ctx);
+    if (request.threadId) { await verify(ctx); return envelope(ctx, projection(ctx, request.repositoryKey, request.number, repo)); }
     requireValue(request.status !== 'draft', 'REQUEST_NOT_OPENED', '请先打开任务草稿，手动发送后再检查关联。');
     requireValue(now() - request.createdAt <= 24 * 60 * 60 * 1000, 'REQUEST_EXPIRED', '任务关联检查已过期，请保留原草稿并明确另建任务。');
     const candidates = [], seenThreads = new Set(), seenCursors = new Set();
@@ -340,25 +358,22 @@ export function createIssueTasks({ catalog, bridge, storage, issues, openUri = o
       else current.status = 'pending';
       storage.set(ctx.scope, requestKind, current.requestId, current);
     });
-    return envelope(ctx, projection(ctx, request.repositoryKey, request.number));
+    return envelope(ctx, projection(ctx, request.repositoryKey, request.number, repo));
   }
   async function execute(action, payload = {}) {
     validate(action, payload);
-    const ctx = await context();
+    const local = ['latest', 'check', 'open-history'].includes(action) || action === 'open' && payload.reuseOnly === true;
+    const ctx = await context(local);
     requireValue(payload.expectedIdentity === undefined || payload.expectedIdentity === String(ctx.github.account.id), 'IDENTITY_CHANGED', '账号已变化，请重新载入后再操作任务。');
     await verify(ctx);
     migrateLegacy(ctx);
     if (action === 'latest') return latest(ctx, payload);
-    if (action === 'open' && payload.reuseOnly) {
-      const request = readRequest(ctx, payload.requestId);
-      requireValue(request.repositoryKey === payload.repositoryKey && request.number === payload.number, 'REQUEST_UNKNOWN', '此请求不属于当前账号下的这个 Issue。');
-    }
-    await ensureCatalogReady(ctx);
-    if (action === 'bind') return bind(ctx, payload);
     if (action === 'open') return open(ctx, payload);
     if (action === 'open-history') return openHistory(ctx, payload);
+    if (action === 'check') return check(ctx, payload);
+    await ensureCatalogReady(ctx);
+    if (action === 'bind') return bind(ctx, payload);
     if (action === 'resolve') return resolveCandidate(ctx, payload);
-    return check(ctx, payload);
   }
   return { execute };
 }

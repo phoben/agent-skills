@@ -7,6 +7,7 @@ import { ProofError, requireValue } from './errors.mjs';
 
 const execFileAsync = promisify(execFile);
 const key = value => createHash('sha256').update(value).digest('hex').slice(0, 20);
+const defaultMaxDepth = 3;
 export const samePath = (left, right) => process.platform === 'win32' ? resolve(left).toLowerCase() === resolve(right).toLowerCase() : resolve(left) === resolve(right);
 const inside = (root, child) => { const path = relative(root, child); return !isAbsolute(path) && path !== '..' && !path.startsWith(`..${sep}`); };
 const skipped = new Set(['.git', '.hg', '.svn', 'node_modules', 'vendor', 'dist', 'build', 'out', 'target', 'coverage', '.next', '.nuxt', '.cache', '.venv', 'venv', '__pycache__', '.codex', '.trellis']);
@@ -53,8 +54,13 @@ export async function inspectGit(directory, { run = execFileAsync } = {}) {
   return { cwd, gitRoot, repositories: [...repositories.values()] };
 }
 
+async function hasGitMarker(directory) {
+  const marker = await lstat(join(directory, '.git'));
+  return marker.isDirectory() || marker.isFile() || marker.isSymbolicLink();
+}
+
 // 注册根直接核验；嵌套候选只在固定层级内查找，正常深度边界属于产品范围。
-export async function discoverGitRepositories(directory, { gitInspector = inspectGit, maxDepth = 3, maxDirectories = 1500 } = {}) {
+export async function discoverGitRepositories(directory, { gitInspector = inspectGit, maxDepth = defaultMaxDepth, maxDirectories = 1500 } = {}) {
   const root = await realpath(directory);
   const infos = [], warnings = [], visited = new Set();
   const queue = [{ path: root, depth: 0 }];
@@ -70,7 +76,7 @@ export async function discoverGitRepositories(directory, { gitInspector = inspec
     visited.add(normalized); count++;
     let candidate = item.depth === 0;
     if (!candidate) {
-      try { const marker = await lstat(join(actual, '.git')); candidate = marker.isDirectory() || marker.isFile() || marker.isSymbolicLink(); }
+      try { candidate = await hasGitMarker(actual); }
       catch (error) { if (error?.code !== 'ENOENT') warnings.push('ROOT_ACCESS_FAILED'); }
     }
     if (candidate) {
@@ -97,24 +103,30 @@ export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 2
   const refreshes = new Map();
   let revision = 0;
   let sourceRevision = 0;
+  async function readProjects() {
+    const projects = [], seen = new Set();
+    let cursor = null;
+    for (let page = 0; page < pageLimit; page++) {
+      const result = await bridge.request('project/list', { limit: 100, sortKey: 'position', ...(cursor ? { cursor } : {}) });
+      requireValue(Array.isArray(result?.data), 'HOST_PROTOCOL', '项目列表格式不可识别。');
+      for (const project of result.data) {
+        requireValue(typeof project?.id === 'string' && Array.isArray(project.roots) && project.roots.every(root => typeof root?.path === 'string' && isAbsolute(root.path)), 'HOST_PROTOCOL', '项目目录格式不可识别。');
+        projects.push(project);
+      }
+      const next = result.nextCursor;
+      requireValue(next === null || next === undefined || typeof next === 'string', 'HOST_PROTOCOL', '项目分页格式不可识别。');
+      if (!next) return { projects, complete: true };
+      requireValue(!seen.has(next), 'HOST_PROTOCOL', '项目分页游标重复。');
+      seen.add(next); cursor = next;
+    }
+    return { projects, complete: false };
+  }
   async function refresh({ quick = false } = {}) {
     const mode = quick ? 'quick' : 'full';
     if (refreshes.has(mode)) return refreshes.get(mode);
     const startedRevision = revision;
     const pending = (async () => {
-      const projects = [], seen = new Set(); let cursor = null, complete = false;
-      for (let page = 0; page < pageLimit; page++) {
-        const result = await bridge.request('project/list', { limit: 100, sortKey: 'position', ...(cursor ? { cursor } : {}) });
-        requireValue(Array.isArray(result?.data), 'HOST_PROTOCOL', '项目列表格式不可识别。');
-        for (const project of result.data) {
-          requireValue(typeof project?.id === 'string' && Array.isArray(project.roots) && project.roots.every(root => typeof root?.path === 'string' && isAbsolute(root.path)), 'HOST_PROTOCOL', '项目目录格式不可识别。');
-          projects.push(project);
-        }
-        const next = result.nextCursor;
-        requireValue(next === null || next === undefined || typeof next === 'string', 'HOST_PROTOCOL', '项目分页格式不可识别。');
-        if (!next) { complete = true; break; }
-        requireValue(!seen.has(next), 'HOST_PROTOCOL', '项目分页游标重复。'); seen.add(next); cursor = next;
-      }
+      const { projects, complete } = await readProjects();
       const repositories = new Map(), warnings = [], roots = projects.flatMap(project => project.roots.map(root => ({ projectId: project.id, projectName: typeof project.name === 'string' ? project.name : '', path: root.path })));
       if (!complete) warnings.push('PROJECT_PAGE_LIMIT');
       if (quick) warnings.push('CATALOG_DEEP_SCAN_PENDING');
@@ -199,16 +211,35 @@ export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 2
     if (JSON.stringify(state.repositories) !== JSON.stringify(normalized)) { state = { ...state, repositories: normalized }; revision++; }
     return snapshot();
   }
-  async function resolveWorkspace(repositoryKey, workspaceKey) {
+  async function resolveWorkspace(repositoryKey, workspaceKey, { recheckRegistration = false } = {}) {
     requireValue(state.status !== 'unavailable', 'CATALOG_UNAVAILABLE', '请先重新发现项目目录。');
-    requireValue(!state.checking, 'CATALOG_CHECKING', '正在核对项目和工作区，请稍后再创建任务。');
+    requireValue(recheckRegistration || !state.checking, 'CATALOG_CHECKING', '正在核对项目和工作区，请稍后再创建任务。');
     const repository = state.repositories.find(entry => entry.key === repositoryKey);
     const workspace = repository?.workspaces.find(entry => entry.key === workspaceKey);
     requireValue(workspace, 'WORKSPACE_UNKNOWN', '工作区不属于当前已发现仓库。');
+    if (recheckRegistration) {
+      // 目录快照只定位既有工作区，宿主当前登记与真实 Git remote 决定是否能打开会话。
+      const { projects } = await readProjects();
+      const project = projects.find(entry => entry.id === workspace.projectId);
+      let registered = false;
+      for (const root of project?.roots || []) {
+        const actual = await realpath(root.path).catch(() => null);
+        if (actual && workspace.authorizedRoot && samePath(actual, workspace.authorizedRoot)) {
+          registered = true;
+          break;
+        }
+      }
+      requireValue(registered, 'WORKSPACE_CHANGED', '原工作区的项目登记已失效，请重新发现项目。');
+    }
     let current; try { current = await gitInspector(workspace.cwd); } catch { throw new ProofError('WORKSPACE_INVALID', '工作区目录已失效，请重新发现。'); }
     requireValue(!workspace.authorizedRoot || inside(workspace.authorizedRoot, current.cwd), 'WORKSPACE_CHANGED', '工作区已离开注册项目范围。');
     const acceptedKeys = new Set([...(workspace.sourceKeys || [repositoryKey]), ...(repository.id ? [parseGithubRemote(`https://github.com/${repository.fullName}`).key] : [])]);
     requireValue(samePath(current.cwd, workspace.cwd) && current.repositories.some(entry => acceptedKeys.has(entry.key)), 'WORKSPACE_CHANGED', '工作区对应仓库已变化，请重新选择。');
+    if (recheckRegistration) {
+      const segments = relative(workspace.authorizedRoot, current.cwd).split(sep).filter(Boolean);
+      requireValue(segments.length <= (discoveryOptions.maxDepth ?? defaultMaxDepth) && !segments.some(segment => skipped.has(segment.toLowerCase())), 'WORKSPACE_CHANGED', '原工作区已离开当前项目发现范围。');
+      if (segments.length) requireValue(await hasGitMarker(current.cwd).catch(() => false), 'WORKSPACE_CHANGED', '原工作区已不再是独立的 Git 工作区。');
+    }
     return { repository: structuredClone(repository), workspace: structuredClone(workspace) };
   }
   return { refresh, snapshot, remap, restore, resolveWorkspace };

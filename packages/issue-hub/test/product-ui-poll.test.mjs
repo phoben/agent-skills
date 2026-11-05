@@ -7,7 +7,7 @@ import { LiveStore, StoreError } from '../ui/store.mjs';
 import { esc, safeUrl } from '../ui/ui.mjs';
 
 const source = await readFile(new URL('../ui/app.mjs', import.meta.url), 'utf8');
-const createContext = values => createVmContext({ imageController: null, ...values });
+const createContext = values => createVmContext({ imageController: null, stopTaskAssociation() {}, scheduleTaskAssociation() {}, ...values });
 const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start)));
 
 function failedDetailPage({ issueDraft = null, commentDraft = { text: '已存评论草稿' } } = {}) {

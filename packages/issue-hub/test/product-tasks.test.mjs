@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createHash, randomUUID } from 'node:crypto';
 import { createIssueTasks } from '../src/services/issue-tasks.mjs';
+import { createIssueService } from '../src/services/issues.mjs';
 import { createStorage } from '../src/storage/database.mjs';
 import { repositoryKey, workspaceKey, firstThread, secondThread, temporary } from './helpers.mjs';
 import { createCatalog, parseGithubRemote } from '../src/catalog.mjs';
@@ -12,6 +13,7 @@ function memoryStorage() {
   return {
     get: (...args) => structuredClone(data.get(key(...args)) ?? null),
     set: (scope, kind, id, value) => data.set(key(scope, kind, id), structuredClone(value)),
+    remove: (scope, kind, id) => data.delete(key(scope, kind, id)),
     list: (scope, kind) => [...data].flatMap(([raw, value]) => { const [s, k, id] = JSON.parse(raw); return s === scope && k === kind ? [{ key: id, value: structuredClone(value) }] : []; }),
     transaction: fn => { const old = structuredClone(data); try { const result = fn(); assert.ok(!result?.then, '不能跨 await 持有事务'); return result; } catch (error) { data = old; throw error; } },
   };
@@ -78,6 +80,105 @@ test('从首页缓存恢复后创建任务主动核对目录，不永久停在�
   catalog.restore(raw); catalog.remap(mapping); rootValid = true; switchDuringRefresh = true;
   await assert.rejects(tasks.execute('open', { ...input, requestId: randomUUID(), another: true }), { code: 'IDENTITY_CHANGED' });
   assert.equal(opened.length, 1);
+});
+
+async function coldTaskFixture(t) {
+  const directory = await temporary(t), source = parseGithubRemote('https://github.com/fixture/repository');
+  const storage = memoryStorage();
+  const state = { registered: true, remote: source, codex: 'codex-a', fingerprint: 'credential-a', identityReads: 0, projectReads: 0, gitReads: 0, opened: [], threads: [], items: [], now: 1700000000000 };
+  const inspect = async () => { state.gitReads++; return { cwd: directory, repositories: [state.remote] }; };
+  const bridge = {
+    identity: async () => state.codex,
+    request: async (method, payload) => {
+      if (method === 'project/list') {
+        state.projectReads++;
+        if (state.projectUnavailable) throw new Error('项目暂不可读');
+        return { data: state.registered ? [{ id: 'project-one', roots: [{ path: directory }] }] : [] };
+      }
+      if (method === 'thread/list') return { data: state.threads };
+      if (method === 'thread/items/list') return { data: state.items };
+      if (method === 'thread/read') { state.onReadThread?.(); return { thread: state.threads.find(thread => thread.id === payload.threadId) }; }
+      throw new Error('非预期宿主方法');
+    },
+  };
+  const catalog = createCatalog({ bridge, gitInspector: inspect, discover: async () => ({ infos: [await inspect()], authorizedRoot: directory, warnings: [] }) });
+  await catalog.refresh();
+  const raw = catalog.snapshot({ raw: true });
+  const service = createIssueService({ storage, catalog, github: {
+    fingerprint: async () => { state.onFingerprint?.(); return state.fingerprint; },
+    identity: async () => { state.identityReads++; return { id: 42, login: 'fixture', credentialFingerprint: state.fingerprint }; },
+  } });
+  const issues = { ...service, execute: async action => {
+    assert.equal(action, 'read-summary', '核对或返回目标会话时不应整批刷新仓库');
+    return { identity: 42, data: { issue: { number: 42, title: '目标会话' } } };
+  } };
+  const tasks = createIssueTasks({ catalog, bridge, storage, issues, openUri: async uri => { state.opened.push(uri); await state.onOpen?.(); }, now: () => state.now });
+  const payload = { repositoryKey: source.key, number: 42, requestId: randomUUID(), expectedIdentity: '42' };
+  const created = (await tasks.execute('open', payload)).data.current;
+  state.threads = [{ id: firstThread, cwd: directory, projectId: 'project-one', createdAt: state.now / 1000 }];
+  state.items = [{ type: 'userMessage', content: [{ type: 'text', text: created.prompt }] }];
+  const check = () => tasks.execute('check', { requestId: payload.requestId, expectedIdentity: '42' });
+  const reopen = () => tasks.execute('open', { ...payload, reuseOnly: true });
+  return { state, storage, catalog, raw, check, reopen, tasks, payload };
+}
+
+test('目录仍在核对时自动关联与返回只读目标项目和 Git，复用已验证凭据', async t => {
+  const { state, catalog, raw, check, reopen } = await coldTaskFixture(t);
+  catalog.restore(raw);
+  const before = { projects: state.projectReads, git: state.gitReads, identity: state.identityReads };
+  assert.equal((await check()).data.current.status, 'linked');
+  assert.equal((await reopen()).data.current.navigation, 'requested');
+  assert.equal(state.opened.at(-1), `codex://threads/${firstThread}`);
+  assert.equal(state.projectReads - before.projects, 2);
+  assert.equal(state.gitReads - before.git, 2);
+  assert.equal(state.identityReads, before.identity);
+});
+
+test('快速返回拒绝已撤销的项目登记、变更的 Git remote 及失效的双身份', async t => {
+  const { state, storage, catalog, raw, check, reopen } = await coldTaskFixture(t);
+  await check();
+  catalog.restore(raw);
+  state.registered = false;
+  await assert.rejects(reopen(), { code: 'WORKSPACE_CHANGED' });
+  state.registered = true;
+  const originalRemote = state.remote;
+  state.remote = parseGithubRemote('https://github.com/fixture/other');
+  await assert.rejects(reopen(), { code: 'WORKSPACE_CHANGED' });
+  state.remote = originalRemote;
+  state.onReadThread = () => { state.codex = 'codex-b'; };
+  await assert.rejects(reopen(), { code: 'HOST_IDENTITY_CHANGED' });
+  state.codex = 'codex-a';
+  state.onReadThread = () => { storage.remove('_identity', 'credential', state.fingerprint); };
+  await assert.rejects(reopen(), { code: 'AUTH_REQUIRED' });
+  assert.equal(state.opened.length, 1);
+});
+
+test('返回前核验 GitHub 凭据期间切换 Codex 账号，不打开旧账号会话', async t => {
+  const { state, check, reopen } = await coldTaskFixture(t);
+  await check();
+  state.onReadThread = () => {
+    state.onFingerprint = () => { state.codex = 'codex-b'; };
+  };
+  await assert.rejects(reopen(), { code: 'HOST_IDENTITY_CHANGED' });
+  assert.equal(state.opened.length, 1, '只保留首次创建任务时打开的草稿');
+});
+
+test('历史会话按目标返回，导航后目录后台刷新失败仍能返回已核对的投影', async t => {
+  const { state, catalog, raw, check, tasks, payload } = await coldTaskFixture(t);
+  await check();
+  state.now += 3000;
+  const secondId = randomUUID();
+  await tasks.execute('open', { ...payload, requestId: secondId, another: true });
+  catalog.restore(raw);
+  state.onOpen = async () => {
+    state.projectUnavailable = true;
+    await assert.rejects(catalog.refresh(), /项目暂不可读/);
+  };
+  const result = (await tasks.execute('open-history', payload)).data;
+  assert.equal(state.opened.at(-1), `codex://threads/${firstThread}`);
+  assert.equal(catalog.snapshot().status, 'unavailable');
+  assert.equal(result.navigation, 'requested');
+  assert.equal(result.current.requestId, secondId);
 });
 
 test('单工作区一次打开中文草稿，不发送，重复请求和并发窗口不会再打开', async () => {

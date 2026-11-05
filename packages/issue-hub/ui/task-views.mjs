@@ -5,13 +5,19 @@ const time = value => {
   return Number.isFinite(instant.getTime()) ? instant.toLocaleString('zh-CN', { hour12: false }) : '时间未知';
 };
 
+export function taskDescription(task) {
+  return { draft: '草稿已准备。请在 Codex 中确认工作区并手动发送。', requested: '已请求打开草稿。发送首条消息后，Issue Hub 会自动核对关联。', pending: '关联尚待确认。发送首条消息后，Issue Hub 会自动核对关联。', 'open-unconfirmed': '打开请求结果尚未确认，请先检查桌面草稿。发送首条消息后会自动核对关联。', ambiguous: '以下候选已经通过本次任务引用和工作区核验。请选择一个，服务会再次核验。', linked: task.associationSource === 'user-confirmed' ? '此关联已由成员选择并再次核验，可返回同一会话。' : '已确认唯一关联，可返回同一会话。' }[task.status] || '关联尚待确认。';
+}
+
+export function taskCandidatesMarkup(task) {
+  return task.status !== 'linked' && task.candidates?.length ? `<fieldset class="task-candidates"><legend>已核验的会话候选</legend>${task.candidates.map(candidate => `<label class="workspace-option"><input type="radio" name="task-candidate" value="${esc(candidate.threadId)}">${esc(candidate.title || '未命名会话')}<span class="workspace-path">${esc(candidate.path || '')}</span><span class="muted">${esc(time(candidate.createdAt))}</span></label>`).join('')}</fieldset>${button('task-resolve', '确认所选会话', { className: 'primary', extra: `data-request-id="${esc(task.requestId)}"` })}` : '';
+}
+
 export function taskDetailsMarkup(record) {
   const task = record.current, binding = record.binding;
   const nextWorkspace = `<section class="task-workspace"><h3>后续新任务工作区</h3><p class="workspace-path">${esc(binding?.path || '尚未选择')}</p>${binding?.valid === false ? '<p class="muted">已记路径失效，请重新选择。</p>' : ''}${button('change-workspace', '修改工作区')}</section>`;
   if (!task) return `<p>此 Issue 暂无任务请求。创建后先在 Codex 中确认草稿，再手动发送。</p>${nextWorkspace}`;
-  const description = { draft: '草稿已准备。请在 Codex 中确认工作区并手动发送。', requested: '已发出打开草稿请求，尚未确认会话。请先检查桌面草稿，避免重复创建。', pending: '关联尚待确认，请在发送后检查。', 'open-unconfirmed': '打开请求结果尚未确认，请先检查桌面草稿，再核对关联。', ambiguous: '以下候选已经通过本次任务引用和工作区核验。请明确选择一个；确认时服务会再次核验。', linked: task.associationSource === 'user-confirmed' ? '此关联已由成员选择并再次核验，可返回同一会话。' : '已确认唯一关联，可返回同一会话。' }[task.status] || '关联尚待确认。';
-  const candidates = task.status !== 'linked' && task.candidates?.length ? `<fieldset class="task-candidates"><legend>已核验的会话候选</legend>${task.candidates.map(candidate => `<label class="workspace-option"><input type="radio" name="task-candidate" value="${esc(candidate.threadId)}">${esc(candidate.title || '未命名会话')}<span class="workspace-path">${esc(candidate.path || '')}</span><span class="muted">${esc(time(candidate.createdAt))}</span></label>`).join('')}</fieldset>${button('task-resolve', '确认所选会话', { className: 'primary', extra: `data-request-id="${esc(task.requestId)}"` })}` : '';
-  return `<div class="task-status">${esc(taskText(task.status))}</div><h3>${esc(task.title)}</h3><p>${esc(description)}</p>${task.reference ? `<h3>任务引用</h3><pre class="task-reference">${esc(task.reference)}</pre>` : '<p class="muted">任务引用尚未取得，请重新读取请求状态。</p>'}<p class="muted">修改预填开发指令时，请保留首行任务引用。</p>${task.path ? `<h3>当前会话原工作区</h3><p class="workspace-path">${esc(task.path)}</p>` : ''}${candidates}${task.prompt ? `<details><summary>预填内容</summary><pre class="prompt">${esc(task.prompt)}</pre></details>` : ''}${nextWorkspace}`;
+  return `<div class="task-status" data-request-id="${esc(task.requestId)}">${esc(taskText(task.status))}</div><h3>${esc(task.title)}</h3><p class="task-description">${esc(taskDescription(task))}</p>${task.reference ? `<h3>任务引用</h3><pre class="task-reference">${esc(task.reference)}</pre>` : '<p class="muted">任务引用尚未取得，请重新读取请求状态。</p>'}<p class="muted">修改预填开发指令时，请保留首行任务引用。</p>${task.path ? `<h3>当前会话原工作区</h3><p class="workspace-path">${esc(task.path)}</p>` : ''}<div class="task-candidate-list">${taskCandidatesMarkup(task)}</div>${task.prompt ? `<details><summary>预填内容</summary><pre class="prompt">${esc(task.prompt)}</pre></details>` : ''}${nextWorkspace}`;
 }
 
 export function taskHistoryMarkup(record) {

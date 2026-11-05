@@ -80,6 +80,7 @@ export class LiveStore {
     if (repository) { repository.access = 'unavailable'; repository.permissions = { read: false, createIssue: false, comment: false, manage: false }; }
     delete this.data.issues[repo]; delete this.pages[repo]; delete this.optionSets[repo];
     for (const key of this.issueReadSequences.keys()) if (key.startsWith(`${repository?.key}:`)) this.issueReadSequences.delete(key);
+    for (const key of this.taskVersions.keys()) if (key.startsWith(`${repo}#`)) this.taskVersions.set(key, this.taskVersions.get(key) + 1);
     for (const key of Object.keys(this.taskRecords)) if (key.startsWith(`${repo}#`)) delete this.taskRecords[key];
     this.onRepositoryAccessLost(repo);
   }
@@ -102,7 +103,7 @@ export class LiveStore {
     let sequence = 0;
     try {
       const requestKey = JSON.stringify([generation, group, action, payload]);
-      const canJoin = group === 'query' || group === 'image' || group === 'task' && action === 'latest';
+      const canJoin = group === 'query' || group === 'image' || group === 'task' && ['latest', 'check'].includes(action);
       let request = canJoin && this.inflight.get(requestKey);
       if (!request) {
         request = Promise.resolve().then(() => this.call(group, action, payload));
@@ -418,21 +419,27 @@ export class LiveStore {
   }
   async createTask(repo, number, { another = false, workspaceKey } = {}) {
     const generation = this.generation, identity = this.identity;
-    await this.prepareTask();
+    const prior = this.task(repo, number).current;
+    if (another || prior?.status !== 'linked' || !prior.threadId) await this.prepareTask();
     if (generation !== this.generation || identity !== this.identity) throw new StoreError('stale', '账号已变化，已停止旧页面的任务操作。');
     const key = `${repo}#${number}`, version = (this.taskVersions.get(key) || 0) + 1; this.taskVersions.set(key, version);
     const record = this.task(repo, number);
     const requestId = !another && record.current?.requestId ? record.current.requestId : this.operation('task', repo, { number, another, existing: record.current?.id });
     const result = await this.request('task', 'open', { repositoryKey: this.repositoryKey(repo), number, requestId, another, reuseOnly: Boolean(record.current && !another), ...(workspaceKey ? { workspaceKey } : {}) });
     if (this.taskVersions.get(key) !== version) return this.task(repo, number).current;
+    this.taskVersions.set(key, version + 1);
     this.taskRecords[key] = copy(result); return result.current;
   }
   async checkTask(repo, number) {
+    const repositoryKey = this.repositoryKey(repo);
+    const accessVersion = this.accessVersions.get(repositoryKey) || 0;
     const key = `${repo}#${number}`, version = (this.taskVersions.get(key) || 0) + 1; this.taskVersions.set(key, version);
     const requestId = this.task(repo, number).current?.requestId;
     if (!requestId) throw new StoreError('task', '没有可核对的自有任务请求，请重新读取。');
     const result = await this.request('task', 'check', { requestId });
-    if (this.taskVersions.get(key) !== version) return this.task(repo, number).current;
+    if ((this.accessVersions.get(repositoryKey) || 0) !== accessVersion || this.taskVersions.get(key) !== version
+      || this.taskRecords[key]?.current?.requestId !== requestId || result.current?.requestId !== requestId) return this.task(repo, number).current;
+    this.taskVersions.set(key, version + 1);
     this.taskRecords[key] = copy(result); return result.current;
   }
   async openHistory(repo, number, requestId) {
