@@ -1,6 +1,6 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { realpath, stat, readdir } from 'node:fs/promises';
+import { realpath, stat, lstat, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { isAbsolute, resolve, join, relative, sep } from 'node:path';
 import { ProofError, requireValue } from './errors.mjs';
@@ -53,8 +53,8 @@ export async function inspectGit(directory, { run = execFileAsync } = {}) {
   return { cwd, gitRoot, repositories: [...repositories.values()] };
 }
 
-// 只扫描已注册根下的实际目录；不跟随符号链接或目录联接，触及边界明确返回部分覆盖。
-export async function discoverGitRepositories(directory, { gitInspector = inspectGit, maxDepth = 5, maxDirectories = 1500 } = {}) {
+// 注册根直接核验；嵌套候选只在固定层级内查找，正常深度边界属于产品范围。
+export async function discoverGitRepositories(directory, { gitInspector = inspectGit, maxDepth = 3, maxDirectories = 1500 } = {}) {
   const root = await realpath(directory);
   const infos = [], warnings = [], visited = new Set();
   const queue = [{ path: root, depth: 0 }];
@@ -68,21 +68,24 @@ export async function discoverGitRepositories(directory, { gitInspector = inspec
     const normalized = process.platform === 'win32' ? actual.toLowerCase() : actual;
     if (visited.has(normalized)) continue;
     visited.add(normalized); count++;
-    let entries;
-    try { entries = await readdir(actual, { withFileTypes: true }); }
-    catch { warnings.push('ROOT_ACCESS_FAILED'); continue; }
-    if (item.depth === 0 || entries.some(entry => entry.name === '.git')) {
+    let candidate = item.depth === 0;
+    if (!candidate) {
+      try { const marker = await lstat(join(actual, '.git')); candidate = marker.isDirectory() || marker.isFile() || marker.isSymbolicLink(); }
+      catch (error) { if (error?.code !== 'ENOENT') warnings.push('ROOT_ACCESS_FAILED'); }
+    }
+    if (candidate) {
       try { infos.push(await gitInspector(actual)); }
       catch (error) {
         if (error?.code === 'GIT_UNAVAILABLE') throw error;
         if (error?.code !== 'ROOT_NOT_REPOSITORY') warnings.push(error instanceof ProofError ? error.code : 'ROOT_INSPECTION_FAILED');
       }
     }
+    // 最后一层仍核验.git文件或目录，但不再枚举仓库源码中的下一层目录。
+    if (item.depth >= maxDepth) continue;
+    let entries;
+    try { entries = await readdir(actual, { withFileTypes: true }); }
+    catch { warnings.push('ROOT_ACCESS_FAILED'); continue; }
     const children = entries.filter(entry => entry.isDirectory() && !entry.isSymbolicLink() && !skipped.has(entry.name.toLowerCase()));
-    if (item.depth >= maxDepth) {
-      if (children.length) warnings.push('DIRECTORY_DEPTH_LIMIT');
-      continue;
-    }
     for (const child of children) queue.push({ path: join(actual, child.name), depth: item.depth + 1 });
   }
   return { infos, warnings: [...new Set(warnings)], scannedDirectories: count, authorizedRoot: root };

@@ -2,36 +2,29 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createContext, Script } from 'node:vm';
-import { accountTriggerMarkup, accountMenuHeader, discoveryStatus } from '../ui/account-menu.mjs';
+import { accountTriggerMarkup, accountMenuHeader } from '../ui/account-menu.mjs';
 import { esc, icon, button, brandMark } from '../ui/ui.mjs';
 
 const source = await readFile(new URL('../ui/app.mjs', import.meta.url), 'utf8');
 const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start)));
 
 test('账号未读取使用中性占位，真实账号转义后展示且不外联头像', () => {
-  const unknown = accountTriggerMarkup({ id: null, login: '旧账号' }, null);
+  const unknown = accountTriggerMarkup({ id: null, login: '旧账号' });
   assert.match(unknown, /本机用户/); assert.doesNotMatch(unknown, /旧账号/); assert.match(unknown, /GitHub 账号未读取/);
-  const verified = accountTriggerMarkup({ id: 8, login: '<member>' }, { status: 'complete' });
+  const verified = accountTriggerMarkup({ id: 8, login: '<member>' });
   assert.match(verified, /&lt;member&gt;/); assert.doesNotMatch(verified, /<member>|https?:|<img/);
   assert.match(verified, /aria-haspopup="menu"/); assert.doesNotMatch(verified, /account-notice/);
-  assert.match(accountTriggerMarkup({ id: 8, login: 'member' }, { status: 'partial' }, { compact: true }), /id="status-account-menu"/);
+  assert.match(accountTriggerMarkup({ id: 8, login: 'member' }, { compact: true }), /id="status-account-menu"/);
 });
 
-test('发现未完成、失效和部分覆盖不能显示完整成功，折叠入口保留提示', () => {
-  for (const catalog of [null, { status: 'partial' }, { status: 'unavailable' }, { status: 'loading' }]) {
-    assert.equal(discoveryStatus(catalog).warning, true);
-    assert.match(accountTriggerMarkup({ id: 8, login: 'member' }, catalog), /account-notice/);
-    assert.doesNotMatch(accountMenuHeader(catalog), />项目已读取</);
+test('项目扫描的加载、部分、旧警告与不可用状态都不生成账号覆盖提示', () => {
+  for (const catalog of [null, { status: 'partial' }, { status: 'unavailable' }, { status: 'loading' }, { status: 'complete', checking: true }, { status: 'partial', warnings: ['DIRECTORY_DEPTH_LIMIT', 'DIRECTORY_LIMIT', 'CATALOG_CACHE_CHECKING'] }]) {
+    const p = page(); p.store.catalog = catalog; p.api.renderNav(); p.api.status();
+    const trigger = p.node('account-menu-trigger'); trigger.getBoundingClientRect = () => ({ left: 8, right: 160, top: 620, bottom: 666 }); p.api.showAccountMenu(trigger);
+    const html = p.nodes.get('navigation').innerHTML + p.nodes.get('statusbar').innerHTML + p.overlay.innerHTML;
+    assert.doesNotMatch(html, /account-notice|account-discovery|不完整|项目已读取|项目发现尚未完成/);
+    assert.match(html, /项目与布局/); assert.match(html, /data-action="discover"/); assert.match(html, /data-action="reset-layout"/);
   }
-  assert.match(accountMenuHeader({ status: 'partial' }), /项目发现范围不完整/);
-  assert.equal(discoveryStatus({ status: 'complete' }).warning, false);
-});
-
-test('已有完整目录仍在后台核对时，用户入口保留待核对提示', () => {
-  const catalog = { status: 'complete', checking: true };
-  assert.equal(discoveryStatus(catalog).warning, true);
-  assert.match(accountMenuHeader(catalog), /项目发现尚未完成/);
-  assert.match(accountTriggerMarkup({ id: 8, login: 'member' }, catalog), /account-notice/);
 });
 
 test('后台列表滚动不关闭固定底部的账号菜单，普通菜单滚动与视口关闭保持', () => {
@@ -103,7 +96,7 @@ test('后台重画项目栏保留已打开菜单与菜单项焦点，关闭返�
   p.store.catalog = { status: 'complete' }; p.api.renderNav();
   const replacement = p.nodes.get('account-menu-trigger');
   assert.notEqual(replacement, old); assert.equal(p.context.overlayReturn, replacement); assert.equal(replacement.attrs['aria-expanded'], 'true');
-  assert.equal(p.document.activeElement, focused); assert.match(p.header.innerHTML, /项目已读取/);
+  assert.equal(p.document.activeElement, focused); assert.doesNotMatch(p.overlay.innerHTML, /account-discovery|不完整/);
   p.context.closeOverlay(); assert.equal(p.document.activeElement, replacement);
 });
 

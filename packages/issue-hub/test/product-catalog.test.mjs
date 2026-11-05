@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdir, symlink } from 'node:fs/promises';
+import { mkdir, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { createHash } from 'node:crypto';
-import { createCatalog, discoverGitRepositories, parseGithubRemote } from '../src/catalog.mjs';
+import { createCatalog, discoverGitRepositories, inspectGit, parseGithubRemote } from '../src/catalog.mjs';
 import { temporary } from './helpers.mjs';
 
 async function gitRepo(path, name) {
@@ -38,11 +38,60 @@ test('真实 worktree 的 .git 文件和同名远端多个 fetch URL 均可识�
   assert.ok(result.repositories.every(item => item.workspaces.length === 2));
 });
 
-test('扫描目录或深度达到上限时标部分覆盖，不声称已发现全部', async t => {
+test('正常深度边界结束搜索，目录数量保护仍保留内部分类', async t => {
   const root = await temporary(t); await gitRepo(join(root, 'one', 'two'), 'deep');
-  const scan = await discoverGitRepositories(root, { maxDepth: 0 }); assert.ok(scan.warnings.includes('DIRECTORY_DEPTH_LIMIT'));
+  const scan = await discoverGitRepositories(root, { maxDepth: 0 }); assert.deepEqual(scan.warnings, []); assert.equal(scan.scannedDirectories, 1);
   const catalog = createCatalog({ bridge: { request: async () => ({ data: [{ id: 'p', roots: [{ path: root }] }] }) }, discoveryOptions: { maxDirectories: 1 } });
   const result = await catalog.refresh(); assert.equal(result.status, 'partial'); assert.ok(result.warnings.includes('DIRECTORY_LIMIT'));
+});
+
+test('默认查找三层内的.git候选，不检查第四层或普通源码目录', async t => {
+  const root = await temporary(t), calls = [];
+  const third = await gitRepo(join(root, 'one', 'two', 'three'), 'third');
+  await gitRepo(join(third, 'four'), 'outside-policy');
+  await mkdir(join(root, 'source', 'feature', 'screens'), { recursive: true });
+  const scan = await discoverGitRepositories(root, { gitInspector: async path => { calls.push(path); return inspectGit(path); } });
+  assert.deepEqual(scan.infos.flatMap(info => info.repositories.map(repo => repo.fullName)), ['fixture/third']);
+  assert.deepEqual(calls, [root, third]);
+  assert.deepEqual(scan.warnings, []);
+});
+
+test('零层策略仍核验登记仓库，不读取子候选', async t => {
+  const root = await temporary(t); await gitRepo(root, 'direct');
+  await mkdir(join(root, 'broken'), { recursive: true });
+  await writeFile(join(root, 'broken', '.git'), 'gitdir: missing-git-directory\n');
+  const scan = await discoverGitRepositories(root, { maxDepth: 0 });
+  assert.deepEqual(scan.infos.flatMap(info => info.repositories.map(repo => repo.fullName)), ['fixture/direct']);
+  assert.deepEqual(scan.warnings, []); assert.equal(scan.scannedDirectories, 1);
+});
+
+test('固定范围内损坏的.git文件保留Git读取失败分类', async t => {
+  const root = await temporary(t), broken = join(root, 'one', 'two', 'three');
+  await mkdir(broken, { recursive: true }); await writeFile(join(broken, '.git'), 'gitdir: missing-git-directory\n');
+  const scan = await discoverGitRepositories(root);
+  assert.deepEqual(scan.infos, []); assert.deepEqual(scan.warnings, ['GIT_READ_FAILED']);
+});
+
+test('单独登记的更深仓库仍直接发现，重复root复用扫描', async t => {
+  const root = await temporary(t), deep = await gitRepo(join(root, 'one', 'two', 'three', 'four'), 'registered-deep');
+  const calls = [];
+  const catalog = createCatalog({
+    bridge: { request: async () => ({ data: [{ id: 'p', roots: [{ path: root }, { path: deep }, { path: deep }] }] }) },
+    gitInspector: async path => { calls.push(path); return inspectGit(path); },
+  });
+  const result = await catalog.refresh();
+  assert.deepEqual(result.repositories.map(repo => repo.fullName), ['fixture/registered-deep']);
+  assert.equal(result.repositories[0].workspaces.length, 1); assert.equal(result.repositories[0].workspaces[0].cwd, deep);
+  assert.equal(calls.filter(path => path === deep).length, 1); assert.deepEqual(result.warnings, []);
+});
+
+test('登记仓库子目录直接关联原仓库并保留原工作目录', async t => {
+  const root = await temporary(t); await gitRepo(root, 'parent');
+  const child = join(root, 'packages', 'app'); await mkdir(child, { recursive: true });
+  const catalog = createCatalog({ bridge: { request: async () => ({ data: [{ id: 'p', roots: [{ path: child }] }] }) } });
+  const result = await catalog.refresh(), repository = result.repositories[0];
+  assert.equal(repository.fullName, 'fixture/parent'); assert.equal(repository.workspaces[0].cwd, child);
+  assert.equal((await catalog.resolveWorkspace(repository.key, repository.workspaces[0].key)).workspace.cwd, child);
 });
 
 test('不跟随通向注册根外部的链接', async t => {

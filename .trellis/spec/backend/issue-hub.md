@@ -20,7 +20,7 @@
 - `createGithubClient` 通过无 shell 的 gh 执行固定 github.com REST，写入 JSON 走 stdin。身份使用远端稳定用户 ID；凭据仅在进程内求指纹。每个写请求必须携带页面 expectedIdentity，并在真实上下文前后复核；不能把旧页面输入应用到新账号。
 - SQLite 位于独立 IssueHub/data，schema 迁移、忙超时和较新版本拒绝由 `createStorage` 负责；事务同步，不跨 await。缓存/草稿/回执/偏好按 gh scope 隔离，任务另绑定 Codex 身份，不保存 token 或聊天正文。P0 JSON 请求不自动迁移成正式任务。
 - 已验证凭据不变时，网络失败可读对应离线缓存并存草稿；未知身份、凭据变化或401不可回退。资源403/404须撤销该仓库读取缓存，保留未发草稿；资源401同样撤销离线身份资格。`cached` 表示来源，不能据此推断离线，使用明确 `offline` 状态。
-- 目录有界检查 roots 下子仓库，默认深度5、1500目录，跳过依赖/构建及链接；partial保留真实覆盖。`snapshot({raw:true})` 返回原始发现，`remap(mapping)` 只归一已发现项。由当前gh身份确认稳定仓库ID，key为sha256(`github.com:id:<id>`)前20位，旧/新名同ID合并工作区；resolve复核工作区自身原remote别名，不接受任意路径映射。
+- 项目发现按[固定范围契约](issue-hub-discovery.md)：登记roots优先，默认子目录深度3、1500目录保护，跳过依赖/构建及链接；正常深度边界不生成异常。用户已取消发现覆盖提示，内部partial仍用于兼容/诊断/守卫，不转换为菜单警告。`snapshot({raw:true})`返回原始发现，`remap(mapping)`只归一已发现项。由当前gh身份确认稳定仓库ID，key为sha256(`github.com:id:<id>`)前20位，旧/新名同ID合并工作区；resolve复核工作区自身原remote别名，不接受任意路径映射。
 - Issue/评论/活动的分页覆盖与nextCursor明确，PR从Issue集合排除；详情默认最多10×100，超限继续读取，不称全部。候选按仓库验证，禁止借标签输入创建定义；本人评论与Issue管理权限分开。仅提交变化字段，负责人数组不能因编辑标题被截为单人。
 - 写前比较基线，冲突返回输入与远端；不宣称GitHub原子CAS。SQLite先原子claim operationId与输入摘要，未知创建同ID或换ID均不自动重投；人工核对not-created仅解除回执，用户再次提交才写。远端接受但读回失败只重读，Issue核对提交字段；评论必须按真实ID/父Issue/正文核对，不能只重读Issue就宣布成功。
 - `createIssueTasks.execute(latest/bind/open/check)` 使用服务器目录键和双身份；打开前先持久claim，单工作区一次预填不发送，多路径明确选择。requested/pending/ambiguous/open-unconfirmed与linked不同，只有完整唯一首条nonce且候选覆盖完整才可认领。返回已关联前复核真实thread工作区，另建保留历史，未知打开不盲重开。
@@ -71,7 +71,7 @@
 - `--doctor`在创建业务存储前使用同一诊断模块，检查Windows/Node24/Git/gh/Codex/GitHub/项目接口/会话身份/SQLite，输出JSON，核心错误退出1。固定命令无shell，SQLite只创建并清理自有临时库。Windows验收包只含8个明确插件文件及review源/哈希/安装器/说明；不能改YG正式源或附带个人配置。隔离profile安装不能称第二台Windows验收。
 
 - 仓库/工作区使用服务端发现的哈希键；请求 ID 和 thread ID 使用合法 UUID，不让页面传任意路径。
-- 目录响应包含 `schemaVersion/status/projects/roots/repositories/warnings/sampledAt`；`partial` 与 `unavailable` 不得冒充完整或零数据。有界嵌套发现与稳定ID归一由catalog/service分层完成，触限仍partial。
+- 目录响应包含 `schemaVersion/status/projects/roots/repositories/warnings/sampledAt`；内部`partial`与`unavailable`不得伪写成功或零数据。有界嵌套发现与稳定ID归一由catalog/service分层完成，当前固定3层规则见上文及issue-hub-discovery.md；用户界面不再展示项目发现覆盖机制。
 - MCP 页面响应使用 `structuredContent`；错误带 `isError` 和安全错误码，不输出原始宿主载荷、凭据或私有错误路径。
 - `ISSUE_HUB_P0_MAX_ENTRIES` 若保留，为 1–10、默认 2，只限制诊断仓库工具，不改变主图标数、不截断发现计数。状态页是唯一 global 入口。
 - 插件主入口、原生悬浮栏、iframe 内导航必须分别建模。当前 SDK global 的 quickAction 仅是单个工具快捷操作，没有公开的原生 children provider；内置 first-party 桥接不能直接供第三方 MCP 调用。详见任务专项调查，原生浮层保持未满足。

@@ -6,7 +6,7 @@ import {randomUUID} from 'node:crypto';
 import {resolveCodexCommand} from './host/bridge.mjs';
 
 const exec=promisify(execFile);
-const coverageMessages={DIRECTORY_DEPTH_LIMIT:'子目录扫描达到深度上限',DIRECTORY_LIMIT:'子目录扫描达到数量上限',DEEP_SCAN_PENDING:'完整子目录扫描尚未完成',CATALOG_DEEP_SCAN_PENDING:'完整子目录扫描尚未完成',ROOT_INSPECTION_FAILED:'部分项目目录无法读取',ROOT_MISSING:'部分工作区目录已不存在',ROOT_ACCESS_FAILED:'部分目录无法访问',GIT_READ_FAILED:'部分仓库的Git信息无法读取',CATALOG_CACHE_CHECKING:'当前显示项目缓存，正在核对'};
+const projectMessages={ROOT_INSPECTION_FAILED:'部分项目目录无法读取',ROOT_MISSING:'部分工作区目录已不存在',ROOT_ACCESS_FAILED:'部分目录无法访问',WORKSPACE_INVALID:'部分工作区配置无效',GIT_READ_FAILED:'部分仓库的Git信息无法读取',GIT_UNAVAILABLE:'无法运行Git，请检查安装',REMOTE_LIMIT:'部分仓库的远程地址未能核对，请检查Git配置',HOST_DISCOVERY_FAILED:'桌面项目读取失败，请重试',DISCOVERY_FAILED:'桌面项目读取失败，请重试'};
 const item=(id,label,status,message,extra={})=>({id,label,status,message,...extra});
 const networkErrors=new Set(['NETWORK_UNAVAILABLE','RATE_LIMITED','HOST_TIMEOUT','HOST_UNAVAILABLE','HOST_CLOSED','HOST_CONTEXT_CHANGED']);
 
@@ -49,8 +49,9 @@ export function createRuntimeDiagnostics({bridge,github,catalog,directory,run=ex
     const settled=await Promise.allSettled(jobs);
     checks.push(...settled.map(result=>result.status==='fulfilled'?result.value:item('unknown','连接检查','error','部分检查没有完成，请重试。')));
     const snapshot=catalog?.snapshot?.()||{};
-    const discovery={status:!snapshot.sampledAt&&!snapshot.warnings?.length?'not-scanned':snapshot.status||'unavailable',checking:Boolean(snapshot.checking),repositories:Array.isArray(snapshot.repositories)?snapshot.repositories.length:0,warnings:(snapshot.warnings||[]).filter(code=>typeof code==='string').map(code=>coverageMessages[code]||'部分项目尚未完成核对。')};
-    return {schemaVersion:1,data:{status:checks.some(check=>check.status==='error')?'error':checks.some(check=>check.status==='warning')?'warning':'ok',checks,discovery,sampledAt:now()}};
+    // 固定扫描边界与缓存进度不是故障；仅映射已知实际错误，不回显原始代码或路径。
+    const discovery={status:!snapshot.sampledAt&&!snapshot.warnings?.length&&!snapshot.error&&!snapshot.checking&&snapshot.status!=='loading'?'not-scanned':snapshot.status||'unavailable',checking:Boolean(snapshot.checking),repositories:Array.isArray(snapshot.repositories)?snapshot.repositories.length:0,warnings:[...new Set((snapshot.warnings||[]).filter(code=>typeof code==='string'&&Object.hasOwn(projectMessages,code)).map(code=>projectMessages[code]))]};
+    return {schemaVersion:1,data:{status:checks.some(check=>check.status==='error')?'error':checks.some(check=>check.status==='warning')||discovery.warnings.length||discovery.status==='unavailable'?'warning':'ok',checks,discovery,sampledAt:now()}};
   }
   return {diagnose};
 }

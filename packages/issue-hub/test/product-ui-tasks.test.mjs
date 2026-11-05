@@ -185,18 +185,26 @@ test('未登录仍可直接检查连接，额外错误和凭据字段不进入�
   const data = await readDiagnostics(async input => { args = input; return { structuredContent: { ...diagnostics(), token: 'SECRET_TOKEN', stderr: 'RAW_STDERR' } }; });
   assert.deepEqual(args, { name: 'issue-hub-diagnostics', arguments: {} });
   assert.equal(Object.hasOwn(data, 'identity'), false);
-  const html = diagnosticsMarkup(data); assert.match(html, /gh auth login/); assert.match(html, /子仓库发现达到本次范围上限/); assert.doesNotMatch(html, /SECRET_TOKEN|RAW_STDERR/);
+  const html = diagnosticsMarkup(data); assert.match(html, /gh auth login/); assert.doesNotMatch(html, /子仓库发现达到本次范围上限|SECRET_TOKEN|RAW_STDERR/);
   await assert.rejects(readDiagnostics(async () => { throw new Error('token SECRET_TOKEN raw stderr'); }), error => !error.message.includes('SECRET_TOKEN') && !error.message.includes('stderr'));
   const escaped = diagnosticsMarkup(await readDiagnostics(async () => ({ structuredContent: { ...diagnostics(), data: { ...diagnostics().data, checks: [{ label: '<img src=x onerror=alert(1)>', status: 'error', message: '<script>bad()</script>' }] } } })));
   assert.doesNotMatch(escaped, /<img|<script>/); assert.match(escaped, /&lt;script&gt;/);
 });
 
-test('连接检查把发现状态转换为中文，并说明后台检查仍在进行', async () => {
-  for (const [status, label] of [['not-scanned', '尚未执行完整发现'], ['complete', '已完成'], ['partial', '发现范围不完整'], ['unavailable', '暂不可用，保留已有缓存'], ['unknown-status-code', '尚未取得完整发现结果']]) {
+test('项目读取使用固定范围语义，保留未加载与真实不可用状态', async () => {
+  for (const [status, label] of [['not-scanned', '尚未读取项目'], ['complete', '已检查既定项目范围'], ['partial', '已检查既定项目范围'], ['unavailable', '暂不可用，保留已有缓存'], ['loading', '正在读取项目'], ['checking', '正在检查项目'], ['unknown-status-code', '尚未取得项目读取结果']]) {
     const data = await readDiagnostics(async () => ({ structuredContent: { ...diagnostics(), data: { ...diagnostics().data, discovery: { status, checking: true, warnings: [] } } } }));
     const html = diagnosticsMarkup(data);
-    assert.ok(html.includes(label)); assert.match(html, /正在后台检查项目，当前显示已有结果/); assert.ok(!html.includes(status));
+    assert.ok(html.includes(label)); assert.match(html, /正在后台检查项目，当前显示已有结果/); assert.ok(!html.includes(status)); assert.doesNotMatch(html, /不完整|项目发现范围|完整发现/);
   }
+});
+
+test('连接检查过滤旧扫描边界和缓存进度说明，仍展示具体目录或Git故障', async () => {
+  const warnings = ['DIRECTORY_DEPTH_LIMIT', 'DIRECTORY_LIMIT', 'CATALOG_DEEP_SCAN_PENDING', 'DEEP_SCAN_PENDING', 'CATALOG_CACHE_CHECKING', 'LINK_SKIPPED', '子目录扫描达到深度上限', '子目录扫描达到数量上限', '完整子目录扫描尚未完成', '当前显示项目缓存，正在核对', '部分目录无法访问', '部分仓库的Git信息无法读取'];
+  const result = { ...diagnostics(), data: { ...diagnostics().data, discovery: { status: 'partial', warnings } } };
+  const data = await readDiagnostics(async () => ({ structuredContent: result }));
+  assert.deepEqual(data.discovery.warnings, ['部分目录无法访问', '部分仓库的Git信息无法读取']);
+  const html = diagnosticsMarkup(data); assert.match(html, /部分目录无法访问|部分仓库的Git信息无法读取/); assert.doesNotMatch(html, /DIRECTORY_|DEEP_SCAN|CATALOG_CACHE|深度上限|数量上限|完整子目录/);
 });
 
 test('关闭或重开连接弹层后，旧诊断响应不能覆盖当前内容', async () => {
