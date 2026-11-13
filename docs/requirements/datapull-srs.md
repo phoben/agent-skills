@@ -12,7 +12,9 @@
 | 目标交付物 | 公开 NPM CLI、内置轻量 DataPull Skill、YG Toolkit Skill 同步副本 |
 | 历史保护项 | 首版保持旧 `database-schema` 不变；后续合并按 ADR-0008 执行 |
 
-2026-10-29 更新：数据库技能按 [ADR-0008](../adr/0008-unify-database-skills-on-datapull.md) 统一到 DataPull。本文“旧 Skill 不修改”的约束仅描述首版；当前保留旧显式调用入口，移除旧导出器，不自动迁移旧配置或输出。其余 CLI 产品契约保持有效。
+2026-10-29 更新：数据库技能按 [ADR-0008](../adr/0008-unify-database-skills-on-datapull.md) 统一到 DataPull。当时移除了旧导出器，并暂时保留旧显式调用入口；旧配置或输出不自动迁移。其余 CLI 产品契约保持有效。
+
+后续更新：原先暂留的旧显式调用入口已移除，用户应改用 `$datapull`。下文涉及保留旧入口的描述仅记录当时决策；旧配置与快照仍不自动迁移。
 
 ## 1. 引言
 
@@ -60,7 +62,7 @@ DataPull 的目标是让用户无需记忆复杂参数即可完成可恢复的�
 | ADR-0004 | `docs/adr/0004-confirm-before-installing-database-tools.md` | 自动安装数据库工具前展示计划并确认。 |
 | ADR-0005 | `docs/adr/0005-build-datapull-independently-without-python-runtime.md` | 独立构建且不依赖 Python 运行时。 |
 | ADR-0006 | `docs/adr/0006-own-datapull-skill-source-in-cli-package.md` | DataPull Skill 唯一源码及同步原则。 |
-| ADR-0008 | `docs/adr/0008-unify-database-skills-on-datapull.md` | 合并数据库技能，保留旧显式调用入口。 |
+| ADR-0008 | `docs/adr/0008-unify-database-skills-on-datapull.md` | 合并数据库技能及后续移除旧入口。 |
 | REF-003 | [Node.js 发行计划](https://nodejs.org/en/about/previous-releases) | Node.js 支持与 LTS 策略。 |
 | REF-004 | [Commander 文档](https://github.com/tj/commander.js) | 分层命令解析。 |
 | REF-005 | [Inquirer Prompts 文档](https://github.com/SBoudrias/Inquirer.js) | 交互提示与隐藏输入。 |
@@ -94,7 +96,7 @@ DataPull 的目标是让用户无需记忆复杂参数即可完成可恢复的�
 
 ### 2.3 本期不包含范围
 
-- 自动迁移旧 `database-schema` 配置或兼容旧输出格式；旧调用入口按 ADR-0008 转交 DataPull；
+- 自动迁移旧 `database-schema` 配置或兼容旧输出格式；旧调用入口已移除，改用 DataPull；
 - Python 运行时依赖、`datapull update`、Docker 或其他容器化备用路径；
 - 业务数据、用户、角色、授权、对象所有者、MySQL `DEFINER`、服务器级配置导出；
 - 云 IAM、OAuth、SSH 隧道、跳板机认证、TraeCode CLI、未列出的 Agent 工具和完整多语言 UI；
@@ -103,7 +105,7 @@ DataPull 的目标是让用户无需记忆复杂参数即可完成可恢复的�
 
 ### 2.4 与现有 `database-schema` Skill 的边界
 
-DataPull 复用 `.database-schema/` 作为项目结构文件根目录，仅为了保留用户对位置的认知；其配置模型、文件格式、覆盖规则和运行行为独立定义。DataPull 不读取、迁移或写回旧 Skill 配置，也不保证两者的输出兼容。旧 Skill 按 ADR-0008 仅保留显式调用转接。
+DataPull 复用 `.database-schema/` 作为项目结构文件根目录，仅为了保留用户对位置的认知；其配置模型、文件格式、覆盖规则和运行行为独立定义。DataPull 不读取、迁移或写回旧 Skill 配置，也不保证两者的输出兼容。旧 Skill 的显式调用入口已移除。
 
 ## 3. 总体产品模型
 
@@ -521,7 +523,7 @@ DataPull Skill 是轻量技能，不是第二套数据库工具。它必须检�
 
 执行 `pull` 前，Skill 必须向用户说明连接别名、目标数据库、对象类型与项目根目录。用户未安装 CLI、未登记连接或未给出目标数据库时，Skill 应停在对应步骤并给出下一条命令，不得臆造默认值。
 
-DataPull Skill 的唯一源码必须位于 `cli/datapull/skill/`；构建时同步到 NPM 包和 `plugins/yg-toolkit/skills/datapull/`。发布前必须比较唯一源码和两份副本的文件清单、内容哈希；不一致阻止发布。旧 `plugins/yg-toolkit/skills/database-schema/` 按 ADR-0008 只保留显式调用转接，不维护第二套执行规则。安装副本应含机器可读版本与内容哈希，用于识别用户修改。
+DataPull Skill 的唯一源码必须位于 `cli/datapull/skill/`；构建时同步到 NPM 包和 `plugins/yg-toolkit/skills/datapull/`。发布前必须比较唯一源码和两份副本的文件清单、内容哈希；不一致阻止发布。旧 `plugins/yg-toolkit/skills/database-schema/` 入口已移除。安装副本应含机器可读版本与内容哈希，用于识别用户修改。
 
 ### 10.2 硬编码目标与官方安装路径
 

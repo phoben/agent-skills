@@ -1,0 +1,10 @@
+feat(yg-toolkit): 纳入 Issue Hub 并保留旧数据
+
+统一YG安装、版本、两套MCP构建与完整技能包，退休独立Issue Hub分发。
+保留Issue业务目录、稳定身份、草稿和会话关联，使用官方安装接口迁移。
+缺少gh只限制Issue功能，Tokens与工程技能仍可用。
+
+整合版本为YG Toolkit 0.3.0，另一台Windows验收继续按用户安排暂缓。
+
+验证：Issue237项、Tokens35项、Hook19项、53模块语法通过；
+单包11工具与双资源、完整Windows隔离安装、本机159缓存文件及旧聊天恢复通过。

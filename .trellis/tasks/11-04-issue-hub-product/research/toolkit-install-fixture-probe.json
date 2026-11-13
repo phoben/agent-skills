@@ -1,0 +1,62 @@
+{
+  "version": "0.163.0",
+  "realUserConfigModified": false,
+  "fixtureOnly": true,
+  "steps": [
+    {
+      "action": "registered-first",
+      "sourceIsFirst": true
+    },
+    {
+      "action": "read-second",
+      "pathKind": "root",
+      "error": "failed to read plugin details: failed to read marketplace file: 拒绝访问。 (os error 5)"
+    },
+    {
+      "action": "read-second",
+      "pathKind": "manifest",
+      "responseKeys": [
+        "plugin"
+      ]
+    },
+    {
+      "action": "install-second-api",
+      "success": true
+    },
+    {
+      "action": "cli-after-install",
+      "sourceIsFirst": true,
+      "installed": [
+        {
+          "pluginId": "yg-toolkit@yg",
+          "version": "0.3.0",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "action": "new-host-live",
+      "services": [
+        {
+          "pluginId": "yg-toolkit@yg",
+          "serverInfo": null,
+          "toolCount": 0
+        }
+      ]
+    },
+    {
+      "action": "final-cli",
+      "installed": [
+        {
+          "pluginId": "yg-toolkit@yg",
+          "version": "0.3.0",
+          "enabled": true
+        }
+      ]
+    }
+  ],
+  "failure": {
+    "message": "Command failed: C:\\Users\\NINGMEI\\AppData\\Roaming\\npm\\node_modules\\@openai\\codex\\node_modules\\@openai\\codex-win32-x64\\vendor\\x86_64-pc-windows-msvc\\bin\\codex.exe plugin marketplace add E:\\Develop\\agent-skills\\.trellis\\tasks\\11-04-issue-hub-product\\research\\toolkit-migration-fixture-kHLxRR\\second --json\nError: marketplace 'yg' is already added from a different source; remove it before adding this source\n",
+    "code": 1
+  }
+}

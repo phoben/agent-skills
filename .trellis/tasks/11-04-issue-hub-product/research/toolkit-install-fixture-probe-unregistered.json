@@ -1,0 +1,117 @@
+{
+  "version": "0.163.0",
+  "realUserConfigModified": false,
+  "fixtureOnly": true,
+  "unregistered": true,
+  "twoServers": true,
+  "steps": [
+    {
+      "action": "registered-first",
+      "sourceIsFirst": false
+    },
+    {
+      "action": "read-second",
+      "pathKind": "root",
+      "error": "failed to read plugin details: failed to read marketplace file: 拒绝访问。 (os error 5)"
+    },
+    {
+      "action": "read-second",
+      "pathKind": "manifest",
+      "responseKeys": [
+        "plugin"
+      ]
+    },
+    {
+      "action": "install-second-api",
+      "success": true
+    },
+    {
+      "action": "cli-after-install",
+      "sourceIsFirst": false,
+      "installed": []
+    },
+    {
+      "action": "new-host-live",
+      "services": [
+        {
+          "pluginId": "yg-toolkit@yg",
+          "serverInfo": {
+            "name": "fixture",
+            "title": null,
+            "version": "0.3.0",
+            "description": null,
+            "icons": null,
+            "websiteUrl": null
+          },
+          "runtimeStatus": null,
+          "toolsError": null,
+          "toolCount": 0,
+          "statusKeys": [
+            "name",
+            "runtimeStatus",
+            "pluginId",
+            "httpOrigin",
+            "serverInfo",
+            "serverCapabilities",
+            "tools",
+            "toolsError",
+            "resources",
+            "resourceTemplates",
+            "authStatus"
+          ]
+        },
+        {
+          "pluginId": "yg-toolkit@yg",
+          "serverInfo": {
+            "name": "fixture",
+            "title": null,
+            "version": "0.3.0",
+            "description": null,
+            "icons": null,
+            "websiteUrl": null
+          },
+          "runtimeStatus": null,
+          "toolsError": null,
+          "toolCount": 0,
+          "statusKeys": [
+            "name",
+            "runtimeStatus",
+            "pluginId",
+            "httpOrigin",
+            "serverInfo",
+            "serverCapabilities",
+            "tools",
+            "toolsError",
+            "resources",
+            "resourceTemplates",
+            "authStatus"
+          ]
+        }
+      ]
+    },
+    {
+      "action": "fixture-trace",
+      "definitionSource": "second",
+      "hasPlaceholder": false,
+      "usesOldCacheVersion": false,
+      "usesNewCacheVersion": true,
+      "argument": "<fixture>\\profile\\plugins\\cache\\yg\\yg-toolkit\\0.3.0/dist/probe.cjs"
+    },
+    {
+      "action": "final-cli",
+      "installed": []
+    },
+    {
+      "action": "official-disable",
+      "configDisabled": true,
+      "cliListedAsDisabled": false,
+      "loadedServices": 0,
+      "cachePreserved": true
+    },
+    {
+      "action": "same-name-add-second",
+      "sourceIsSecond": true
+    }
+  ],
+  "failure": null
+}

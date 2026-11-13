@@ -1,0 +1,19 @@
+{
+  "requestedVersion": "0.3.1",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "services": [
+    {
+      "file": "token-usage.cjs",
+      "version": "0.3.1"
+    },
+    {
+      "file": "issue-hub.cjs",
+      "version": "0.3.1"
+    }
+  ],
+  "passed": true,
+  "failure": null,
+  "manifestVersion": "0.3.0",
+  "normalBuildRestored": true
+}

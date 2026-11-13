@@ -1,0 +1,49 @@
+{
+  "readOnly": false,
+  "localBindingOnly": true,
+  "chatOpened": false,
+  "remoteWrites": false,
+  "phases": [
+    {
+      "name": "fresh-full-refresh",
+      "version": "0.3.2",
+      "catalog": {
+        "status": "partial",
+        "checking": false
+      },
+      "onlineBefore": true,
+      "latestPassed": true,
+      "workspaceCount": 1,
+      "hasCurrent": false,
+      "bindPassed": true,
+      "onlineAfter": true,
+      "catalogAfter": {
+        "status": "partial",
+        "checking": false
+      },
+      "elapsedMs": 20029
+    },
+    {
+      "name": "reopened-cached-bootstrap",
+      "version": "0.3.2",
+      "catalog": {
+        "status": "partial",
+        "checking": true
+      },
+      "onlineBefore": true,
+      "latestPassed": true,
+      "workspaceCount": 1,
+      "hasCurrent": false,
+      "bindPassed": true,
+      "onlineAfter": true,
+      "catalogAfter": {
+        "status": "partial",
+        "checking": false
+      },
+      "elapsedMs": 25843
+    }
+  ],
+  "failure": null,
+  "temporaryStorageRemoved": true,
+  "passed": true
+}

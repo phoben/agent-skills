@@ -1,0 +1,27 @@
+{
+  "realUserConfigModified": false,
+  "secondMachineVerified": false,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": null,
+  "checkOnlyPassed": true,
+  "checkOnlyUnchanged": true,
+  "installPassed": true,
+  "version": "0.3.0",
+  "services": [
+    {
+      "name": "issue-hub",
+      "version": "0.3.0",
+      "toolCount": 8,
+      "toolsError": null
+    },
+    {
+      "name": "yg-token-usage",
+      "version": "0.3.0",
+      "toolCount": 3,
+      "toolsError": null
+    }
+  ],
+  "passed": true,
+  "cleaned": true
+}

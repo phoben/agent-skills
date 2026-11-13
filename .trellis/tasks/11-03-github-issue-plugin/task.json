@@ -1,0 +1,30 @@
+{
+  "id": "github-issue-plugin",
+  "name": "github-issue-plugin",
+  "title": "设计团队 Issue 管理 MCP 插件",
+  "description": "设计面向团队分发的 GitHub Issue 管理插件，验证原生侧栏仓库列表、桌面工作区发现及新聊天预填能力",
+  "status": "planning",
+  "dev_type": null,
+  "scope": "issue-hub",
+  "package": null,
+  "priority": "P1",
+  "creator": "codex",
+  "assignee": "codex",
+  "createdAt": "2026-11-03",
+  "completedAt": null,
+  "branch": "codex/issue-hub",
+  "base_branch": "main",
+  "worktree_path": null,
+  "commit": null,
+  "pr_url": null,
+  "subtasks": [],
+  "children": [
+    "11-03-issue-hub-host-proof",
+    "11-03-issue-hub-ui-prototype",
+    "11-04-issue-hub-product"
+  ],
+  "parent": null,
+  "relatedFiles": [],
+  "notes": "",
+  "meta": {}
+}

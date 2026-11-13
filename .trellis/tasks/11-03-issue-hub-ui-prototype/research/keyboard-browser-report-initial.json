@@ -1,0 +1,10 @@
+{
+  "checkedAt": "2026-11-03T17:07:25.056Z",
+  "prototypeOnly": true,
+  "browserSpaceId": 8,
+  "results": [],
+  "failure": {
+    "message": "Expected values to be strictly equal:\n+ actual - expected\n\n+ ''\n- 'issue-row-183'\n",
+    "url": "http://127.0.0.1:18286/?run=keyboard-1793725643880&theme=light"
+  }
+}

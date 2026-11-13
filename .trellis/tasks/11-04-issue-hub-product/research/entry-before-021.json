@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-11-04T04:34:35.054Z",
+  "realNetwork": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "runs": [
+    {
+      "label": "cold",
+      "connectMs": 3919.2,
+      "version": "0.2.0",
+      "bootstrapMs": 6438.9,
+      "bootstrapFromStartMs": 10364.9,
+      "repositoryCount": 12,
+      "checking": false,
+      "cached": false,
+      "cachedListCount": null,
+      "listMs": 5009.4,
+      "firstListFromStartMs": 15374.4,
+      "issues": 1,
+      "detailAction": "read",
+      "detailMs": 7747.2,
+      "firstBodyFromStartMs": 23121.7,
+      "bodyBytes": 16965
+    },
+    {
+      "label": "warm",
+      "connectMs": 3988.6,
+      "version": "0.2.0",
+      "bootstrapMs": 1844.9,
+      "bootstrapFromStartMs": 5836.9,
+      "repositoryCount": 12,
+      "checking": false,
+      "cached": true,
+      "cachedListCount": null,
+      "listMs": 4822.9,
+      "firstListFromStartMs": 10659.9,
+      "issues": 1,
+      "detailAction": "read",
+      "detailMs": 7372.1,
+      "firstBodyFromStartMs": 18031.9,
+      "bodyBytes": 16965
+    }
+  ]
+}

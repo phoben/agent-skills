@@ -1,0 +1,6 @@
+{"file": ".trellis/spec/backend/issue-hub.md", "reason": "宿主与权限边界"}
+{"file": ".trellis/spec/frontend/issue-hub.md", "reason": "异步和主题"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/ui/selected-a.md", "reason": "已确认布局"}
+{"file": ".trellis/tasks/11-04-issue-hub-product/research/experience-021.md", "reason": "用户追加列宽单击提速与安全边界"}
+{"file": ".trellis/tasks/11-04-issue-hub-product/research/theme-023.md", "reason": "本轮主题图标明确范围"}
+{"file": ".trellis/tasks/11-04-issue-hub-product/research/remaining-030.md", "reason": "当前剩余功能与真实写入授权"}

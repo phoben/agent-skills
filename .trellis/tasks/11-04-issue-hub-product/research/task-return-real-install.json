@@ -1,0 +1,31 @@
+{
+  "version": "0.3.8",
+  "realProfile": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": null,
+  "cacheFiles": 159,
+  "cacheMatches": true,
+  "services": [
+    {
+      "module": "issue-hub",
+      "pluginId": "yg-toolkit@yg",
+      "version": "0.3.8",
+      "tools": 9,
+      "global": 1,
+      "resourceReadable": true,
+      "modelVisibleTools": 0
+    },
+    {
+      "module": "tokens",
+      "pluginId": "yg-toolkit@yg",
+      "version": "0.3.8",
+      "tools": 3,
+      "global": 1,
+      "resourceReadable": true,
+      "modelVisibleTools": 0
+    }
+  ],
+  "legacyActiveServices": 0,
+  "passed": true
+}

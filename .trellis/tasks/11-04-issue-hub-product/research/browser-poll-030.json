@@ -1,0 +1,6 @@
+{
+  "realGithub": true,
+  "manualRefresh": false,
+  "issue": 5,
+  "failure": "page.waitForFunction timed out after 110000ms on page p1; last URL was \"http://127.0.0.1:18295/?theme=dark&repo=phoben%2Fagent-skills\"; last title was \"Issue Hub 只读联调\"."
+}

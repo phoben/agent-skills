@@ -1,0 +1,50 @@
+{
+  "checkedAt": "2026-11-04T05:11:19.594Z",
+  "realNetwork": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "runs": [
+    {
+      "label": "cold",
+      "connectMs": 164.3,
+      "version": "0.2.1",
+      "bootstrapMs": 2996.9,
+      "bootstrapFromStartMs": 3166.3,
+      "repositoryCount": 11,
+      "checking": true,
+      "cached": false,
+      "cachedListCount": null,
+      "listMs": 3455.4,
+      "firstListFromStartMs": 6621.8,
+      "issues": 1,
+      "listCached": false,
+      "detailAction": "read-summary",
+      "detailMs": 1806.5,
+      "firstBodyFromStartMs": 8428.3,
+      "bodyBytes": 16965,
+      "localViewStateSaved": true,
+      "afterDisplayRefreshMs": 8902.7
+    },
+    {
+      "label": "warm",
+      "connectMs": 118.1,
+      "version": "0.2.1",
+      "bootstrapMs": 247.4,
+      "bootstrapFromStartMs": 368.8,
+      "repositoryCount": 12,
+      "checking": true,
+      "cached": true,
+      "cachedListCount": null,
+      "listMs": 179.8,
+      "firstListFromStartMs": 548.6,
+      "issues": 1,
+      "listCached": true,
+      "detailAction": "read-summary",
+      "detailMs": 202.7,
+      "firstBodyFromStartMs": 751.4,
+      "bodyBytes": 16965,
+      "localViewStateSaved": true,
+      "afterDisplayRefreshMs": 9622.1
+    }
+  ]
+}

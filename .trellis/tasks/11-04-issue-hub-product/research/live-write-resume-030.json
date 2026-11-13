@@ -1,0 +1,34 @@
+{
+  "repository": "phoben/agent-skills",
+  "issue": {
+    "number": 5,
+    "url": "https://github.com/phoben/agent-skills/issues/5"
+  },
+  "reusedExisting": true,
+  "steps": [
+    {
+      "name": "已确认评论重放保留回执但使用最新Issue投影",
+      "passed": true
+    },
+    {
+      "name": "从已关闭状态重新打开",
+      "passed": true
+    },
+    {
+      "name": "远端评论更新时间变化不误报关闭冲突",
+      "passed": true
+    },
+    {
+      "name": "再次重开与清除临时属性",
+      "passed": true
+    }
+  ],
+  "cleanup": {
+    "issueClosed": true,
+    "attributesCleared": true,
+    "milestoneAlreadyDeleted": true
+  },
+  "failure": null,
+  "serverVersion": "0.2.4",
+  "remoteCommentId": 6624399720
+}

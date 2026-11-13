@@ -1,0 +1,46 @@
+{
+  "version": "0.3.2",
+  "realGithub": true,
+  "remoteWrites": false,
+  "images": [
+    {
+      "state": "loaded",
+      "naturalWidth": 1957,
+      "naturalHeight": 811,
+      "dataOnly": true,
+      "renderedWidth": 1251.322998046875,
+      "renderedHeight": 518.5625
+    },
+    {
+      "state": "loaded",
+      "naturalWidth": 1527,
+      "naturalHeight": 522,
+      "dataOnly": true,
+      "renderedWidth": 1251.3125,
+      "renderedHeight": 427.76043701171875
+    },
+    {
+      "state": "loaded",
+      "naturalWidth": 890,
+      "naturalHeight": 144,
+      "dataOnly": true,
+      "renderedWidth": 890,
+      "renderedHeight": 144
+    },
+    {
+      "state": "loaded",
+      "naturalWidth": 960,
+      "naturalHeight": 490,
+      "dataOnly": true,
+      "renderedWidth": 960,
+      "renderedHeight": 490
+    }
+  ],
+  "layout": {
+    "selected": "191",
+    "overflow": false,
+    "csp": "default-src 'none'; img-src data:; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
+  },
+  "passed": true,
+  "screenshot": "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/image-preview-browser.png"
+}

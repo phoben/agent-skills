@@ -1,0 +1,11 @@
+const task = await taskSpace(8);
+const page = task.page('p1');
+const fs = await import('node:fs/promises');
+await page.fill('input[name="title"]','独立走查：补充筛选结果数量说明');
+await page.fill('textarea[name="body"]','成员筛选待办后，希望看到当前符合条件的数量。\n验收：切换标签后，数量与显示的列表一致。');
+await page.click('@331',{label:'归类为功能改进'});
+const before=await page.snapshot({scope:'subtree',root:'loc=role:form'}).catch(()=>null);
+const receipt=await page.click('loc=role:button[name="保存"]',{label:'保存新建待办'});
+const snapshot=await page.snapshot();
+await fs.writeFile('E:/Develop/agent-skills/.trellis/tasks/11-03-issue-hub-ui-prototype/research/ux-independent/round-06.log',JSON.stringify({before,receipt,snapshot},null,2),'utf8');
+console.log(receipt);console.log(snapshot);

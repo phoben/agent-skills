@@ -1,0 +1,453 @@
+{
+  "version": "issue-hub-firstscreens-01",
+  "scenario": "打开同一仓库并选中同一条已有确认会话的 Issue，准备继续处理",
+  "appName": "Issue Hub",
+  "account": {
+    "login": "team-member",
+    "name": "林舟",
+    "initials": "林"
+  },
+  "repository": {
+    "fullName": "team/issue-hub",
+    "name": "issue-hub",
+    "owner": "team",
+    "description": "桌面端 Issue 工作区"
+  },
+  "repositories": [
+    {
+      "fullName": "team/issue-hub",
+      "name": "issue-hub",
+      "open": 18,
+      "selected": true
+    },
+    {
+      "fullName": "team/platform-api",
+      "name": "platform-api",
+      "open": 12
+    },
+    {
+      "fullName": "team/docs-site",
+      "name": "docs-site",
+      "open": 7
+    },
+    {
+      "fullName": "team/client-web",
+      "name": "client-web",
+      "open": 9
+    },
+    {
+      "fullName": "team/automation",
+      "name": "automation",
+      "open": 4
+    }
+  ],
+  "counts": {
+    "all": 24,
+    "open": 18,
+    "closed": 6
+  },
+  "sync": {
+    "text": "已同步",
+    "time": "21:18",
+    "cadence": "每 60 秒检查",
+    "ago": "刚刚"
+  },
+  "workspace": {
+    "name": "主工作区",
+    "branch": "main"
+  },
+  "selectedNumber": 184,
+  "issues": [
+    {
+      "number": 184,
+      "title": "切换仓库后，评论仍保留上一次的筛选结果",
+      "state": "open",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "8 分钟前",
+      "comments": 8,
+      "relation": "linked"
+    },
+    {
+      "number": 183,
+      "title": "多个工作区时，已选路径没有被记住",
+      "state": "open",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "12 分钟前",
+      "comments": 0,
+      "relation": "draft"
+    },
+    {
+      "number": 182,
+      "title": "断网后重新打开页面，评论草稿丢失",
+      "state": "open",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "24 分钟前",
+      "comments": 6,
+      "relation": "pending"
+    },
+    {
+      "number": 181,
+      "title": "正文中的长代码块撑开了详情区域",
+      "body": "正文中的长代码块应只在代码区域内横向滚动，不能撑开整个详情。\n\n复现代码\n```js\nconst repositoryScope = 'team/issue-hub';\nconst query = 'repository=team/issue-hub&issue=181&include=comments,activities,attachments,pull-requests&cursor=very-long-cursor-with-many-characters-for-width-verification';\n```\n\n验收条件\n- [ ] 窄窗口中标题、代码与评论均可阅读。",
+      "state": "open",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "36 分钟前",
+      "comments": 2,
+      "relation": "none"
+    },
+    {
+      "number": 180,
+      "title": "负责人列表加载失败时没有重试入口",
+      "state": "open",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "48 分钟前",
+      "comments": 1,
+      "relation": "none"
+    },
+    {
+      "number": 179,
+      "title": "新建 Issue 后列表没有立即更新",
+      "state": "open",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "今天",
+      "comments": 3,
+      "relation": "none"
+    },
+    {
+      "number": 178,
+      "title": "关联会话已归档，返回按钮仍然可用",
+      "state": "open",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "今天",
+      "comments": 0,
+      "relation": "none"
+    },
+    {
+      "number": 177,
+      "title": "切换账号后需要清理旧仓库的筛选条件",
+      "state": "open",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "今天",
+      "comments": 6,
+      "relation": "none"
+    },
+    {
+      "number": 176,
+      "title": "窗口较小时，标签名称被按钮遮挡",
+      "state": "open",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "今天",
+      "comments": 2,
+      "relation": "none"
+    },
+    {
+      "number": 175,
+      "title": "评论超过一页时显示已加载的数量",
+      "state": "open",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "今天",
+      "comments": 1,
+      "relation": "none"
+    },
+    {
+      "number": 174,
+      "title": "保存失败后应保留当前编辑内容",
+      "state": "open",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "今天",
+      "comments": 3,
+      "relation": "none"
+    },
+    {
+      "number": 173,
+      "title": "在 Issue 列表中增加键盘焦点提示",
+      "state": "open",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "今天",
+      "comments": 0,
+      "relation": "none"
+    },
+    {
+      "number": 172,
+      "title": "里程碑为空时不应显示加载失败",
+      "state": "open",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "昨天",
+      "comments": 6,
+      "relation": "none"
+    },
+    {
+      "number": 171,
+      "title": "重复点击创建任务时只处理一次请求",
+      "state": "open",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "昨天",
+      "comments": 2,
+      "relation": "none"
+    },
+    {
+      "number": 170,
+      "title": "在详情中保留关联 PR 的来源链接",
+      "state": "open",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "昨天",
+      "comments": 1,
+      "relation": "none"
+    },
+    {
+      "number": 169,
+      "title": "仓库目录失效后应允许重新选择",
+      "state": "open",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "昨天",
+      "comments": 3,
+      "relation": "none"
+    },
+    {
+      "number": 168,
+      "title": "从详情返回时保持列表阅读位置",
+      "state": "open",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "昨天",
+      "comments": 0,
+      "relation": "none"
+    },
+    {
+      "number": 167,
+      "title": "手动刷新时保留未提交的评论",
+      "state": "open",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "昨天",
+      "comments": 6,
+      "relation": "none"
+    },
+    {
+      "number": 166,
+      "title": "关闭 Issue 后正确更新当前状态",
+      "state": "closed",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "昨天",
+      "comments": 2,
+      "relation": "none"
+    },
+    {
+      "number": 165,
+      "title": "为无评论的 Issue 保留回复入口",
+      "state": "closed",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "昨天",
+      "comments": 1,
+      "relation": "none"
+    },
+    {
+      "number": 164,
+      "title": "标签修改后重新读取远端状态",
+      "state": "closed",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "昨天",
+      "comments": 3,
+      "relation": "none"
+    },
+    {
+      "number": 163,
+      "title": "修正中文多行标题的行距",
+      "state": "closed",
+      "labels": [
+        "bug",
+        "同步"
+      ],
+      "assignee": "林舟",
+      "updated": "昨天",
+      "comments": 0,
+      "relation": "none"
+    },
+    {
+      "number": 162,
+      "title": "合并重复的项目目录记录",
+      "state": "closed",
+      "labels": [
+        "enhancement"
+      ],
+      "assignee": "陈雨",
+      "updated": "昨天",
+      "comments": 6,
+      "relation": "none"
+    },
+    {
+      "number": 161,
+      "title": "补充权限失效后的恢复提示",
+      "state": "closed",
+      "labels": [
+        "bug"
+      ],
+      "assignee": "未分配",
+      "updated": "昨天",
+      "comments": 2,
+      "relation": "none"
+    }
+  ],
+  "detail": {
+    "number": 184,
+    "title": "切换仓库后，评论仍保留上一次的筛选结果",
+    "state": "open",
+    "labels": [
+      "bug",
+      "同步"
+    ],
+    "assignee": "林舟",
+    "updated": "8 分钟前",
+    "comments": 8,
+    "relation": "linked",
+    "author": "陈雨",
+    "created": "11 月 3 日",
+    "milestone": "桌面协作 v0.2",
+    "task": {
+      "title": "修复仓库切换后的评论筛选",
+      "status": "已确认关联",
+      "action": "返回会话"
+    },
+    "bodyLead": "在仓库之间切换后，Issue 详情中的评论列表仍沿用上一个仓库的筛选条件，导致部分讨论没有显示。",
+    "steps": [
+      "打开 issue-hub，进入一条有评论的 Issue。",
+      "切换到 platform-api，再返回当前 Issue。",
+      "评论列表仍保留之前的筛选，而标题与属性已更新。"
+    ],
+    "expectation": "仓库切换应重置评论查询范围，同时保留尚未发布的输入。",
+    "acceptance": [
+      "评论只来自当前仓库与 Issue。",
+      "切换期间迟到的响应不覆盖新页面。",
+      "本机草稿与当前账号保持隔离。"
+    ],
+    "commentsLabel": "讨论 · 8",
+    "previewComments": [
+      {
+        "author": "林舟",
+        "initials": "林",
+        "time": "18 分钟前",
+        "text": "已复现。会补上切换时的请求失效处理，并验证返回列表后的位置保留。"
+      },
+      {
+        "author": "陈雨",
+        "initials": "陈",
+        "time": "8 分钟前",
+        "text": "也请覆盖切换前已经输入评论的情况，失败时不要清空内容。"
+      }
+    ],
+    "relatedPr": "#176 · 统一仓库上下文切换",
+    "attachment": { "name": "仓库切换复现记录.txt", "content": "打开 issue-hub #184，切换 platform-api，再返回核对评论范围与未发布输入。" }
+  },
+  "prototype": {
+    "version": "a-interactive-01",
+    "accounts": [
+      { "login": "team-member", "name": "林舟", "initials": "林" },
+      { "login": "review-member", "name": "许清", "initials": "许" }
+    ],
+    "labels": ["bug", "enhancement", "同步", "文档"],
+    "assignees": ["未分配", "林舟", "陈雨", "许清"],
+    "milestones": ["", "桌面协作 v0.2", "桌面协作 v0.3"],
+    "comments184": [
+      { "id": "c-1", "login": "team-member", "author": "林舟", "initials": "林", "time": "18 分钟前", "text": "已复现。会补上切换时的请求失效处理，并验证返回列表后的位置保留。" },
+      { "id": "c-2", "login": "chen-yu", "author": "陈雨", "initials": "陈", "time": "8 分钟前", "text": "也请覆盖切换前已经输入评论的情况，失败时不要清空内容。" },
+      { "id": "c-3", "login": "chen-yu", "author": "陈雨", "initials": "陈", "time": "23 分钟前", "text": "快速连续切换时也会出现，已记录复现顺序。" },
+      { "id": "c-4", "login": "team-member", "author": "林舟", "initials": "林", "time": "24 分钟前", "text": "请求返回顺序可能与切换顺序不同，建议让旧请求失效。" },
+      { "id": "c-5", "login": "chen-yu", "author": "陈雨", "initials": "陈", "time": "25 分钟前", "text": "需要保留切换前输入的评论，但不能跨账号恢复。" },
+      { "id": "c-6", "login": "team-member", "author": "林舟", "initials": "林", "time": "26 分钟前", "text": "已补充 platform-api 返回 issue-hub 的复现路径。" },
+      { "id": "c-7", "login": "chen-yu", "author": "陈雨", "initials": "陈", "time": "27 分钟前", "text": "验收时请覆盖关闭详情再重新打开的情况。" },
+      { "id": "c-8", "login": "team-member", "author": "林舟", "initials": "林", "time": "28 分钟前", "text": "收到，会同时核对分页和返回列表的位置。" }
+    ],
+    "commentNotes": ["请覆盖正常操作与失败重试。", "失败时需要保留当前输入，返回列表后仍能找到原 Issue。"],
+    "repositoryIssues": {
+      "team/platform-api": [
+        { "number": 42, "title": "分页接口返回了重复的游标", "state": "open", "labels": ["bug"], "assignee": "陈雨", "updated": "10 分钟前", "body": "连续请求第二页时，返回游标与第一页相同。\n\n复现步骤\n1. 请求第一页并保存游标。\n2. 带游标请求下一页。\n\n预期结果\n每页返回下一段数据，最后一页明确结束。", "comments": 0, "relation": "none" },
+        { "number": 41, "title": "接口文档缺少限流恢复说明", "state": "closed", "labels": ["文档"], "assignee": "林舟", "updated": "昨天", "body": "补充限流响应中的重试时间与恢复入口说明。", "comments": 0, "relation": "none" }
+      ],
+      "team/docs-site": [],
+      "team/client-web": [
+        { "number": 27, "title": "登录过期后保留未提交表单", "state": "open", "labels": ["enhancement"], "assignee": "未分配", "updated": "今天", "comments": 0, "relation": "none" }
+      ],
+      "team/automation": [],
+      "team/support-tools": [
+        { "number": 7, "title": "汇总支持工单的导出字段", "state": "open", "labels": ["enhancement"], "assignee": "许清", "author": "许清", "authorLogin": "review-member", "updated": "今天", "comments": 0, "relation": "none", "body": "当前账号负责支持工具仓库。\n\n预期结果\n导出内容包含工单号、负责人和最后更新时间。" }
+      ]
+    },
+    "workspaces": {
+      "team/issue-hub": [
+        { "id": "main", "name": "主工作区", "path": "E:/Work/issue-hub", "valid": true },
+        { "id": "review", "name": "评审工作区", "path": "E:/Work/issue-hub-review", "valid": true }
+      ],
+      "team/platform-api": [
+        { "id": "main", "name": "主工作区", "path": "E:/Work/platform-api", "valid": true }
+      ]
+    }
+  }
+}

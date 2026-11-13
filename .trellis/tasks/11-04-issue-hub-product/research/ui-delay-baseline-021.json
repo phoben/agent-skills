@@ -1,0 +1,37 @@
+{
+  "checkedAt": "2026-11-04T04:32:17.841Z",
+  "source": "改动前实际 openIssue/preserveBefore",
+  "syntheticPendingRequests": true,
+  "beforePreference": {
+    "selected": null,
+    "bodyRenders": 0,
+    "calls": [
+      "preference-save"
+    ]
+  },
+  "beforeRead": {
+    "selected": 7,
+    "bodyRenders": 0,
+    "calls": [
+      "preference-save",
+      "read"
+    ]
+  },
+  "beforeTask": {
+    "selected": 7,
+    "bodyRenders": 0,
+    "calls": [
+      "preference-save",
+      "read",
+      "latest"
+    ]
+  },
+  "final": {
+    "selected": 7,
+    "bodyRenders": 1
+  },
+  "conclusions": {
+    "unrelatedPreferenceBlocksSelection": true,
+    "taskBlocksReadableBody": true
+  }
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "action": "bootstrap",
+    "identity": 55103351,
+    "repositories": 0,
+    "catalog": {
+      "status": "unavailable",
+      "projects": 22,
+      "roots": 25,
+      "warnings": [
+        "DISCOVERY_FAILED"
+      ]
+    },
+    "checking": {
+      "identity": true,
+      "catalog": true,
+      "metadata": true
+    },
+    "viewState": {}
+  },
+  {
+    "action": "refresh",
+    "identity": 55103351,
+    "repositories": 0,
+    "catalog": {
+      "status": "unavailable",
+      "projects": 22,
+      "roots": 25,
+      "warnings": [
+        "DISCOVERY_FAILED"
+      ]
+    },
+    "viewState": {}
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "isolatedProfile": true,
+  "actualUserProfileModified": false,
+  "secondMachineVerified": false,
+  "version": "0.3.4",
+  "checkOnlyPassed": true,
+  "installed": true,
+  "pluginId": "issue-hub@issue-hub-review",
+  "failure": null,
+  "cleaned": true
+}

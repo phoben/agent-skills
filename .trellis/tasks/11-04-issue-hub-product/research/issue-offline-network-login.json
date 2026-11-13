@@ -1,0 +1,45 @@
+{
+  "label": "login",
+  "readOnly": true,
+  "privateContentPrinted": false,
+  "proxyEnvironment": {
+    "HTTP_PROXY": true,
+    "HTTPS_PROXY": true,
+    "ALL_PROXY": true,
+    "NO_PROXY": true,
+    "GH_HOST": false
+  },
+  "requests": [
+    {
+      "endpoint": "/user",
+      "elapsedMs": 708,
+      "success": true,
+      "exitCode": 0,
+      "timeout": false,
+      "dns": false,
+      "proxy": false,
+      "connection": false,
+      "tls": false,
+      "httpStatus": 200
+    },
+    {
+      "endpoint": "/repos/phoben/aoy-erp/issues/185",
+      "elapsedMs": 719,
+      "success": true,
+      "exitCode": 0,
+      "timeout": false,
+      "dns": false,
+      "proxy": false,
+      "connection": false,
+      "tls": false,
+      "httpStatus": 200
+    }
+  ],
+  "failure": null,
+  "identityVerified": true,
+  "issue": {
+    "number": 185,
+    "bodyPresent": true
+  },
+  "passed": true
+}

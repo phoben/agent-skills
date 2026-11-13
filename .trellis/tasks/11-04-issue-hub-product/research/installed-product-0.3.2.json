@@ -1,0 +1,18 @@
+{
+  "checkedAt": "2026-11-04T09:46:15.189Z",
+  "source": "installed-plugin-app-server",
+  "pluginId": "issue-hub@yg",
+  "version": "0.3.2",
+  "toolCount": 8,
+  "diagnosticRepositoryTools": 0,
+  "globalEntries": 1,
+  "serverIconVariants": 2,
+  "entrypointIconVariants": 0,
+  "iconMatchesAsset": true,
+  "uiResourceReadable": true,
+  "uiBytes": 550413,
+  "desktopRenderingVerified": false,
+  "nativeFlyoutVerified": false,
+  "chatCreated": false,
+  "privateContentPrinted": false
+}

@@ -1,0 +1,44 @@
+{
+  "checkedAt": "2026-11-04T07:54:50.719Z",
+  "repository": "openai/codex",
+  "realGithub": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "catalogSource": "受控只读服务层测试adapter，不注册或修改桌面项目",
+  "maximumPages": 10,
+  "candidateSearch": {
+    "endpoint": "/repos/openai/codex/issues?state=all&per_page=100&sort=comments&direction=desc",
+    "inspected": 100
+  },
+  "issue": {
+    "number": 13186,
+    "url": "https://github.com/openai/codex/issues/13186",
+    "commentsAtSelection": 101,
+    "preferred101To300": true
+  },
+  "pages": [
+    {
+      "page": 1,
+      "loaded": 100,
+      "complete": false,
+      "nextCursor": "2"
+    },
+    {
+      "page": 2,
+      "loaded": 1,
+      "complete": true,
+      "nextCursor": null
+    }
+  ],
+  "loadedComments": 101,
+  "duplicateIds": 0,
+  "complete": true,
+  "nextCursor": null,
+  "limited": false,
+  "rateLimit": {
+    "minimumRemaining": 3979
+  },
+  "temporaryStorageRemoved": true,
+  "passed": true,
+  "failure": null
+}

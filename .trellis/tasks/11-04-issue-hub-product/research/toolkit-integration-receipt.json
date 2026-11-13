@@ -1,0 +1,33 @@
+{
+  "pluginId": "yg-toolkit@yg",
+  "version": "0.3.0",
+  "mainHead": "55692762e0ece903e843b0b5187c667a3bc5b8fc",
+  "sourceBranch": "codex/issue-hub-in-yg",
+  "legacyPluginUninstalled": true,
+  "cacheFilesVerified": 159,
+  "services": [
+    {
+      "module": "issue-hub",
+      "pluginId": "yg-toolkit@yg",
+      "version": "0.3.0",
+      "tools": 8,
+      "global": 1,
+      "resourceReadable": true
+    },
+    {
+      "module": "tokens",
+      "pluginId": "yg-toolkit@yg",
+      "version": "0.3.0",
+      "tools": 3,
+      "global": 1,
+      "resourceReadable": true
+    }
+  ],
+  "protectedStateUnchanged": true,
+  "existingLinkedTaskRestored": true,
+  "sourcePointerPreserved": true,
+  "originalSourceUpdated": true,
+  "publishedSkillsUnmodified": true,
+  "secondMachine": "deferred-by-user",
+  "temporaryWorktreeRemoved": true
+}

@@ -1,0 +1,90 @@
+{
+  "readOnly": true,
+  "chatOpened": false,
+  "messagesSent": false,
+  "privateContentPrinted": false,
+  "candidates": [
+    {
+      "projectPresent": false,
+      "hasNext": false,
+      "items": [
+        {
+          "rowKeys": [
+            "turnId",
+            "item",
+            "startedAtMs",
+            "completedAtMs"
+          ],
+          "payloadKeys": [
+            "type",
+            "id",
+            "clientId",
+            "content"
+          ],
+          "type": "userMessage",
+          "nestedObjects": [
+            {
+              "key": "item",
+              "keys": [
+                "type",
+                "id",
+                "clientId",
+                "content"
+              ],
+              "type": "userMessage"
+            }
+          ],
+          "contentParts": [
+            {
+              "keys": [
+                "type",
+                "text",
+                "text_elements"
+              ],
+              "type": "text"
+            }
+          ],
+          "firstLineMatches": true,
+          "containsReference": true
+        },
+        {
+          "rowKeys": [
+            "turnId",
+            "item",
+            "startedAtMs",
+            "completedAtMs"
+          ],
+          "payloadKeys": [
+            "type",
+            "id",
+            "text",
+            "phase",
+            "memoryCitation",
+            "delivery",
+            "questions"
+          ],
+          "type": "agentMessage",
+          "nestedObjects": [
+            {
+              "key": "item",
+              "keys": [
+                "type",
+                "id",
+                "text",
+                "phase",
+                "memoryCitation",
+                "delivery",
+                "questions"
+              ],
+              "type": "agentMessage"
+            }
+          ],
+          "contentParts": [],
+          "firstLineMatches": false,
+          "containsReference": false
+        }
+      ]
+    }
+  ],
+  "failure": null
+}

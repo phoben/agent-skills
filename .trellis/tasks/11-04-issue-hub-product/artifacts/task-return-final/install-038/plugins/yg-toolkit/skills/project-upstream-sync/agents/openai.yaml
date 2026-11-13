@@ -1,0 +1,4 @@
+interface:
+  display_name: "Upstream Sync"
+  short_description: "检查或选择性同步原作者框架更新，保留项目定制并按 Trellis 规则处理上游配置"
+  default_prompt: "使用 $project-upstream-sync 检查当前项目的上游框架更新，先报告候选改动、影响与风险，等我选定范围后再同步。"

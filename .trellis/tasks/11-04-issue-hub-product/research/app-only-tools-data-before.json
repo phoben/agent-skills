@@ -1,0 +1,21 @@
+{
+  "schema": 1,
+  "kindCounts": {
+    "catalog": 1,
+    "credential": 1,
+    "issue-detail": 2,
+    "issue-raw": 8,
+    "issue-task-index": 1,
+    "issue-task-request": 1,
+    "issue-workspace-binding": 1,
+    "page": 44,
+    "preference": 7,
+    "repository": 12,
+    "repository-alias": 19,
+    "view": 1
+  },
+  "protectedRows": 11,
+  "protectedDigest": "903477e514bef5ab9ec7c7e2d66971fdb0413cd5442b93d027f8a74d17aab7a3",
+  "readOnly": true,
+  "contentPrinted": false
+}

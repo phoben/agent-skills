@@ -1,0 +1,5 @@
+{"file": ".trellis/tasks/11-03-github-issue-plugin/research/host-capabilities.md", "reason": "宿主原生侧栏、项目发现和新聊天的证据与验收边界"}
+{"file": ".trellis/spec/guides/cross-layer-thinking-guide.md", "reason": "检查仓库、工作区、MCP、GitHub及聊天关联的跨层契约"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/research/current-practice.md", "reason": "复用现有实践并保留GitHub分页及写入边界"}
+{"file": "docs/adr/0010-share-issue-data-through-github.md", "reason": "保持GitHub共享及个人本机状态的已确认边界"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/ui-prototype-plan.md", "reason": "正式界面前完成oil-ui-pro方向选择、交互原型与用户确认"}

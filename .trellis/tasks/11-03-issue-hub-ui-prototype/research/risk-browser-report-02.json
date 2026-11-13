@@ -1,0 +1,43 @@
+{
+  "checkedAt": "2026-11-03T16:28:03.613Z",
+  "prototypeOnly": true,
+  "browserSpaceId": 8,
+  "results": [
+    {
+      "name": "冲突保留输入与明确选择后保存",
+      "passed": true,
+      "readBackAfterReload": true
+    },
+    {
+      "name": "只读权限与菜单焦点返回",
+      "passed": true,
+      "writeControlsAbsent": true
+    },
+    {
+      "name": "本机草稿失败阻止离开，重试后恢复",
+      "passed": true,
+      "noInputLoss": true
+    },
+    {
+      "name": "取消失效工作区选择保留旧关联",
+      "passed": true,
+      "originalTaskReachable": true
+    },
+    {
+      "name": "另建任务进入未发送草稿",
+      "passed": true,
+      "noRealChatOpened": true
+    },
+    {
+      "name": "离线草稿与 Enter 不发布",
+      "passed": true,
+      "readBackAfterReload": true
+    },
+    {
+      "name": "账号变化清理私有视图",
+      "passed": true,
+      "newIdentityLoaded": true
+    }
+  ],
+  "failure": null
+}

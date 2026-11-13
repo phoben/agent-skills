@@ -1,0 +1,17 @@
+{
+  "githubWrites": false,
+  "chatOpened": false,
+  "messagesSent": false,
+  "localAssociationCheck": true,
+  "privateContentPrinted": false,
+  "failure": null,
+  "version": "0.3.2",
+  "result": {
+    "status": "pending",
+    "coverage": "complete",
+    "checkedCandidates": 0,
+    "candidates": 0,
+    "hasThread": false,
+    "referenceMatches": true
+  }
+}

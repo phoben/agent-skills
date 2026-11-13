@@ -1,0 +1,40 @@
+{
+  "readOnly": true,
+  "secretPrinted": false,
+  "attempts": [
+    {
+      "name": "github-original",
+      "ok": true,
+      "elapsedMs": 1890,
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 194738,
+      "png": true,
+      "jpeg": false,
+      "hash": "9bc19ca3ec7379b0d755a094f5969446d431afc51fdbe8dab7992172926dc44a"
+    },
+    {
+      "name": "api-user-attachments",
+      "ok": false,
+      "elapsedMs": 623,
+      "exitCode": 1,
+      "status": 404,
+      "contentType": "application/json; charset=utf-8",
+      "bytes": 106,
+      "png": false,
+      "jpeg": false,
+      "hash": "edbd0367cec893df36f67acb56c3aa23810be28850977c35e0fedaf64aad286b"
+    },
+    {
+      "name": "api-original-raw",
+      "ok": true,
+      "elapsedMs": 1901,
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 194738,
+      "png": true,
+      "jpeg": false,
+      "hash": "9bc19ca3ec7379b0d755a094f5969446d431afc51fdbe8dab7992172926dc44a"
+    }
+  ]
+}

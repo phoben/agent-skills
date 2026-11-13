@@ -1,0 +1,50 @@
+{
+  "repository": "phoben/agent-skills",
+  "runId": "8958c4d7-41ac-44f5-8e82-2d80b3294255",
+  "realGithub": true,
+  "via": "LiveStore→MCP stdio→gh API",
+  "steps": [
+    {
+      "name": "准备临时里程碑",
+      "passed": true
+    },
+    {
+      "name": "从前端Store新增Issue并独立读回",
+      "passed": true
+    },
+    {
+      "name": "同一新增操作重试不重复创建",
+      "passed": true
+    },
+    {
+      "name": "编辑标题正文与标签负责人里程碑",
+      "passed": true
+    },
+    {
+      "name": "已确认编辑按旧基线重放恢复原回执",
+      "passed": true
+    },
+    {
+      "name": "新增本人评论并独立读回",
+      "passed": true
+    },
+    {
+      "name": "编辑本人评论并验证同操作重放",
+      "passed": true
+    }
+  ],
+  "cleanup": {
+    "issueClosed": true,
+    "milestoneDeleted": true
+  },
+  "failure": {
+    "phase": "关闭与重新打开",
+    "code": "CONFLICT",
+    "message": "GitHub 已有新修改。你的输入已保留，请比较后再决定。"
+  },
+  "serverVersion": "0.2.4",
+  "issue": {
+    "number": 5,
+    "url": "https://github.com/phoben/agent-skills/issues/5"
+  }
+}

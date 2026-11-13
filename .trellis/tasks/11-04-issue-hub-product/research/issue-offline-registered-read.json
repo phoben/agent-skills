@@ -1,0 +1,32 @@
+{
+  "source": "registered-plugin-read-only-tool",
+  "repository": "phoben/aoy-erp",
+  "number": 185,
+  "offline": false,
+  "cached": false,
+  "bodyPresent": true,
+  "comments": 6,
+  "activities": 21,
+  "coverage": {
+    "comments": {
+      "complete": true,
+      "nextCursor": null,
+      "loaded": 6,
+      "page": 1,
+      "total": 6
+    },
+    "activity": {
+      "complete": true,
+      "nextCursor": null,
+      "loaded": 21,
+      "page": 1
+    },
+    "extensions": {
+      "projects": "github-link",
+      "subIssues": "github-link",
+      "dependencies": "github-link"
+    }
+  },
+  "userReportedRecovered": true,
+  "initialFailureCauseCaptured": false
+}

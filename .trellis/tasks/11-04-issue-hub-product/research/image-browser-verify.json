@@ -1,0 +1,39 @@
+{
+  "realGithub": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "version": "0.3.2",
+  "phase": "decode",
+  "images": [],
+  "failure": "page.waitForFunction timed out after 60000ms on page p1; last URL was \"http://127.0.0.1:18299/?theme=dark&repo=phoben%2Faoy-erp\"; last title was \"Issue Hub 只读联调\".",
+  "passed": false,
+  "current": {
+    "queue": "phoben/aoy-erp",
+    "selected": "191",
+    "images": [
+      {
+        "state": "loading",
+        "status": "正在读取图片…",
+        "width": 0
+      },
+      {
+        "state": "loading",
+        "status": "正在读取图片…",
+        "width": 0
+      },
+      {
+        "state": "waiting",
+        "status": "正在读取图片…",
+        "width": 0
+      },
+      {
+        "state": "waiting",
+        "status": "正在读取图片…",
+        "width": 0
+      }
+    ],
+    "errors": [
+      ""
+    ]
+  }
+}

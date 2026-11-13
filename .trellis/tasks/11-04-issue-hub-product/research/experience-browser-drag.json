@@ -1,0 +1,7 @@
+{
+  "realBrowser": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "rounds": [],
+  "failure": "page.waitForFunction timed out after 90000ms on page p1; last URL was \"http://127.0.0.1:18290/?theme=dark&repo=phoben%2Faoy-erp&issue=182\"; last title was \"Issue Hub 只读联调\"."
+}

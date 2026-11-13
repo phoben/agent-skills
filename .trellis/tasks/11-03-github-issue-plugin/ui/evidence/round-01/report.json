@@ -1,0 +1,114 @@
+[
+  {
+    "file": "a.png",
+    "target": "E:\\Develop\\agent-skills\\.trellis\\tasks\\11-03-github-issue-plugin\\ui\\explore\\round-01\\a.html",
+    "name": "A · 连读队列",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": [
+      {
+        "rule": "sideStripe",
+        "label": "彩色单侧边线",
+        "count": 1,
+        "examples": [
+          "div.issue-row.selected「#184 切换仓库后，评论仍保留上一次的筛选结果」（::before）"
+        ]
+      },
+      {
+        "rule": "contrastLow",
+        "label": "文字对比度不达标（正文低于 4.5:1，大字低于 3:1）",
+        "count": 10,
+        "examples": [
+          "span.repo-count「18」（4.42:1）",
+          "span「搜索 Issue」（4.03:1）",
+          "span.property-name「标签」（4.03:1）"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "b.png",
+    "target": "E:\\Develop\\agent-skills\\.trellis\\tasks\\11-03-github-issue-plugin\\ui\\explore\\round-01\\b.html",
+    "name": "B · 比较与专注阅读",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": [
+      {
+        "rule": "sideStripe",
+        "label": "彩色单侧边线",
+        "count": 1,
+        "examples": [
+          "span.current「正文」（2px）"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "c.png",
+    "target": "E:\\Develop\\agent-skills\\.trellis\\tasks\\11-03-github-issue-plugin\\ui\\explore\\round-01\\c.html",
+    "name": "C · Issue 与会话对照",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": [
+      {
+        "rule": "sideStripe",
+        "label": "彩色单侧边线",
+        "count": 1,
+        "examples": [
+          "div.issue-row.selected「#184 切换仓库后，评论仍保留上一次的筛选结果」（3px）"
+        ]
+      }
+    ]
+  },
+  {
+    "file": "sheet.png",
+    "width": 2000,
+    "height": 583,
+    "columns": 3,
+    "items": [
+      {
+        "naturalWidth": 1120,
+        "naturalHeight": 880,
+        "width": 640,
+        "height": 503,
+        "labelHeight": 32,
+        "x": 24,
+        "y": 24,
+        "label": "A · 连读队列",
+        "labelY": 535
+      },
+      {
+        "naturalWidth": 1120,
+        "naturalHeight": 880,
+        "width": 640,
+        "height": 503,
+        "labelHeight": 32,
+        "x": 680,
+        "y": 24,
+        "label": "B · 比较与专注阅读",
+        "labelY": 535
+      },
+      {
+        "naturalWidth": 1120,
+        "naturalHeight": 880,
+        "width": 640,
+        "height": 503,
+        "labelHeight": 32,
+        "x": 1336,
+        "y": 24,
+        "label": "C · Issue 与会话对照",
+        "labelY": 535
+      }
+    ],
+    "issues": []
+  }
+]

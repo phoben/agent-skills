@@ -1,0 +1,34 @@
+{
+  "repository": "",
+  "notice": "账号或仓库范围已变化，已重新读取。旧草稿保留在原账号下。",
+  "announcer": "",
+  "calls": [
+    {
+      "name": "issue-hub-query",
+      "action": "bootstrap",
+      "start": 73.5,
+      "done": true,
+      "error": null,
+      "identity": 55103351,
+      "end": 247.90000009536743
+    },
+    {
+      "name": "issue-hub-query",
+      "action": "refresh",
+      "start": 252.40000009536743,
+      "done": true,
+      "error": null,
+      "identity": 55103351,
+      "end": 2032.1000000238419
+    },
+    {
+      "name": "issue-hub-query",
+      "action": "bootstrap",
+      "start": 60074.40000009537,
+      "done": true,
+      "error": null,
+      "identity": 55103351,
+      "end": 60262.90000009537
+    }
+  ]
+}

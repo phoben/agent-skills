@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "lang": "zh",
+  "round": "01",
+  "nativeViewport": "1120x880",
+  "serve": {
+    "command": "python -m http.server 18284 --bind 127.0.0.1 --directory .",
+    "cwd": "E:/Develop/agent-skills/.trellis/tasks/11-03-github-issue-plugin/ui/explore/round-01",
+    "url": "http://127.0.0.1:18284/style-explorer.html"
+  },
+  "candidates": [
+    {
+      "id": "a",
+      "source": "a.html",
+      "name": "A · 连读队列",
+      "concept": "保持仓库与队列位置，在旁侧阅读并处理当前 Issue",
+      "typography": "Segoe UI / 微软雅黑，紧凑正文与清晰标题层级",
+      "palette": ["#EEF2F0", "#FFFFFF", "#236248", "#E5F0E9"],
+      "traits": ["仓库常驻", "队列与详情并排", "连续处理少跳页"]
+    },
+    {
+      "id": "b",
+      "source": "b.html",
+      "name": "B · 比较与专注阅读",
+      "concept": "列表用于比较，选中后把画布交给完整正文与讨论",
+      "typography": "等线 / 微软雅黑，Consolas 编号，较舒展阅读字号",
+      "palette": ["#F2F1EF", "#FFFFFF", "#9A432A", "#F5E9E2"],
+      "traits": ["顶部切仓库", "独立阅读页", "正文与属性分层"]
+    },
+    {
+      "id": "c",
+      "source": "c.html",
+      "name": "C · Issue 与会话对照",
+      "concept": "在 Issue 原位置看清讨论与已确认的会话关系",
+      "typography": "微软雅黑正文，Cascadia Mono / Consolas 对象标识",
+      "palette": ["#F0F1F5", "#FFFFFF", "#4B56A3", "#EBEDF9"],
+      "traits": ["仓库页签", "关系状态可扫描", "详情原位展开"]
+    }
+  ]
+}

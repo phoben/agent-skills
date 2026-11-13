@@ -1,0 +1,8 @@
+{
+  "version": "0.3.4",
+  "realGithub": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": "page.waitForFunction timed out after 60000ms on page p1; last URL was \"http://127.0.0.1:18297/?theme=dark&repo=phoben%2Fagent-skills\"; last title was \"Issue Hub 只读联调\".",
+  "passed": false
+}

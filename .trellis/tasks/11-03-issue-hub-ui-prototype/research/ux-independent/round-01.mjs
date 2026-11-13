@@ -1,0 +1,10 @@
+const task = await taskSpace(8);
+const page = task.page('p2');
+const fs = await import('node:fs/promises');
+console.log({spaceId:task.spaceId,page:page.label});
+await page.goto('http://127.0.0.1:18286/?run=ux-independent-1793724127633&theme=light');
+const snapshot = await page.snapshot();
+const viewport = await page.evaluate(() => ({innerWidth:window.innerWidth,innerHeight:window.innerHeight,devicePixelRatio:window.devicePixelRatio,scrollWidth:document.documentElement.scrollWidth,scrollHeight:document.documentElement.scrollHeight}));
+await fs.writeFile('E:/Develop/agent-skills/.trellis/tasks/11-03-issue-hub-ui-prototype/research/ux-independent/round-01.log',JSON.stringify({viewport,snapshot},null,2),'utf8');
+console.log(viewport);
+console.log(snapshot);

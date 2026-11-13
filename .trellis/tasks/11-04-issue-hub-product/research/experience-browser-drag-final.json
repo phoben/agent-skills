@@ -1,0 +1,33 @@
+{
+  "realBrowser": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "rounds": [
+    {
+      "round": 1,
+      "navigation": 260,
+      "queue": 400,
+      "number": "182",
+      "overflow": false,
+      "reloadRestored": true
+    },
+    {
+      "round": 2,
+      "navigation": 280,
+      "queue": 440,
+      "number": "182",
+      "overflow": false,
+      "reloadRestored": true
+    },
+    {
+      "round": 3,
+      "navigation": 300,
+      "queue": 480,
+      "number": "182",
+      "overflow": false,
+      "reloadRestored": true
+    }
+  ],
+  "failure": null,
+  "boundsAndKeyboard": true
+}

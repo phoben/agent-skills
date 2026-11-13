@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "source": "real-projects-and-github",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "contentPrinted": false,
+  "desktopCompared": false,
+  "secondMachineVerified": false,
+  "projects": 22,
+  "roots": 25,
+  "repositoriesDiscovered": 12,
+  "catalogStatus": "partial",
+  "warnings": {
+    "DIRECTORY_DEPTH_LIMIT": 1,
+    "ROOT_INSPECTION_FAILED": 1,
+    "DIRECTORY_LIMIT": 1,
+    "GIT_READ_FAILED": 1
+  },
+  "identityVerified": true,
+  "repositoriesCanonical": 12,
+  "listRead": true,
+  "loadedIssues": 1,
+  "listComplete": true,
+  "nonemptyDetailRead": true,
+  "bodyBytes": 16965,
+  "commentsLoaded": 0,
+  "activitiesLoaded": 1,
+  "coverage": {
+    "comments": {
+      "complete": true,
+      "nextCursor": null,
+      "loaded": 0,
+      "page": 1,
+      "total": 0
+    },
+    "activity": {
+      "complete": true,
+      "nextCursor": null,
+      "loaded": 1,
+      "page": 1
+    },
+    "extensions": {
+      "projects": "github-link",
+      "subIssues": "github-link",
+      "dependencies": "github-link"
+    }
+  }
+}

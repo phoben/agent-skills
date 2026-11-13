@@ -1,0 +1,11 @@
+{
+  "target": "main",
+  "method": "fast-forward",
+  "head": "d3bbc3a07fcc3960f94b064b5a24137990b236fe",
+  "remoteHead": "d3bbc3a07fcc3960f94b064b5a24137990b236fe",
+  "source": "codex/issue-hub",
+  "version": "0.3.5",
+  "originalWorkspaceBranch": "codex/issue-hub",
+  "otherTaskFilesPreserved": true,
+  "temporaryWorktreeRemoved": true
+}

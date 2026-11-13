@@ -1,0 +1,1 @@
+{"$schema":"https://agent-plugins.org/schemas/1.0.0/plugin.schema.json","name":"yg-toolkit","version":"0.3.0","description":"仅用于安装形状验证的隔离夹具","extensions":{"com.openai":{"interface":{"displayName":"YG Toolkit"}}}}

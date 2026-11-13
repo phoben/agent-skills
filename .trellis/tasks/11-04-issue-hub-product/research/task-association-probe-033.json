@@ -1,0 +1,71 @@
+{
+  "readOnly": true,
+  "chatOpened": false,
+  "messagesSent": false,
+  "privateContentPrinted": false,
+  "queries": [
+    {
+      "variant": "current-project-state",
+      "count": 0,
+      "hasNext": false,
+      "exactCwd": 0,
+      "inTime": 0,
+      "matchingProject": 0
+    },
+    {
+      "variant": "cwd-state",
+      "count": 4,
+      "hasNext": false,
+      "exactCwd": 4,
+      "inTime": 1,
+      "matchingProject": 4
+    },
+    {
+      "variant": "cwd-default",
+      "count": 9,
+      "hasNext": false,
+      "exactCwd": 9,
+      "inTime": 1,
+      "matchingProject": 9
+    }
+  ],
+  "failure": null,
+  "request": {
+    "status": "pending",
+    "createdAt": "2026-11-04T10:51:20.128Z",
+    "coverage": "complete",
+    "checkedCandidates": 0,
+    "knownCandidates": 0,
+    "hasThread": false
+  },
+  "initialItems": [
+    {
+      "requestTimeDeltaMs": 675872,
+      "projectPresent": false,
+      "projectMatches": true,
+      "types": [
+        null,
+        null
+      ],
+      "hasNext": false,
+      "users": []
+    },
+    {
+      "requestTimeDeltaMs": -80718128,
+      "projectPresent": false,
+      "projectMatches": true,
+      "types": [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "hasNext": true,
+      "users": []
+    }
+  ]
+}

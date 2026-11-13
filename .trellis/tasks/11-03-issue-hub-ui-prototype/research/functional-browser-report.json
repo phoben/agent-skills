@@ -1,0 +1,78 @@
+{
+  "checkedAt": "2026-11-03T16:19:36.905Z",
+  "prototypeOnly": true,
+  "browserSpaceId": 8,
+  "viewport": {
+    "width": 2560,
+    "height": 1315,
+    "dpr": 1.5
+  },
+  "results": [
+    {
+      "name": "核心保存读回 1/3",
+      "passed": true,
+      "issueEdited": true,
+      "commentCreated": true,
+      "ownCommentEdited": true,
+      "issueClosedAndReopened": true,
+      "issueCreated": true
+    },
+    {
+      "name": "核心保存读回 2/3",
+      "passed": true,
+      "issueEdited": true,
+      "commentCreated": true,
+      "ownCommentEdited": true,
+      "issueClosedAndReopened": true,
+      "issueCreated": true
+    },
+    {
+      "name": "核心保存读回 3/3",
+      "passed": true,
+      "issueEdited": true,
+      "commentCreated": true,
+      "ownCommentEdited": true,
+      "issueClosedAndReopened": true,
+      "issueCreated": true
+    },
+    {
+      "name": "失败保留与重试 1/3",
+      "passed": true,
+      "inputPreserved": true,
+      "retrySaved": true,
+      "reloadReadable": true
+    },
+    {
+      "name": "失败保留与重试 2/3",
+      "passed": true,
+      "inputPreserved": true,
+      "retrySaved": true,
+      "reloadReadable": true
+    },
+    {
+      "name": "失败保留与重试 3/3",
+      "passed": true,
+      "inputPreserved": true,
+      "retrySaved": true,
+      "reloadReadable": true
+    },
+    {
+      "name": "离线草稿切换与刷新",
+      "passed": true,
+      "persisted": true,
+      "noAutomaticPublish": true
+    },
+    {
+      "name": "账号变化清理旧视图",
+      "passed": true,
+      "oldPrivateContentHidden": true,
+      "newIdentityLoaded": true
+    }
+  ],
+  "failure": null,
+  "priorToolIssue": {
+    "message": "page.fill timed out after 3000ms: page.fill failed: element is not visible in the viewport",
+    "url": "http://127.0.0.1:18286/?run=offline-1793722494074&theme=light&scenario=offline",
+    "completed": 6
+  }
+}

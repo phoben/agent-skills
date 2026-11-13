@@ -1,0 +1,55 @@
+{
+  "version": "26.1027.3384.0",
+  "matches": [
+    {
+      "file": ".vite/build/early-bootstrap-491-e75c34fa1b2c0832.js",
+      "offset": 3651538,
+      "snippet": "eferences.getFontFamilies()}}let eb1=\"data:text/html;charset=utf-8,\"+encodeURIComponent('<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src \\'none\\'; img-src data: https: http:; style-src \\'unsafe-inline\\'\"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}#card{position:relative;width:100%;height:100%;overflow:hidden}#snapshot{transform-origin:top left}</style><div id=\"card\"><div id=\"snapshot\"></div></div>');class eb2{#aW;#h=!1;#ok=null;#oC;#oI=null;#ox=Promise.resolve(!0);#oT=0;#o_=null;#oP=!1;#oR=null;#o"
+    },
+    {
+      "file": ".vite/build/early-bootstrap-491-e75c34fa1b2c0832.js",
+      "offset": 4261577,
+      "snippet": "t.getElementById(\"ok\").addEventListener(\"click\", closeDialog);`;return`<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'\">\n  <title>${Dl()(a)}</title>\n  <style>\n    :root {\n      color-scheme: ${i?\"dark\":\"light\"};\n${i?eAg:eAf}\n    }\n\n    * {\n      box-sizing: border-box;\n    }\n\n    body {\n      margin: 0;\n      width: 100vw;\n      overflow: hidden;\n      background: var(--background);\n      color: var(--text);\n      font-family: \"Segoe UI\", system-"
+    },
+    {
+      "file": "webview/assets/DILEntryPointComponent-848c8b15149f.js",
+      "offset": 924206,
+      "snippet": "ion N_e(e){return`<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'\"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden}img{display:block;width:100%;height:100%;object-fit:contain}</style></head><body><img alt=\"\" src=\"${`data:image/svg+xml;charset=utf-8,${encodeURIComponent(e)}`}\"></body></html>`}var xq,Sq,Cq,wq,Tq,Eq,Dq;function Oq(){return(Oq=e((()=>{v(),WK(),Le(),_(),Me(),bq(),xq=b,Sq=xq.makeNodePrototype(`"
+    },
+    {
+      "file": "webview/assets/code-block-execution-a408bd206201.js",
+      "offset": 7300,
+      "snippet": "Signal])}var qe,Je,Ye;function Xe(){return(Xe=e((()=>{Ce(),Ee(),V(),Ie(),oe(),ue(),ge(),ce(),o(),Ke(),s(),qe=3e4,Je=new Set([`connect-src`,`script-src`,`script-src-elem`,`style-src`,`style-src-elem`,`img-src`,`font-src`,`media-src`]),Ye=class{options;state={isRunning:!1,isStopping:!1,unavailable:!1,previewReady:!1,messages:[],error:null,networkRequests:[]};listeners=new Set;frame=null;frameContainer=null;connectionController=null;client=null;policy={status:`loading`};lastRun=null;operation=null;codeId=null;runGeneration=0;cancelStartup=null;hasReportedOutcome=!1;disposed=!1;stopObservingPolicy"
+    },
+    {
+      "file": "webview/assets/notebook-preview-panel-fa3aecadfc02.js",
+      "offset": 4980,
+      "snippet": ";}</style></head><body>${e}</body></html>`}var K;function q(){return(q=e((()=>{K=[`default-src 'none'`,`base-uri 'none'`,`connect-src 'none'`,`font-src data:`,`form-action 'none'`,`frame-src 'none'`,`img-src data: blob:`,`media-src data: blob:`,`object-src 'none'`,`script-src 'none'`,`style-src 'unsafe-inline'`].join(`; `)})))()}function Se(e){let t=(0,Z.c)(35),{contentsBase64:n,errorContent:i,header:a,headerRightContent:o,hostId:s,onDownload:c,onReady:l,path:u,renderHeader:d,renderLayout:f,title:p}=e,m=r(),h;t[0]===n?h=t[1]:(h=Me(n),t[0]=n,t[1]=h);let g=h;if(g.status===`error`&&i!=null){let e"
+    },
+    {
+      "file": "webview/assets/resource-104414a99f7e.js",
+      "offset": 5121,
+      "snippet": "Empty or omitted → no network connections (secure default)`),resourceDomains:h(v()).optional().describe(\"Origins for static resources (images, scripts, stylesheets, fonts, media).\\n\\n- Maps to CSP `img-src`, `script-src`, `style-src`, `font-src`, `media-src` directives\\n- Wildcard subdomains supported: `https://*.example.com`\\n- Empty or omitted → no network resources (secure default)\"),frameDomains:h(v()).optional().describe(\"Origins for nested iframes.\\n\\n- Maps to CSP `frame-src` directive\\n- Empty or omitted → no nested iframes allowed (`frame-src 'none'`)\"),baseUriDomains:h(v()).opt"
+    },
+    {
+      "file": "webview/assets/src-7d417fb18807.js",
+      "offset": 83746,
+      "snippet": "skypack.dev https://cdnjs.cloudflare.com https://cdn.tailwindcss.com`,`style-src 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://fonts.googleapis.com`,`img-src data: blob: https:`,`font-src data: https://fonts.gstatic.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com`,`connect-src https://cdn.jsdelivr.net https://unpkg.com https://esm.sh https://cdn.skypack.dev https://cdnjs.cloudflare.com`,`media-src data: blob: https:`,`worker-src blob:`].join(`; `),fl=class{options;isChildReady=!1;isListening=!1;pendingRequests=new Map;queuedMessages=["
+    },
+    {
+      "file": "webview/assets/visualization-standalone-document-e6d4109f7c09.js",
+      "offset": 83478,
+      "snippet": "return(b=e((()=>{c(),u(),f(),n(),a(),r(),m(),_=t.resourceDomains.join(` `),v=[`default-src 'none'`,`script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' ${_}`,`style-src 'unsafe-inline' ${_}`,`img-src ${_}`,`font-src ${_}`,`media-src ${_}`,`worker-src blob:`,`connect-src blob: data:`,`frame-src 'none'`,`object-src 'none'`,`base-uri 'none'`,`form-action 'none'`].join(`; `),y=v.replace(`frame-src 'none'`,`frame-src 'self'`)})))()}b();export{h as getStandaloneVisualizationHtml};\n//# sourceMappingURL=visualization-standalone-document-e6d4109f7c09.js.map"
+    },
+    {
+      "file": "webview/detached-window.html",
+      "offset": 246,
+      "snippet": "-- PROD_BUILD_TAG_HERE -->\">\n  <head>\n    <meta name=\"referrer\" content=\"origin\" />\n    <!-- PROD_BASE_TAG_HERE -->\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src &#39;none&#39;; img-src &#39;self&#39; app: blob: data: https:; child-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com https://web-sandbox.oaiusercontent.com; frame-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-san"
+    },
+    {
+      "file": "webview/index.html",
+      "offset": 246,
+      "snippet": "-- PROD_BUILD_TAG_HERE -->\">\n  <head>\n    <meta name=\"referrer\" content=\"origin\" />\n    <!-- PROD_BASE_TAG_HERE -->\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src &#39;none&#39;; img-src &#39;self&#39; app: blob: data: https:; child-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com https://web-sandbox.oaiusercontent.com; frame-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-san"
+    }
+  ]
+}

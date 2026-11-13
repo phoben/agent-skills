@@ -1,0 +1,643 @@
+{
+  "name": "yg-toolkit",
+  "version": "0.3.1",
+  "marketplace": "yg",
+  "files": [
+    {
+      "path": "plugins/yg-toolkit/.codex-plugin/plugin.json",
+      "sha256": "99d30495847b2063dc73491953f14016456f37355941fab5aaf06d3461e02948"
+    },
+    {
+      "path": "plugins/yg-toolkit/LICENSE",
+      "sha256": "5f6b86385fe15af08bb1e93d098d36e10eb03da0ba629c86c35cf35dcb69c4a7"
+    },
+    {
+      "path": "plugins/yg-toolkit/assets/issue-hub.svg",
+      "sha256": "610f634d14c9b4256e6bb96ee2375444e4aacfd9991325a0a08345f00d1483b1"
+    },
+    {
+      "path": "plugins/yg-toolkit/assets/usage-dark.svg",
+      "sha256": "b49f89cecb843a5fece9767a944d2f99f14411ea27050f53d07fe9d554ef3f37"
+    },
+    {
+      "path": "plugins/yg-toolkit/assets/usage-light.svg",
+      "sha256": "ed4981fa45595c3d83a264217b63ccdc82dcb323e04d58b0c5a4f44357bbf560"
+    },
+    {
+      "path": "plugins/yg-toolkit/dist/THIRD-PARTY-LICENSES.txt",
+      "sha256": "8d5e11bce493ef95a0813190b12a3a3de92e9b55b82f2229800b7e7179c5a73d"
+    },
+    {
+      "path": "plugins/yg-toolkit/dist/issue-hub-THIRD-PARTY-LICENSES.txt",
+      "sha256": "8d5e11bce493ef95a0813190b12a3a3de92e9b55b82f2229800b7e7179c5a73d"
+    },
+    {
+      "path": "plugins/yg-toolkit/dist/issue-hub.cjs",
+      "sha256": "038bcf3c64b1df768c1d493a3b7f77809836e1413a33aea5212c1e3040df0709"
+    },
+    {
+      "path": "plugins/yg-toolkit/dist/issue-hub.html",
+      "sha256": "67adc252bd8ce1281daa83b5335f0ced77c1ebd542ef2adb2f56b790656374e1"
+    },
+    {
+      "path": "plugins/yg-toolkit/dist/token-usage.cjs",
+      "sha256": "eb55437657deaab27d880e02cd0f3f91de47cb0e2c4f77a050dd7db7553d5e43"
+    },
+    {
+      "path": "plugins/yg-toolkit/dist/token-usage.html",
+      "sha256": "68a684d238706b1f5289e91381d46875c009c5083af126974bad43f3714dbfa3"
+    },
+    {
+      "path": "plugins/yg-toolkit/mcp.json",
+      "sha256": "59e35b13f5477a520e2693f22c743169470f6eb1fbe0b833b9125bffa3d037d1"
+    },
+    {
+      "path": "plugins/yg-toolkit/plugin.json",
+      "sha256": "db646da371e792175a96811fc313810ed7d776be661eb378aa375105dfb607e7"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/SKILL.md",
+      "sha256": "3c0441625ae516f1b02c09f02abeccf66524d0923d72b020759deda4dc995017"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/agents/openai.yaml",
+      "sha256": "60995e4967b0bd649cf5fe76d2d302a7d28a1bd21ddefd4e8e36896c09984cbe"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/references/claude-spec.md",
+      "sha256": "25c64a1ed76da45728edc38bad040f3e144b624fcb25ef02f5c68997ca3cbe0b"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/references/codex-spec.md",
+      "sha256": "70a9fbd4575c2da6f6f00aff6a9599d3036dc2fb8a36e021c0a8f239ec469fdc"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/references/cursor-spec.md",
+      "sha256": "67506a196be00f8dd9a8f7341869967cf1fd3a274f56245a6129f76b16bb822c"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/references/kimi-spec.md",
+      "sha256": "f1571c8adcd92b45432daae1a2db957cf4a658126d13e7e12c7e2ed4bcfa8976"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/references/spec-template.md",
+      "sha256": "ecce1ff23c062a6c748984925bf12a216ae01c2492ed01a5a2ef1bf8958de0b0"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/references/trae-spec.md",
+      "sha256": "202f9f0f89528ad6ab69e851d9a0bd35cf5e9272fc7f631a9a7739d45e5c4dfb"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/config-migrate/references/zcode-spec.md",
+      "sha256": "3d434163a1f1e802674c8922d920a8d105a70b94c76cacc330bcff99f1b3f1c3"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/database-schema/SKILL.md",
+      "sha256": "ca3cec7b33f5dc5fe85440d9e0963d4f00dc5d8c16cc8f8532977c02e868abfa"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/database-schema/agents/openai.yaml",
+      "sha256": "c506eee87c1a1c078c6a9c3bd8eece45e7feaaf9c5cb97920cdd917ce4568506"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/datapull/SKILL.md",
+      "sha256": "b34257b867bf7717c8ef345dd5c79cbfedd5b49b8f0208ebda922664325fa6aa"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/datapull/agents/openai.yaml",
+      "sha256": "74aa4fba7e3cc88f5ddf58e5d003e4f52544363e8e8ff8d71e53ea64bd64e3fe"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/edgeone-app-builder/SKILL.md",
+      "sha256": "d368a417a043c6bd7cf3d6f0299f4c1d16c3c3be8bf54236ecbf4825db8287b1"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/edgeone-app-builder/agents/openai.yaml",
+      "sha256": "215fbb9c4ade633dce9337bb7736c8c1edbc4691bb8115406cf8970b7e33dc07"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/edgeone-app-builder/references/handoff.md",
+      "sha256": "67278a9a5ce520908d47fad11e93378f86ca5647b5ea4c6db26f3dc7c9828a50"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/edgeone-app-builder/references/runtime-and-platform.md",
+      "sha256": "8bf0485a443bc887eb9bcab20a4048697c0153f9df4f95c38625466dba516f8d"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/edgeone-app-builder/references/yg-portal.md",
+      "sha256": "60d7a1db79e3960fcb8f2e29ca7b0f42a3a65fe27316f1742f529c056c3c14af"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/SKILL.md",
+      "sha256": "78817dfc706820f348ca6a8bad25af3ecf054ffb62de0ce19eabdb83ff231075"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/agents/enterprise-ui-reviewer.md",
+      "sha256": "69f211bc77bfdedac831ea7ea0874f6fea34a59e49ffecf4eb476c08d511c3d5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/agents/openai.yaml",
+      "sha256": "84690735590350947ad91489a89c273d04a127caecc351d92dfd243985944600"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/a/editing-1280.png",
+      "sha256": "c456580700fb11294b612de9fdcaca996f5cb62588d6cf3431d02061b3a8a6fe"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/a/editing-1440.png",
+      "sha256": "76b7a8d3d2b0738301ac455c85775d4bb8c982247a1bfa9bf39e98489a23fecb"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/a/index.html",
+      "sha256": "b73254b06b72cfca99d3625393cddb0a4b4cabd3c6753ad51d3d9cb5c4e96d82"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/a/notes.md",
+      "sha256": "47d88ca6688f2cd9cefc89617cbd6b219d24ee746269bfc229b95f7ac085c0b6"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/a/overview-1280.png",
+      "sha256": "8680e92a6dae78a123341aa64ca7870d42b47df9776d28ef1d2448abd2c9df6b"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/a/overview-1440.png",
+      "sha256": "57751b1a2929cbb9f714e53c3e52fdf8fa404eb69198ea0373e4b585d3377c53"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/a/version-1280.png",
+      "sha256": "a14d6fa091658e9479914870a5560f4613c9a97c206178c54e321f04feb168b5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/b/editing-1280.png",
+      "sha256": "d24c1777f12fb3c7b5a6178f7f123a9fdf8fb09becdf16bf76271917ece259d9"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/b/editing-1440.png",
+      "sha256": "3942ce0464204fc62bb2841f2c95900109a5ff20b3e444721e822913d11e08e6"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/b/index.html",
+      "sha256": "1331113dff3987bb83165ffb51645a0bdb6a925685094527c8869b952b0ac3e3"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/b/notes.md",
+      "sha256": "477ee6c2e69bff62c9e699aaf6116aa488c254ff60011f487f2fc1486225fd5a"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/b/overview-1280.png",
+      "sha256": "138a8f2770d5f671a478bf9b88654b3c39427fb01ef6ae2af386394ba51030db"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/b/overview-1440.png",
+      "sha256": "8f48496f6cbb30991bf1041c899a09faa745a58765808517200841757fde66c5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/b/version-1280.png",
+      "sha256": "7861ddad1d028eadb6e032e206476c41f1cfc7e5b3f8bb2ca51971b18b2bfd39"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/blind-review.md",
+      "sha256": "734a121f60908a12431c6558461cb3fbb72e4ba4290b036b5b79b481637affc5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/brief.md",
+      "sha256": "40c73cc92a2f3f6352df996e37f3ff61d95f438f45f8b1bf4a85119c415499cd"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1280-complete.png",
+      "sha256": "47a9f0e8f30dc17614d1dfc60ee22baf4c3e1d466f955d109c1392f5b3ef01fe"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1280-final.png",
+      "sha256": "653790fc708d22202f2cced7a1332c80170085c53e042300e00ea8557a6f8029"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1280-fullwidth.png",
+      "sha256": "271625a3ceddbcf06cfaf12ccb400fd5eaf9779a9bc81aa2141cc8254401a316"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1280-initial.png",
+      "sha256": "c789cbc0e048553b751b4d219c57b134a80d33abaa623e0a06f2ba4b7b8d13de"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1280-revised.png",
+      "sha256": "9436bd518c5dc08eb3a25fe4f7a1e54938e3f7bf1af597928886820127cb27e5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1440-candidate-a.png",
+      "sha256": "7c8019df189c4b32b84f1bfab41c542172f6d963c837ccc3ed4ab01e5e707293"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1440-initial.png",
+      "sha256": "3e29612f5bc0e62fc8f44e0f942143d997aa5832f37fe8e87401031ea304dfcf"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/calibration-1440-revised.png",
+      "sha256": "35b85b9f414284aaed7bd3fce2c34cb968da6fc3eac54c6c5d289aa5b0bbaf0b"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/index.html",
+      "sha256": "8aa792aedcdb0040ccd7affc29b814c3c864023854790aa401949d02b98b8a99"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/c/notes.md",
+      "sha256": "44a124f4320836ecf3229b680d59f381f347caba492e0e7468ca4bfe1db2d8c1"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/concepts.md",
+      "sha256": "7e11bbd3d2a17e2f1957d0f1f04d062918a542ade2477b93aa3b9415d16dd20a"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d/index.html",
+      "sha256": "4e6cd701e7a1021015387c6519a05257a221a2f23148b5be7af9f7272bba0f73"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d/notes.md",
+      "sha256": "e6066618b2e783bd4b198c44518668984424efb04f6697cfeb7899755cf0723f"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d/screenshots/1280-editing.png",
+      "sha256": "ef9ec409e8697f5a88a93d37689c6d717790ac5c2e3201036b30b56dc34313c2"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d/screenshots/1280-initial.png",
+      "sha256": "7c80e811ad9c4e0a14382c0c8dcca114fc43f4bff4e42cf8bb0638553ecdbca8"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d/screenshots/1440-editing.png",
+      "sha256": "54cc43dc297c7fe7dff6169c805d1713d63da29f54e1aecba5632c6003403d36"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d/screenshots/1440-initial.png",
+      "sha256": "01760b2c5619e7741dc0cd8fd98f033f46cec272bb8c4fa1352ad31cfb97e31f"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d-reviewed/index.html",
+      "sha256": "773ec3d0bfc7977920f0d2b3bac5da092f4cccbeb5c31c488dd5b42d44f62dcf"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d-reviewed/screenshots/1280-editing.png",
+      "sha256": "34031032a5be7585ea6788186d58cc016b341854159f7ed0905691579aee781e"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/d-reviewed/screenshots/1280-initial.png",
+      "sha256": "86b59c495491a95d415b349aab4656ec6316827f129e52cd9a3f9b6fcda01190"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e/captures/1280-edit.png",
+      "sha256": "4674aacc29d07b9b5f2873c9386a21fcdb7573480cbc68e5b6fe28f635d6c4ed"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e/captures/1280-initial-before-progressive.png",
+      "sha256": "3c61cbee9afa957b2b02a27798cc7ed3c3fd011e76e6cae84b0e9d67f20059d8"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e/captures/1280-initial.png",
+      "sha256": "65adc8f9f848daf0ce436b5c975f1ff96c00817442a3e4d9f0869af468ec2fed"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e/captures/1440-edit.png",
+      "sha256": "52b7bd20b05d16edf07ae9fe2e0329fa133ab15d4a97cde24bc363a75c86ed50"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e/captures/1440-initial.png",
+      "sha256": "5e82e1959c82f79260b5568131cd9d3f57541cbc077ede607a0c84df6944ce9a"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e/index.html",
+      "sha256": "0acfa746c65750d5297700ea178140a5bcff2de9ca92da40c28b3468af001042"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e/notes.md",
+      "sha256": "2123a2c383650506933ca641df8dad46768f0d64fda6a3cbdceb75bd50a157f2"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e-reviewed/captures/1280-editing.png",
+      "sha256": "e9b1e2af4f7ff78f87ab68965d62f53ad28e7b33aca71d892c210b3dada6b816"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e-reviewed/captures/1280-initial.png",
+      "sha256": "1bf2de82a0f8ece6aa8fc79155eda439399a9c9ac20438e3b8385c2ad0e79f1b"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e-reviewed/captures/1440-editing.png",
+      "sha256": "14ddcbd71004f2d1e998344cf6a37968fae503ab832c2a07af57b18136f91da3"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e-reviewed/index.html",
+      "sha256": "a698aefc2df7e16d5a23140da88f661d76e74ef8dcb4f52fde8f3a27f9db9835"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/e-reviewed/notes.md",
+      "sha256": "00d9b82a4294f15b4f11c1c9ff3463d40b693a7870157cbf4f9613e2c9f04693"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/results.md",
+      "sha256": "3b613dcabc52f3d3c771eb8df6735e26cfdb8e9fa3e0e9f81ef6f0307d2fe595"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/retest-results.md",
+      "sha256": "4c8c55589c1db2b53d9da764468cb508f93d73e8ceaebaef2a94aabfe40eef8e"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/retest-rubric.md",
+      "sha256": "52d5386db5d0641f333ec2fd8021d7cbbe1c69856ec1004b9aca7e0810c8b9b5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/rubric.md",
+      "sha256": "f9ebad2a2ea109aa6e666b14398265fb939077012bda3202dc074cf27be6f7d2"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/visual-review/v1-critique.md",
+      "sha256": "115905d1069214786ded0da0d95102257ad044452297e9660b347937e5906cd1"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/visual-review/v1-x-1280.png",
+      "sha256": "ef9ec409e8697f5a88a93d37689c6d717790ac5c2e3201036b30b56dc34313c2"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/visual-review/v1-x-1440.png",
+      "sha256": "01760b2c5619e7741dc0cd8fd98f033f46cec272bb8c4fa1352ad31cfb97e31f"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/visual-review/v1-y-1280.png",
+      "sha256": "c456580700fb11294b612de9fdcaca996f5cb62588d6cf3431d02061b3a8a6fe"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/visual-review/v1-y-1440.png",
+      "sha256": "57751b1a2929cbb9f714e53c3e52fdf8fa404eb69198ea0373e4b585d3377c53"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/visual-review/v2-critique.md",
+      "sha256": "ecc7eb47d79d7d314ac39b0992c9d90a9fc35b5f847f78e23a716fe702224ebb"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/bom-ab/visual-review/v3-critique.md",
+      "sha256": "965b023a0365153ca660b3052a93c706aedccdb62d1ff4e7af085e5edab2cd68"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/a/index.html",
+      "sha256": "126818fd6ee44c29e181bb65a1cf3f322b07e73dc913671991fce63f280fcbba"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/a/overview.png",
+      "sha256": "63c0755cdebe33acb04529b6b114b00b56aa0d162a97da10d6a73685e7d2f954"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/a/walkthrough.png",
+      "sha256": "ee1081b68c25c9f031157079a56faae6c1c7ce8ee88fbd178c47b2bf1a977891"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/b/index.html",
+      "sha256": "8c8f8ba6a1d05cf511a57452c6032248886425ade96c4ff49dc575b615262561"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/b/notes.md",
+      "sha256": "03afe74d707ce969a46cb172eaed0c2cb645c14f28e563d25f6f7963ec0140d6"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/b/overview.png",
+      "sha256": "754d0a76dccc7d9bef77104f9e37ccbe0b3cbf6141a4491fe58677c77814cb80"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/b/review.md",
+      "sha256": "8991b7e9a146e6aa212fd02ee8ecab1bb44a4729171855ca51df87ef860dfa3c"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/b/walkthrough.png",
+      "sha256": "64ad7c217eda2c2ca0840863f4a441cbf5b4c79ce9b64327072c9296eb1a4256"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/brief.md",
+      "sha256": "746655d4768635fb9e461b0c14012055b65d0cadddaea6ca6300eff0fd71bf6b"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/receive-ab/results.md",
+      "sha256": "cd96207ab60d73c83f3a7dbb36ff5553f387b895a7eb4e23e418d02b8feac0af"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/a/index.html",
+      "sha256": "e11f245a2cc2d058b7be885f4182549dcc5a0dce4f4464b05504fc7672094b94"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/a/notes.md",
+      "sha256": "6c27d8dcd33227c482be958c7508f3206eb60c260e3fda7196429dbed9dbfcd1"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/a/overview.png",
+      "sha256": "2ebfd11f1d65fd359ebab195484f49261f1c6304bebe48716361d0d9bbb1ea75"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/b/index.html",
+      "sha256": "7f76b260994902ddcd05963929f885b235fdc11d6738ca1cb3b40febf50e1171"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/b/notes.md",
+      "sha256": "e22ee4ef748d8545ebc6ea6b2f35f2e09e0dc259ccdaf4f1bf9961a700f8c695"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/b/overview.png",
+      "sha256": "4ef681551379ff91ef69c8b32195e52a57ae2b85ad79158690d4fe4fd42f0a7a"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/b/review.md",
+      "sha256": "d1c25a42767aeced4a62279f0dd015869967c8ebffce745155037e1a7dde43be"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/b-reviewed/index.html",
+      "sha256": "56276546620bd5ff2073cc450328f370957c0706b5e2d19a6c6d9a5391a47281"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/b-reviewed/notes.md",
+      "sha256": "f416fe062a57d3a4bcdf904070cf607daef168b3ec5f61f9068ff91f8c7c8d54"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/b-reviewed/review.md",
+      "sha256": "94b192b914c0ab7a4f3cd0d37bd76c8bd5f1e89ac7a59f1d58804adf5c88afa8"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/brief.md",
+      "sha256": "15f0147a33bb489f206c940f85d35eeec1f22e7b2a1f4f6c5c470ae23f49e82b"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/evals/wave-ab/results.md",
+      "sha256": "ed4913b0b7b4585f381a1e17d117a9cfcc5fc5263c8e8a32529ec2c2035dfea2"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/enterprise-ui-design/references/sources.md",
+      "sha256": "2c43a15be0c57dfc246df03a1cd6773b6fa36fb35272fd349ecd8c5e66557c18"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/issue-extract/SKILL.md",
+      "sha256": "6e6f213a7836e40df0d38e6dd7e038d599b351b5fe093702190e2e11a64b42b3"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/issue-extract/agents/evidence-researcher.md",
+      "sha256": "042eca4d73acde0b1d6d6a12c6a45acc71cad9758179da183ec1f909a0d4c914"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/issue-extract/agents/openai.yaml",
+      "sha256": "a70b092749db8ea76b192f286c8f105fe216a3eba5514fb3c8bbe8a1f7a56cd7"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/issue-extract/references/draft-and-publish.md",
+      "sha256": "a3713b0a2fd858bfc225ee0fbfc429f127ec785d9116721911cd79bc63ba4306"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/issue-triage/SKILL.md",
+      "sha256": "9087eda21f661e4e20016bf67546bb829aead2ace4436afdedf38f5166be0dce"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/issue-triage/agents/openai.yaml",
+      "sha256": "52f29b7cc850ea1611d858e78a0ee0919c2f2ae54e6555f0222cc279b7df19e1"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/project-upstream-sync/SKILL.md",
+      "sha256": "0e1bf304bda142a4f14e9de73fdbed285f027205f7b727bd46bec1d08401361c"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/project-upstream-sync/agents/openai.yaml",
+      "sha256": "821d3847d2e3bd3092755ed10058d88901eae32d39c32fafdd67979e40421327"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/project-upstream-sync/references/analysis.md",
+      "sha256": "7856afc246895ae045f26f309bae00d41f60a8b99f2c4018d96ac3b6ccacac25"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/project-upstream-sync/references/discovery.md",
+      "sha256": "4c8a002a80e7c0376cb136f011c7448fb495b2471fac70b9eb6c3cbcdaf3f057"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/project-upstream-sync/references/harness.md",
+      "sha256": "f70da95e2a9eae11bdb38cb96dd9c6619d7d7ebdb2845794be8f56da55434fba"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/project-upstream-sync/references/merge.md",
+      "sha256": "ec687e1335dfe871bf0f1295250938b2049cd4a5efc389657deb5ec8d9b2b7f5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/project-upstream-sync/references/verify.md",
+      "sha256": "0e13a244d98ac6dd820f9687429ccbe489f0d52e970deb5a1506f681d85aaef5"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/SKILL.md",
+      "sha256": "53276283b1b65e771c25442fa3917d4b48119577ab2d946fa51883f09b701006"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/agents/chapter-writer.md",
+      "sha256": "ebbb9656ba21c04757f324924da0d06ddc12be4edc933895574e4f5026357548"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/agents/openai.yaml",
+      "sha256": "35a58bc484807515b742e8809602af98401a504e60cb5f088602c87da2733326"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/agents/quality-reviewer.md",
+      "sha256": "2316234f5b9fe00257a014ba53823f164ad66bc050a3d27c064557210584bcb1"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/document-reviewer-prompt.md",
+      "sha256": "35130938406adb4bd2f2cb329a8f47e0d9d354de1508c45714d997e8b548d072"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/evals/evals.json",
+      "sha256": "c76eef0a3dc8a3e2507cae6e4a7e4f217169636044633587d7787bdb7355022e"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/evals/iteration-1/tc-01-output.md",
+      "sha256": "f04b493d9625bb9a8818f7371b9b4aff25e493b1916a192dff99348122d743d7"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/automation-template.md",
+      "sha256": "c898e18a3443c3f12db2ed201bcb746453628a8c6776af165bcd381046e9c2a7"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/brd-template.md",
+      "sha256": "4bd1667ca9bce2b1cc7eacaa600621d465d05e0ae28bb91554ec963452d8ded2"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/diagram-types-guide.md",
+      "sha256": "9d45eaf0bad8e421da3fa481bf7d42e8e8473ef9a4cd9bf5124dea6897914294"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/drd-generator.md",
+      "sha256": "fc9fe9bc1ff37a7b51233299f9bdae235712587c6eb69f777ae04acbeb3c7147"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/er-diagram-guide.md",
+      "sha256": "a753c38569a5f3ae7964c17921fe2c6824f07a228851670319ddf5163d286fd9"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/forguncy-project.md",
+      "sha256": "36d3d5c3097f87601fc96693351214d44bc4a96e07640221671e43d24c218e4c"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/permission-matrix-template.md",
+      "sha256": "4f36aa850a826ca2ee08638456007f9fdc1ad31efe84ecc611e1ed5832b48ab0"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/prd-template.md",
+      "sha256": "c453ae6a1ec0800b78aeace0bee6dcd453d00e261af28373ec3f3d76b0099fad"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/srs-template.md",
+      "sha256": "bd35efb15cd632468da998264ea821a166aba5aa0a408dabaeaab09919c7933e"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/trd-template.md",
+      "sha256": "8a49eebd9992d9dff9e7a142123bf3f35f90098f52da0d11d5e792f3126fc736"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/references/view-dashboard-template.md",
+      "sha256": "6265761317b17371ee91d135f4eac456e497f622fc18df73ababedd8f0b12f08"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/rules/context-injection.md",
+      "sha256": "0eff30e4ae27ab5a1c648d1a15e755ad823c8505342ab1fd2612b58dc8b979a7"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/rules/problem-classification.md",
+      "sha256": "67a3ffffde52508e40cbadd066fb6d2c8001e61267dc3322315ec8e200898d05"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/rules/requirement-mapping.md",
+      "sha256": "b00600ad970af67a278650c4ebc765d915b3af896efa3d5849cf2bcf1c6ccfe6"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/rules/requirement-precheck.md",
+      "sha256": "a8dc8a7f40f2fac1f86faccc2aba6b5949070f27fce6bdc1a464953a00320a24"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/requirement-docs/rules/terminology-enforcement.md",
+      "sha256": "d844322e29f84ee88d8b2667235dbbca3574fef42a5390e74583663016fb5bbd"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/user-manual/SKILL.md",
+      "sha256": "17119ba9bc9a0b5cc4f5fe52a30b9a6fe9b7a2b86de5cfba05e83d8e84307463"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/user-manual/agents/openai.yaml",
+      "sha256": "d4f85fd773f206b981ea20be6208d72754c7f340c95f3dc2282b7484d64eeb63"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/user-manual/references/incremental-update.md",
+      "sha256": "484b3c94d298e492a51cacc9c9e69ecec9aff4a83f6300d832e8f0c4b8d066fc"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/user-manual/references/manual-structure.md",
+      "sha256": "c1ed5379885f276e45aee1b0742a6d70eb17021c8b352fa3a9dd9359062332cb"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/user-manual/references/repository-discovery.md",
+      "sha256": "7f5b34f224351e629305ee9feb65b54ddf40fea852f71bcd21c1905296acbd96"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/user-manual/references/ui-screenshot-capture.md",
+      "sha256": "6d7d658cc7c20dae49fd9810f8d835377c6f7933b8b2d676a3cfeebe11bf236c"
+    },
+    {
+      "path": "plugins/yg-toolkit/skills/user-manual/scripts/manual_state.py",
+      "sha256": "031028f93dd136526fe451b06df356d2bd8ff7cab672320c7f475370558c7b98"
+    }
+  ]
+}

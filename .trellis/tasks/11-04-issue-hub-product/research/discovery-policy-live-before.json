@@ -1,0 +1,33 @@
+{
+  "realHost": true,
+  "githubWrites": false,
+  "chatOpened": false,
+  "label": "before",
+  "projects": 22,
+  "roots": 25,
+  "repositories": 12,
+  "workspaces": 15,
+  "repoNames": [
+    "michaellinhq/ecoc-compliance-gateway",
+    "openai/plugins",
+    "phoben/LingoStack",
+    "phoben/PureSoul",
+    "phoben/agent-skills",
+    "phoben/aoy-erp",
+    "phoben/branchkite",
+    "phoben/chuanda",
+    "phoben/clue-ruoyi",
+    "phoben/osc-panel",
+    "phoben/xiangbai_eldercare",
+    "phoben/yugasoft-showcase"
+  ],
+  "internalStatus": "partial",
+  "warnings": [
+    "DIRECTORY_DEPTH_LIMIT",
+    "ROOT_INSPECTION_FAILED",
+    "GIT_READ_FAILED",
+    "DIRECTORY_LIMIT"
+  ],
+  "durationMs": 1839,
+  "passed": true
+}

@@ -1,0 +1,72 @@
+{
+  "realBrowser": true,
+  "remoteWrites": false,
+  "states": [
+    {
+      "name": "dark-fallback",
+      "theme": "dark",
+      "background": "rgb(33, 33, 33)",
+      "text": "rgb(236, 236, 236)",
+      "navigation": "rgb(23, 23, 23)",
+      "buttonBackground": "rgb(236, 236, 236)",
+      "buttonText": "rgb(23, 23, 23)",
+      "selected": "rgb(54, 54, 54)",
+      "hostBackground": "",
+      "selectedIssue": "182",
+      "overflow": false
+    },
+    {
+      "name": "light-fallback",
+      "theme": "light",
+      "background": "rgb(255, 255, 255)",
+      "text": "rgb(23, 23, 23)",
+      "navigation": "rgb(249, 249, 249)",
+      "buttonBackground": "rgb(236, 236, 236)",
+      "buttonText": "rgb(255, 255, 255)",
+      "selected": "rgb(237, 237, 237)",
+      "hostBackground": "",
+      "selectedIssue": "182",
+      "overflow": false
+    },
+    {
+      "name": "host-tokens-dark",
+      "theme": "dark",
+      "background": "rgb(36, 36, 36)",
+      "text": "rgb(242, 242, 242)",
+      "navigation": "rgb(21, 21, 21)",
+      "buttonBackground": "rgb(236, 236, 236)",
+      "buttonText": "rgb(23, 23, 23)",
+      "selected": "rgb(54, 54, 54)",
+      "hostBackground": "#242424",
+      "selectedIssue": "182",
+      "overflow": false
+    },
+    {
+      "name": "light-clears-old-tokens",
+      "theme": "light",
+      "background": "rgb(255, 255, 255)",
+      "text": "rgb(23, 23, 23)",
+      "navigation": "rgb(249, 249, 249)",
+      "buttonBackground": "rgb(236, 236, 236)",
+      "buttonText": "rgb(255, 255, 255)",
+      "selected": "rgb(237, 237, 237)",
+      "hostBackground": "",
+      "selectedIssue": "182",
+      "overflow": false
+    },
+    {
+      "name": "dark-clears-light",
+      "theme": "dark",
+      "background": "rgb(33, 33, 33)",
+      "text": "rgb(236, 236, 236)",
+      "navigation": "rgb(23, 23, 23)",
+      "buttonBackground": "rgb(236, 236, 236)",
+      "buttonText": "rgb(23, 23, 23)",
+      "selected": "rgb(54, 54, 54)",
+      "hostBackground": "",
+      "selectedIssue": "182",
+      "overflow": false
+    }
+  ],
+  "failure": null
+}

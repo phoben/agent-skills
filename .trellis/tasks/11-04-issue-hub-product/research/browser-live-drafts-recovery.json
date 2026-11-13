@@ -1,0 +1,28 @@
+{
+  "source": "real-mcp-browser-local-sqlite",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "results": [
+    {
+      "round": 1,
+      "savedLocally": true,
+      "navigationReadback": true,
+      "reloadReadback": true
+    },
+    {
+      "round": 2,
+      "savedLocally": true,
+      "navigationReadback": true,
+      "reloadReadback": true
+    },
+    {
+      "round": 3,
+      "savedLocally": true,
+      "navigationReadback": true,
+      "reloadReadback": true
+    }
+  ],
+  "failure": null,
+  "priorToolIssue": "长正文的独立滚动区未被填充操作自动滚至底部；本轮使用实际测量位置上的鼠标滚动。",
+  "testDraftCleared": true
+}

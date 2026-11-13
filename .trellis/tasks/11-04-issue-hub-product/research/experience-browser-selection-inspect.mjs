@@ -1,0 +1,2 @@
+const task=await taskSpace(8),page=task.page('p1');
+console.log(await page.evaluate(()=>{const d=document.querySelector('iframe').contentDocument;return {repository:d.querySelector('#queue-title')?.textContent,selected:d.querySelector('.issue-row.selected')?.dataset.number,currentRepo:d.querySelector('.repo.current')?.dataset.repo,detailHidden:d.querySelector('#detail')?.hidden,notice:d.querySelector('.global-message')?.textContent,announcer:d.querySelector('#announcer')?.textContent};}));

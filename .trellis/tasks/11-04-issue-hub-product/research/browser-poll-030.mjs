@@ -1,0 +1,5 @@
+import {readFile,writeFile} from 'node:fs/promises';
+const record=JSON.parse(await readFile('E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/poll-remote-030.json','utf8'));
+const task=await taskSpace(8),page=task.page('p1'),report={realGithub:true,manualRefresh:false,issue:5,failure:null};
+try{const before=await page.evaluate(()=>document.querySelector('iframe')?.contentDocument?.hidden);if(before)throw new Error('页面不在前台，不能验证前台轮询');await page.waitForFunction(title=>document.querySelector('iframe')?.contentDocument?.querySelector('#detail-title')?.textContent===title,record.title,{timeout:110000});report.observedAt=Date.now();report.delayMs=report.observedAt-record.changedAt;report.selected=await page.evaluate(()=>document.querySelector('iframe').contentDocument.querySelector('.issue-row.selected')?.dataset.number);if(report.selected!=='5')throw new Error('轮询改变了当前选择');report.passed=true;}catch(error){report.failure=error.message;}
+await writeFile('E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/browser-poll-030.json',JSON.stringify(report,null,2)+'\n');console.log(report);

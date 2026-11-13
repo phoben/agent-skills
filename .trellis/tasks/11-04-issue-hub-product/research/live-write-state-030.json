@@ -1,0 +1,180 @@
+{
+  "repository": "phoben/agent-skills",
+  "accountId": 55103351,
+  "runId": "8958c4d7-41ac-44f5-8e82-2d80b3294255",
+  "dataDirectory": "C:\\Users\\NINGMEI\\AppData\\Local\\Temp\\issue-hub-live-write-QV1afG",
+  "issue": {
+    "number": 5,
+    "url": "https://github.com/phoben/agent-skills/issues/5"
+  },
+  "milestone": {
+    "number": 1,
+    "title": "Issue Hub 临时验收 8958c4d7"
+  },
+  "phase": "failed",
+  "operations": [
+    {
+      "action": "save-issue",
+      "operationId": "c55ee503-da39-4040-923d-07154dcb0446",
+      "status": "confirmed",
+      "replayed": false
+    },
+    {
+      "action": "save-issue",
+      "operationId": "c55ee503-da39-4040-923d-07154dcb0446",
+      "status": "confirmed",
+      "replayed": true
+    },
+    {
+      "action": "save-issue",
+      "operationId": "d78eb9ec-6f92-4551-b6da-4198cfceb612",
+      "status": "confirmed",
+      "replayed": false
+    },
+    {
+      "action": "save-issue",
+      "operationId": "d78eb9ec-6f92-4551-b6da-4198cfceb612",
+      "status": "confirmed",
+      "replayed": true
+    },
+    {
+      "action": "save-comment",
+      "operationId": "f54cdf7a-c218-40d2-b382-68f2e03fa273",
+      "status": "confirmed",
+      "replayed": false
+    },
+    {
+      "action": "save-comment",
+      "operationId": "71b2bf98-a5bd-4038-8f67-2ce243ff2bc2",
+      "status": "confirmed",
+      "replayed": false
+    },
+    {
+      "action": "save-comment",
+      "operationId": "71b2bf98-a5bd-4038-8f67-2ce243ff2bc2",
+      "status": "confirmed",
+      "replayed": true
+    },
+    {
+      "action": "change-state",
+      "operationId": "d8c49e4c-e9cb-4b3d-a6d9-d45a09bc285b",
+      "status": "confirmed",
+      "replayed": false
+    }
+  ],
+  "milestoneRequested": "Issue Hub 临时验收 8958c4d7",
+  "createOperationId": "c55ee503-da39-4040-923d-07154dcb0446",
+  "editValues": {
+    "labels": [
+      "bug",
+      "documentation"
+    ],
+    "assignee": "phoben",
+    "assignees": [],
+    "milestone": "Issue Hub 临时验收 8958c4d7",
+    "commentItems": [],
+    "activities": [],
+    "attachments": [],
+    "comments": 0,
+    "detailStale": false,
+    "id": 6197622851,
+    "number": 5,
+    "title": "[Issue Hub 验收] 编辑与属性已读回 8958c4d7",
+    "body": "这是Issue Hub已编辑的验收正文。\n\n验收标识：issue-hub:8958c4d7-41ac-44f5-8e82-2d80b3294255\n\n本记录由已授权的自动验收创建，结束后关闭。",
+    "state": "open",
+    "author": "phoben",
+    "authorLogin": "phoben",
+    "authorId": 55103351,
+    "created": "2026-11-04T06:26:02Z",
+    "updated": "2026-11-04T06:26:02Z",
+    "updatedAt": "2026-11-04T06:26:02Z",
+    "revision": "2026-11-04T06:26:02Z",
+    "milestoneNumber": null,
+    "url": "https://github.com/phoben/agent-skills/issues/5",
+    "relatedPr": [],
+    "coverage": {
+      "comments": {
+        "complete": true,
+        "nextCursor": null,
+        "loaded": 0,
+        "page": 1,
+        "total": 0
+      },
+      "activity": {
+        "complete": true,
+        "nextCursor": null,
+        "loaded": 0,
+        "page": 1
+      },
+      "extensions": {
+        "projects": "github-link",
+        "subIssues": "github-link",
+        "dependencies": "github-link"
+      }
+    },
+    "permissions": {
+      "edit": true,
+      "comment": true,
+      "manage": true,
+      "editOwnComment": true
+    },
+    "locked": false,
+    "stateReason": null,
+    "_base": {
+      "labels": [],
+      "assignee": "",
+      "assignees": [],
+      "milestone": "",
+      "commentItems": [],
+      "activities": [],
+      "attachments": [],
+      "comments": 0,
+      "detailStale": false,
+      "id": 6197622851,
+      "number": 5,
+      "title": "[Issue Hub 验收] 管理闭环 8958c4d7",
+      "body": "这是用户授权的Issue Hub真实功能验收记录。\n\n验收标识：issue-hub:8958c4d7-41ac-44f5-8e82-2d80b3294255\n\n验证新增、编辑、属性、评论与状态同步，结束后关闭。",
+      "state": "open",
+      "author": "phoben",
+      "authorLogin": "phoben",
+      "authorId": 55103351,
+      "created": "2026-11-04T06:26:02Z",
+      "updated": "2026-11-04T06:26:02Z",
+      "updatedAt": "2026-11-04T06:26:02Z",
+      "revision": "2026-11-04T06:26:02Z",
+      "milestoneNumber": null,
+      "url": "https://github.com/phoben/agent-skills/issues/5",
+      "relatedPr": [],
+      "coverage": {
+        "comments": {
+          "complete": true,
+          "nextCursor": null,
+          "loaded": 0,
+          "page": 1,
+          "total": 0
+        },
+        "activity": {
+          "complete": true,
+          "nextCursor": null,
+          "loaded": 0,
+          "page": 1
+        },
+        "extensions": {
+          "projects": "github-link",
+          "subIssues": "github-link",
+          "dependencies": "github-link"
+        }
+      },
+      "permissions": {
+        "edit": true,
+        "comment": true,
+        "manage": true,
+        "editOwnComment": true
+      },
+      "locked": false,
+      "stateReason": null
+    },
+    "operationId": "d78eb9ec-6f92-4551-b6da-4198cfceb612"
+  },
+  "commentId": 6624233613
+}

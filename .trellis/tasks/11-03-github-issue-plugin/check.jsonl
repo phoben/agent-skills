@@ -1,0 +1,4 @@
+{"file": ".trellis/tasks/11-03-github-issue-plugin/research/current-practice.md", "reason": "审查复用范围、GitHub写入约束及真实验收证据"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/research/host-capabilities.md", "reason": "验收四项宿主能力，禁止用源码或模拟替代真实桌面结果"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/research/release-compatibility.md", "reason": "审查独立插件的分发与升版隔离"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/ui-prototype-plan.md", "reason": "核对原型用户确认、真实截图与独立视觉及UX走查，避免代替集成验收"}

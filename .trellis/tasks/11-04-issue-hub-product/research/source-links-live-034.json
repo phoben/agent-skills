@@ -1,0 +1,40 @@
+{
+  "remoteWrites": false,
+  "chatOpened": false,
+  "contentPrinted": false,
+  "catalogSource": "controlled-read-only-adapter",
+  "issues": [
+    {
+      "repository": "phoben/agent-skills",
+      "number": 3,
+      "attachments": 0,
+      "activityPages": [
+        {
+          "loaded": 1,
+          "complete": true
+        }
+      ],
+      "relatedPr": 0,
+      "limited": false
+    },
+    {
+      "repository": "openai/codex",
+      "number": 13186,
+      "attachments": 0,
+      "activityPages": [
+        {
+          "loaded": 41,
+          "complete": false
+        },
+        {
+          "loaded": 31,
+          "complete": true
+        }
+      ],
+      "relatedPr": 0,
+      "limited": false
+    }
+  ],
+  "failure": null,
+  "cleaned": true
+}

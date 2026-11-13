@@ -1,0 +1,11 @@
+{
+  "readOnly": true,
+  "account/read": {
+    "errorCode": -32603,
+    "errorMessage": "workspace routing discovery failed"
+  },
+  "account/rateLimits/read": {
+    "errorCode": -32603,
+    "errorMessage": "failed to fetch codex rate limits: error sending request for url (https://chatgpt.com/backend-api/wham/usage)"
+  }
+}

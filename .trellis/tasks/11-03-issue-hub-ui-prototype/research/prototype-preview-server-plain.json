@@ -1,0 +1,8 @@
+{
+  "phase": "waiting-for-functional-entry",
+  "pid": 86680,
+  "url": "http://127.0.0.1:18285/",
+  "port": 18285,
+  "status": 200,
+  "root": "E:\\Develop\\agent-skills\\.trellis\\tasks\\11-03-github-issue-plugin\\ui\\prototype\\a-v1"
+}

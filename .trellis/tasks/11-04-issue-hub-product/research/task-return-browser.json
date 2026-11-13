@@ -1,0 +1,12 @@
+{
+  "spaceId": 38,
+  "linkedMilliseconds": 106,
+  "checks": 2,
+  "opened": 1,
+  "returned": 1,
+  "sent": true,
+  "sameRequest": true,
+  "realIssueRead": true,
+  "navigation": "stubbed",
+  "passed": true
+}

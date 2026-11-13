@@ -1,0 +1,12 @@
+{
+  "version": "0.3.1",
+  "repository": "phoben/aoy-erp",
+  "number": 185,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": null,
+  "bodyPresent": true,
+  "offline": false,
+  "cached": false,
+  "passed": true
+}

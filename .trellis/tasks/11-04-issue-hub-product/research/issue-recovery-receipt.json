@@ -1,0 +1,12 @@
+{
+  "version": "0.3.1",
+  "mainHead": "80848c280133219e454c7f7884e0ac200d5482e0",
+  "userReportedRecovered": true,
+  "initialTransportCauseCaptured": false,
+  "recoveryFixVerified": true,
+  "issueTests": 255,
+  "syntaxModules": 53,
+  "cacheFiles": 159,
+  "latestIssueRead": true,
+  "dataPreserved": true
+}

@@ -1,0 +1,26 @@
+{
+  "version": "0.3.3",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "checks": [
+    {
+      "backgroundListScrollKeepsMenu": true
+    },
+    {
+      "keyboardAndEscape": true
+    },
+    {
+      "toggle": true
+    },
+    {
+      "outsideClose": true
+    },
+    {
+      "diagnosticsAndFocus": true
+    },
+    {
+      "resetLayoutAction": true
+    }
+  ],
+  "passed": true
+}

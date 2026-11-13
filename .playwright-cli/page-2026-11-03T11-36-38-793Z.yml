@@ -1,0 +1,84 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - text: YG Toolkit
+      - generic [ref=e5]: /
+      - heading "用量" [level=1] [ref=e6]
+    - generic [ref=e7]:
+      - button "刷新" [disabled] [ref=e8]
+      - button "近7天 10月28日 – 11月3日" [ref=e9] [cursor=pointer]:
+        - generic [ref=e11]: 近7天
+        - generic [ref=e12]: 10月28日 – 11月3日
+  - region "用量概览" [ref=e14]:
+    - article "官方账号总量" [ref=e15]:
+      - generic [ref=e16]: 官方账号 · 所选范围
+      - generic [ref=e17]:
+        - generic [ref=e18]: —
+        - generic [ref=e19]: Tokens
+      - generic [ref=e21]: 账号内全部使用
+    - article "账号每日用量" [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]: 每日趋势
+        - generic [ref=e25]: 官方账号
+      - generic "账号每日用量趋势" [ref=e26]:
+        - generic [ref=e27]: 暂无官方每日统计
+      - generic [ref=e28]: 所选范围 · 每日 Tokens
+    - article "本机 Tokens 构成" [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]: Tokens 构成
+        - generic [ref=e32]: 本机 · 所选范围
+      - generic [ref=e33]:
+        - generic "本机 Tokens 构成环形图" [ref=e34]:
+          - generic [ref=e35]: 暂无构成统计
+        - generic [ref=e36]:
+          - generic [ref=e37]:
+            - generic [ref=e38]:
+              - generic [ref=e40]: 缓存输入
+              - generic [ref=e41]: —
+            - strong [ref=e42]: —
+          - generic [ref=e43]:
+            - generic [ref=e44]:
+              - generic [ref=e46]: 非缓存输入
+              - generic [ref=e47]: —
+            - strong [ref=e48]: —
+          - generic [ref=e49]:
+            - generic [ref=e50]:
+              - generic [ref=e52]: 输出
+              - generic [ref=e53]: —
+            - strong [ref=e54]: —
+      - generic [ref=e55]:
+        - generic [ref=e56]: 缓存占输入 —
+        - generic [ref=e57]: 输出含推理 —
+    - article "当前官方额度" [ref=e58]:
+      - generic [ref=e59]: 当前官方窗口 · 已用
+      - meter "当前官方额度已用" [ref=e60]:
+        - img [ref=e61]
+        - strong [ref=e64]: —
+      - generic [ref=e65]: 当前官方额度暂不可用
+  - region "项目每日用量" [ref=e66]:
+    - generic [ref=e67]:
+      - generic [ref=e68]:
+        - heading "项目每日用量" [level=2] [ref=e69]
+        - paragraph [ref=e70]:
+          - text: 本机
+          - strong [ref=e71]: —
+          - generic [ref=e72]: ·
+          - generic [ref=e73]:
+            - strong [ref=e74]: —
+            - text: 项目
+          - generic [ref=e75]: ·
+          - generic [ref=e76]:
+            - strong [ref=e77]: —
+            - text: 会话
+      - generic [ref=e79]:
+        - generic [ref=e80]: 项目
+        - generic [ref=e81]: →
+        - generic [ref=e82]: Tokens 类型
+    - status [ref=e83]:
+      - generic [ref=e84]:
+        - heading "正在读取当前账号用量" [level=2] [ref=e86]
+        - paragraph [ref=e87]: 项目记录较多时，首次读取可能需要一些时间。
+    - generic [ref=e88]:
+      - generic [ref=e89]: ↗点击项目查看会话，点击日柱查看当天
+      - generic [ref=e90]: 日柱采用统一刻度
+  - generic [ref=e92]: 本机统计仅含可确认属于当前账号的会话

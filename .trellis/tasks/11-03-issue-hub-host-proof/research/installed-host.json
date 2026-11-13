@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-03T14:22:42.835Z",
+  "source": "installed-plugin-app-server",
+  "pluginId": "issue-hub@yg",
+  "version": "0.1.3",
+  "toolCount": 8,
+  "diagnosticRepositoryTools": 2,
+  "globalEntries": 1,
+  "uiResourceReadable": true,
+  "uiBytes": 440607,
+  "desktopRenderingVerified": false,
+  "nativeFlyoutVerified": false,
+  "chatCreated": false,
+  "privateContentPrinted": false
+}

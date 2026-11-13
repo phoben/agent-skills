@@ -1,0 +1,44 @@
+{
+  "realBrowser": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "results": [
+    {
+      "name": "单击项目立即切换",
+      "feedbackMs": 2038,
+      "repo": "phoben/agent-skills"
+    },
+    {
+      "name": "单击Issue立即选中",
+      "feedbackMs": 2024,
+      "repo": "phoben/agent-skills",
+      "selected": "3"
+    },
+    {
+      "name": "单击连续处理",
+      "round": 1,
+      "repo": "phoben/aoy-erp",
+      "selected": "182",
+      "title": "feat(warehouse): 支持外观不良品标签与手动打印"
+    },
+    {
+      "name": "单击连续处理",
+      "round": 2,
+      "repo": "phoben/aoy-erp",
+      "selected": "182",
+      "title": "feat(warehouse): 支持外观不良品标签与手动打印"
+    },
+    {
+      "name": "单击连续处理",
+      "round": 3,
+      "repo": "phoben/aoy-erp",
+      "selected": "182",
+      "title": "feat(warehouse): 支持外观不良品标签与手动打印"
+    },
+    {
+      "name": "无URL强制项目仍恢复上次仓库",
+      "repo": "phoben/aoy-erp"
+    }
+  ],
+  "failure": null
+}

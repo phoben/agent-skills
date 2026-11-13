@@ -1,0 +1,40 @@
+{
+  "systemNetworkChanged": false,
+  "actualUserDataModified": false,
+  "realGhTransport": true,
+  "controlledProxyFailure": true,
+  "desktopUiVerified": false,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "stages": [
+    {
+      "name": "online-cache-seeded",
+      "passed": true
+    },
+    {
+      "name": "real-gh-blocked-cache-and-two-drafts",
+      "passed": true,
+      "online": false
+    },
+    {
+      "name": "offline-process-restart-retains-drafts",
+      "passed": true
+    },
+    {
+      "name": "reconnect-read-only-keeps-drafts-without-publishing",
+      "passed": true,
+      "online": true,
+      "remoteUnchanged": true
+    }
+  ],
+  "failure": null,
+  "phase": "reconnected-read-only",
+  "version": "0.3.3",
+  "passed": true,
+  "deniedConnections": 2,
+  "localMutationCalls": [
+    "draft-save",
+    "draft-save"
+  ],
+  "cleaned": true
+}

@@ -1,0 +1,11 @@
+{
+  "isolatedProfile": true,
+  "actualUserProfileModified": false,
+  "secondMachineVerified": false,
+  "version": "0.2.4",
+  "failure": {
+    "code": 1,
+    "message": "Windows验收包的隔离配置检查未完成。"
+  },
+  "cleaned": true
+}

@@ -1,0 +1,36 @@
+{
+  "readOnly": true,
+  "privateContentPrinted": false,
+  "images": [
+    {
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 194738,
+      "png": true,
+      "hash": "9bc19ca3ec7379b0d755a094f5969446d431afc51fdbe8dab7992172926dc44a"
+    },
+    {
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 151748,
+      "png": true,
+      "hash": "0a066b2af66c07fbf8a31249386423f46527bf65f95f1fa9fc66aa2aacd1468c"
+    },
+    {
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 129891,
+      "png": true,
+      "hash": "9cff44852aa283f58a3819b5ceeb2509d4314f7f2593279b26441fb2c8d98079"
+    },
+    {
+      "status": 200,
+      "mime": "image/png",
+      "bytes": 53102,
+      "png": true,
+      "hash": "207d21321bddb7264aa19b765b3773453b328ff62ad1d06dda0b9ce15ab0e263"
+    }
+  ],
+  "failure": null,
+  "passed": true
+}

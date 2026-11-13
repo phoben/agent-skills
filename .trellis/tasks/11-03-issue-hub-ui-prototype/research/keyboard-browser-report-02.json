@@ -1,0 +1,22 @@
+{
+  "checkedAt": "2026-11-03T17:09:06.048Z",
+  "prototypeOnly": true,
+  "browserSpaceId": 8,
+  "results": [
+    {
+      "name": "方向键移焦、Enter打开、返回原行",
+      "passed": true
+    },
+    {
+      "name": "减少动态效果立即可读",
+      "passed": true,
+      "measured": {
+        "preference": true,
+        "queueAnimation": "none",
+        "navigationAnimation": "none",
+        "opacity": "1"
+      }
+    }
+  ],
+  "failure": null
+}

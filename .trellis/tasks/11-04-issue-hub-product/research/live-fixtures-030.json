@@ -1,0 +1,20 @@
+{
+  "repository": "phoben/agent-skills",
+  "account": "phoben",
+  "canManage": true,
+  "labels": [
+    "bug",
+    "documentation",
+    "duplicate",
+    "enhancement",
+    "good first issue",
+    "help wanted",
+    "invalid",
+    "question",
+    "ready-for-agent",
+    "wontfix"
+  ],
+  "milestones": [],
+  "selfAssignable": true,
+  "remoteWrites": false
+}

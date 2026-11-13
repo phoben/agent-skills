@@ -1,0 +1,6 @@
+[plugins."yg-toolkit@yg"]
+enabled = false
+
+[marketplaces.yg]
+source_type = "local"
+source = '\\?\E:\Develop\agent-skills\.trellis\tasks\11-04-issue-hub-product\research\toolkit-migration-fixture-GueDzs\second'

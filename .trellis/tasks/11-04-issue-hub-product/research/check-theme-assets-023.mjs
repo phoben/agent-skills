@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+const root = 'E:/Develop/agent-skills';
+const html = await readFile(`${root}/packages/issue-hub/ui/index.html`, 'utf8');
+const svg = (await readFile(`${root}/plugins/issue-hub/assets/icon.svg`, 'utf8')).trim();
+const favicon = /href="data:image\/svg\+xml,([^"]+)"/.exec(html)?.[1];
+assert.equal(decodeURIComponent(favicon), svg);
+const portable = JSON.parse(await readFile(`${root}/plugins/issue-hub/plugin.json`, 'utf8'));
+const compatibility = JSON.parse(await readFile(`${root}/plugins/issue-hub/.codex-plugin/plugin.json`, 'utf8'));
+const left = portable.extensions['com.openai'].interface, right = compatibility.interface;
+for (const item of [left.composerIcon, left.logo, right.composerIcon, right.logo]) assert.equal(item, './assets/icon.svg');
+assert.match(svg, /width="32" height="32"/);
+assert.ok(!svg.includes('<circle'));
+console.log({ faviconMatchesSvg: true, manifestIconPathsMatch: true, nominalSize: 32, independentTicketOutline: true });

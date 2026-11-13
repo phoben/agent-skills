@@ -1,0 +1,4 @@
+{"file": ".trellis/spec/frontend/issue-hub.md", "reason": "页面上下文、身份隔离、草稿与原型验收边界"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/ui/design-brief.md", "reason": "核对导航边界、方向状态和原型交接；完整方向卡按所选章节主动读取"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/ui/interaction-contract.md", "reason": "防止长方向卡截断关键交互约束"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/ui/selected-a.md", "reason": "防止重起方向或把原型选择误当真实业务验收"}

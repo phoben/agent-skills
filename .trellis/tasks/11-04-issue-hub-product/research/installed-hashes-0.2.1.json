@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-11-04T05:14:49.244Z",
+  "version": "0.2.1",
+  "files": [
+    {
+      "path": "plugin.json",
+      "sourceSha256": "4ded8fc687fb9c72702f5cf711409c1d79d0fee7bda91ee68bcb9fa408025f64",
+      "installedSha256": "4ded8fc687fb9c72702f5cf711409c1d79d0fee7bda91ee68bcb9fa408025f64",
+      "equal": true
+    },
+    {
+      "path": ".codex-plugin/plugin.json",
+      "sourceSha256": "4ca6a3da6acb0539af8a6c8c7c3d6febc2cd2dfea926c4064ac893cbb1118e22",
+      "installedSha256": "4ca6a3da6acb0539af8a6c8c7c3d6febc2cd2dfea926c4064ac893cbb1118e22",
+      "equal": true
+    },
+    {
+      "path": "mcp.json",
+      "sourceSha256": "ac79fea5110763778fc90e65f3d11ccc92bc4f1ec83779107f0e26a7dba12ca2",
+      "installedSha256": "ac79fea5110763778fc90e65f3d11ccc92bc4f1ec83779107f0e26a7dba12ca2",
+      "equal": true
+    },
+    {
+      "path": "LICENSE",
+      "sourceSha256": "5f6b86385fe15af08bb1e93d098d36e10eb03da0ba629c86c35cf35dcb69c4a7",
+      "installedSha256": "5f6b86385fe15af08bb1e93d098d36e10eb03da0ba629c86c35cf35dcb69c4a7",
+      "equal": true
+    },
+    {
+      "path": "assets/icon.svg",
+      "sourceSha256": "967797b0602092c0a145cb4746de7112e09caf4dd4c2443d0d3f298299ce2a48",
+      "installedSha256": "967797b0602092c0a145cb4746de7112e09caf4dd4c2443d0d3f298299ce2a48",
+      "equal": true
+    },
+    {
+      "path": "dist/issue-hub.cjs",
+      "sourceSha256": "027e84cf91261618b7d23f6caa9ebb6c60d219206b822bb7781bcb3ba158c246",
+      "installedSha256": "a115efd704583c1f44128ca9f859bd8c6da010cb0ca485ff84bdf5b371bbc300",
+      "equal": false
+    },
+    {
+      "path": "dist/app.html",
+      "sourceSha256": "fe77828cd4eb006b36751d17f552e26406de309102c5c2a8e3e113740da943af",
+      "installedSha256": "1fb35e644ca43c1c44e6489f99afb5be5a7da1599c8f4108e82f82b2b540b91e",
+      "equal": false
+    },
+    {
+      "path": "dist/THIRD-PARTY-LICENSES.txt",
+      "sourceSha256": "8d5e11bce493ef95a0813190b12a3a3de92e9b55b82f2229800b7e7179c5a73d",
+      "installedSha256": "8d5e11bce493ef95a0813190b12a3a3de92e9b55b82f2229800b7e7179c5a73d",
+      "equal": true
+    }
+  ],
+  "allEqual": false
+}

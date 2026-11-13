@@ -1,0 +1,127 @@
+[
+  {
+    "file": "page.png",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": []
+  },
+  {
+    "file": "motion-probe-保存失败",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "group": "保存失败",
+    "motion": {
+      "load": {
+        "elements": 0,
+        "loops": 0,
+        "maxMove": 0,
+        "maxSize": 0,
+        "maxOpacity": 0,
+        "top": []
+      },
+      "steps": {
+        "elements": 2,
+        "loops": 0,
+        "maxMove": 5,
+        "maxSize": 0,
+        "maxOpacity": 0.48,
+        "top": [
+          {
+            "el": "div.menu",
+            "move": 3,
+            "size": 0,
+            "opacity": 0.48,
+            "loop": false,
+            "sources": [
+              "js:style",
+              "css:surface-enter"
+            ]
+          },
+          {
+            "el": "section#detail.detail",
+            "move": 5,
+            "size": 0,
+            "opacity": 0.33,
+            "loop": false,
+            "sources": [
+              "css:detail-enter"
+            ]
+          }
+        ]
+      },
+      "hero": {
+        "elements": 0,
+        "loops": 0,
+        "maxMove": 0,
+        "maxSize": 0,
+        "maxOpacity": 0,
+        "top": [],
+        "layers": 0
+      },
+      "scroll": {
+        "elements": 0,
+        "loops": 0,
+        "maxMove": 0,
+        "maxSize": 0,
+        "maxOpacity": 0,
+        "top": [],
+        "scrollable": false
+      }
+    },
+    "issues": [
+      "首次进入：没有检测到动画"
+    ]
+  },
+  {
+    "file": "motion-entry-end.jpg",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "group": "entry",
+    "issues": [],
+    "frames": {
+      "start": {
+        "file": "motion-entry-start.jpg",
+        "source": "Page.screencastFrame",
+        "timeMs": 154
+      },
+      "mid": {
+        "file": "motion-entry-mid.jpg",
+        "source": "Page.screencastFrame",
+        "timeMs": 254
+      },
+      "end": {
+        "file": "motion-entry-end.jpg",
+        "source": "Page.captureScreenshot",
+        "timeMs": 1698
+      }
+    },
+    "sampling": {
+      "mode": "entry"
+    },
+    "durationMs": 1698,
+    "consistency": {
+      "status": "matched",
+      "reference": "motion-entry-end.jpg",
+      "different": false,
+      "changedPixels": 0,
+      "maxTilePixels": 0,
+      "pixelRatio": 0
+    }
+  },
+  {
+    "file": "motion-保存失败-end.jpg",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "group": "保存失败",
+    "failed": true,
+    "issues": [
+      "第 3 步「click #issue-more」：找不到元素 #issue-more；线索：去掉最后一段后 \"（空）\" 匹配 0 个元素；例如 click .open"
+    ]
+  }
+]

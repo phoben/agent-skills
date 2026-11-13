@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="fixture-version" content="issue-hub-firstscreens-01">
+<title>Issue Hub · team/issue-hub</title>
+<style>
+:root{color-scheme:light;--ink:#232638;--muted:#62677d;--line:#e0e3ec;--accent:#4b56a3;--selection:#ebedf9;--surface:#f5f6f9}
+*{box-sizing:border-box}html,body{margin:0;width:1120px;height:880px;overflow:hidden}body{font:14px/1.5 "Microsoft YaHei UI","Microsoft YaHei",sans-serif;color:var(--ink);background:#fff}button{font:inherit;color:inherit;border:0;background:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:0 10px;height:30px;white-space:nowrap;border-radius:3px}svg{width:16px;height:16px;flex:none;vertical-align:middle}.mono{font-family:"Cascadia Mono",Consolas,monospace;font-size:13px;font-weight:500}.app{height:880px;display:flex;flex-direction:column}.top{height:48px;flex:none;display:flex;align-items:stretch;border-bottom:1px solid var(--line);background:#f4f5f8;padding:0 20px;gap:18px}.brand{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600;padding-right:4px}.brand svg{color:var(--accent)}.repository-tabs{display:flex;align-items:stretch;gap:3px}.repository-tabs button{height:48px;border-radius:0;padding:0 16px;font-size:13px;color:var(--muted)}.repository-tabs .active{color:var(--ink);background:#fff;border-bottom:2px solid var(--accent);font-weight:600}.all-repos{margin-left:auto;align-self:center;color:var(--muted);font-size:12px}.toolbar{height:54px;flex:none;display:flex;align-items:center;gap:10px;padding:0 24px;border-bottom:1px solid var(--line)}.search{height:32px;width:282px;border:1px solid #d7dbe7;border-radius:3px;display:flex;align-items:center;padding:0 10px;gap:9px;color:var(--muted);font-size:13px}.search svg{width:14px;height:14px}.key{margin-left:auto;border:1px solid var(--line);padding:0 5px;line-height:20px;font:12px/20px Consolas,monospace;color:var(--muted)}.filter{font-size:13px;padding:0 8px}.filter .count{color:var(--muted);font:12px Consolas,monospace}.filter svg{width:12px;height:12px}.divider{height:18px;width:1px;background:var(--line);margin:0 1px}.toolbar-spacer{flex:1}.secondary{border:1px solid #d9dce6;background:white;font-size:13px}.refresh{color:var(--muted);padding-right:0;font-size:13px}.column-head{height:30px;flex:none;display:grid;grid-template-columns:744px 1fr;background:#fafbfc;border-bottom:1px solid var(--line);color:var(--muted);font-size:12px;align-items:center}.column-head>span:first-child{padding-left:57px}.column-head>span:last-child{padding-left:22px;display:flex;align-items:center;gap:8px}.local-tag{font-size:12px;color:#62677d}.list{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;scrollbar-color:#cdd1df transparent}.issue-row{height:60px;display:grid;grid-template-columns:744px 1fr;border-bottom:1px solid var(--line);background:#fff}.issue-identity{display:flex;align-items:flex-start;padding:9px 22px;gap:12px;min-width:0}.issue-state{padding-top:2px;color:#62677d}.issue-copy{min-width:0;flex:1}.issue-title{display:flex;gap:11px;align-items:center;white-space:nowrap;font-weight:500;line-height:22px}.number{color:var(--muted)}.issue-meta{display:flex;gap:8px;align-items:center;line-height:18px;font-size:12px;color:var(--muted);margin-top:1px}.label{font-size:12px;color:#4f556d}.meta-dot{color:#9095a5}.comment-count{display:flex;gap:4px;align-items:center;margin-left:6px}.comment-count svg{width:12px;height:12px}.relation{padding:10px 20px 7px 22px;display:flex;flex-direction:column;justify-content:center}.relation-top{display:flex;align-items:center;gap:10px;color:#4d557d;font-size:13px;white-space:nowrap;line-height:20px}.connection{display:flex;align-items:center;width:42px;height:12px;flex:none}.connection i{height:0;flex:1;border-top:1px solid #9ca5ce}.connection b{height:7px;width:7px;border:1.5px solid var(--accent);border-radius:50%;background:white}.linked .connection b{background:var(--accent)}.draft .connection i,.pending .connection i{border-top-style:dashed}.pending .connection:before{content:"";width:7px;height:7px;flex:none;border:1.5px solid var(--accent);border-radius:50%;background:#fff}.relation-note{font-size:12px;color:var(--muted);margin-left:52px;line-height:18px;white-space:nowrap}.none .connection{visibility:hidden}.selected{background:var(--selection);border-left:3px solid var(--accent);grid-template-columns:741px 1fr}.selected .issue-identity{padding-left:19px}.selected .issue-state,.selected .number{color:var(--accent)}.selected .issue-title{font-weight:600}.open-state{font-size:12px;font-weight:400;color:#4f587f;border:1px solid #bbc2df;border-radius:3px;line-height:18px;padding:0 5px;margin-left:1px}.expanded{position:relative;border-bottom:1px solid #cbd0e3;padding:0 44px 14px 57px;background:#fff}.expanded:before{content:"";position:absolute;left:30px;top:0;bottom:18px;border-left:1px solid #b5bbd6}.actionbar{height:46px;display:flex;align-items:center;gap:8px}.primary{color:#fff;background:var(--accent);padding:0 13px;font-size:13px;font-weight:500;height:30px}.session-menu{border:1px solid #d4d8e7;padding:0 8px;color:var(--accent);height:30px;font-size:12px}.session-menu svg{width:12px;height:12px}.session-title{color:var(--muted);font-size:12px;margin-left:6px}.actionbar-spacer{flex:1}.text-button{color:var(--muted);font-size:12px;padding:0 7px}.properties{height:36px;border-top:1px solid #eceef4;border-bottom:1px solid #eceef4;display:flex;align-items:center;gap:24px;font-size:12px;margin-bottom:11px}.property{display:flex;align-items:center;gap:9px}.property-label{color:var(--muted)}.property-value{color:#353b54}.document{max-width:932px}.authorline{color:var(--muted);font-size:12px;display:flex;gap:7px;align-items:center;margin-bottom:7px}.authorline strong{color:#454b63;font-weight:500}.body-lead{margin:0 0 10px;font-size:14px;line-height:23px}.text-section{display:grid;grid-template-columns:72px 1fr;gap:0;margin:8px 0;font-size:14px;line-height:23px}.text-section h2{margin:0;font-size:13px;font-weight:600;color:#4a516c;padding-top:1px}.text-section ol,.text-section ul{margin:0;padding:0;list-style:none;counter-reset:steps}.text-section ol li{counter-increment:steps;display:flex;gap:10px}.text-section ol li:before{content:counter(steps) ".";font:12px/23px Consolas,monospace;color:var(--muted)}.text-section ul li{display:flex;align-items:baseline;gap:9px}.text-section ul li:before{content:"";width:4px;height:4px;background:#939bbd;display:inline-block;flex:none;transform:translateY(-2px)}.text-section p{margin:0}.related{font-size:12px;color:var(--muted);margin:9px 0 0;display:flex;align-items:center;gap:14px}.related span:last-child{color:var(--accent)}.discussion-head{display:flex;align-items:center;margin-top:13px;padding-top:10px;border-top:1px solid var(--line);gap:14px;height:34px}.discussion-head h2{margin:0;font-size:13px;font-weight:600}.discussion-head .activity{color:var(--muted);font-size:12px}.loaded{margin-left:auto;font-size:12px;color:var(--muted)}.comment{display:flex;gap:10px;padding-top:9px}.avatar{height:23px;width:23px;background:#eceef6;color:#53608a;border:1px solid #dbe0ef;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:12px;flex:none}.comment-body{flex:1}.comment-byline{font-size:12px;display:flex;align-items:center;gap:10px;line-height:18px}.comment-byline span{color:var(--muted)}.comment p{margin:3px 0 0;font-size:13px;line-height:21px}.discussion-foot{margin:7px 0 0 33px;display:flex;justify-content:space-between;align-items:center}.discussion-foot button{font-size:12px;color:var(--accent);padding:0;height:22px}.footer{height:30px;flex:none;border-top:1px solid #d8dce8;display:flex;align-items:center;padding:0 22px;gap:8px;background:#f5f6f9;color:var(--muted);font-size:12px}.sync-dot{width:5px;height:5px;border-radius:50%;background:#646f9b}.footer .separator{color:#a4a9ba}.footer-spacer{flex:1}.footer .mono{font-size:12px}
+</style>
+</head>
+<body>
+<main class="app" aria-label="Issue Hub">
+  <header class="top"><div class="brand"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M3 2h10v12H3zM6 2v12M8 5h3"/></svg>Issue Hub</div><nav class="repository-tabs" aria-label="仓库"><button type="button" class="active" aria-current="page">team/issue-hub</button><button type="button" class="" >team/platform-api</button><button type="button" class="" >team/docs-site</button></nav><button type="button" class="all-repos">全部仓库<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m4 6 4 4 4-4"/></svg></button></header>
+  <section class="toolbar" aria-label="Issue 搜索和筛选"><div class="search" role="search"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="6.5" cy="6.5" r="4.5"/><path d="m10 10 4 4"/></svg><span>搜索 Issue</span><span class="key">/</span></div><button type="button" class="filter">打开 <span class="count">18</span><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m4 6 4 4 4-4"/></svg></button><span class="divider"></span><button type="button" class="filter">标签<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m4 6 4 4 4-4"/></svg></button><button type="button" class="filter">负责人<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m4 6 4 4 4-4"/></svg></button><span class="toolbar-spacer"></span><button type="button" class="secondary"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M8 3v10M3 8h10"/></svg>新建 Issue</button><button type="button" class="refresh"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M13 6a5.5 5.5 0 1 0 0 5M13 2v4H9"/></svg>刷新</button></section>
+  <div class="column-head"><span>Issue</span><span>会话关联<span class="local-tag">· 本机</span></span></div>
+  <section class="list" aria-label="Issue 列表">
+    <div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#183</span><span>多个工作区时，已选路径没有被记住</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>12 分钟前</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>0</span></div></div>
+    </div>
+    <div class="relation draft"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未发送草稿</span></div><div class="relation-note">仅保存在本机</div></div>
+  </div>
+    <div class="issue-row selected" aria-current="true">
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#184</span><span>切换仓库后，评论仍保留上一次的筛选结果</span><span class="open-state">打开</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>8 分钟前</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>8</span></div></div>
+    </div>
+    <div class="relation linked"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>已确认关联</span></div><div class="relation-note">修复仓库切换后的评论筛选</div></div>
+  </div>
+    <article class="expanded" aria-label="#184 正文与讨论">
+      <div class="actionbar"><button type="button" class="primary"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 8h11m-4-4 4 4-4 4"/></svg>返回会话</button><button type="button" class="session-menu" aria-label="会话操作">会话操作<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m4 6 4 4 4-4"/></svg></button><span class="session-title">主工作区 <span class="mono">/ main</span></span><span class="actionbar-spacer"></span><button type="button" class="text-button">编辑</button><button type="button" class="text-button">更多<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m4 6 4 4 4-4"/></svg></button><button type="button" class="text-button">收起<svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="m4 10 4-4 4 4"/></svg></button></div>
+      <div class="properties"><span class="property"><span class="property-label">标签</span><span class="property-value">bug · 同步</span></span><span class="property"><span class="property-label">负责人</span><span class="property-value">林舟</span></span><span class="property"><span class="property-label">里程碑</span><span class="property-value">桌面协作 v0.2</span></span></div>
+      <div class="document"><div class="authorline"><strong>陈雨</strong><span>创建于 11 月 3 日</span><span>·</span><span>8 分钟前更新</span></div>
+      <p class="body-lead">在仓库之间切换后，Issue 详情中的评论列表仍沿用上一个仓库的筛选条件，导致部分讨论没有显示。</p>
+      <section class="text-section"><h2>复现步骤</h2><ol><li>打开 issue-hub，进入一条有评论的 Issue。</li><li>切换到 platform-api，再返回当前 Issue。</li><li>评论列表仍保留之前的筛选，而标题与属性已更新。</li></ol></section>
+      <section class="text-section"><h2>预期结果</h2><p>仓库切换应重置评论查询范围，同时保留尚未发布的输入。</p></section>
+      <section class="text-section"><h2>验收条件</h2><ul><li>评论只来自当前仓库与 Issue。</li><li>切换期间迟到的响应不覆盖新页面。</li><li>本机草稿与当前账号保持隔离。</li></ul></section>
+      <div class="related"><span>关联 PR</span><span class="mono">#176 · 统一仓库上下文切换</span></div>
+      <div class="discussion-head"><h2>讨论 · 8</h2><span class="activity">活动</span><span class="loaded">已加载 1 / 8 条评论</span></div>
+      <section class="comment"><div class="avatar">林</div><div class="comment-body"><div class="comment-byline"><strong>林舟</strong><span>18 分钟前</span></div><p>已复现。会补上切换时的请求失效处理，并验证返回列表后的位置保留。</p></div></section>
+      <div class="discussion-foot"><button type="button">加载更多评论</button><button type="button">添加评论</button></div></div>
+    </article>
+    <div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#182</span><span>断网后重新打开页面，评论草稿丢失</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>24 分钟前</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>6</span></div></div>
+    </div>
+    <div class="relation pending"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>请求已发送 · 关联待确认</span></div><div class="relation-note">等待确认关联</div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#181</span><span>正文中的长代码块撑开了详情区域</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>36 分钟前</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>2</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#180</span><span>负责人列表加载失败时没有重试入口</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>48 分钟前</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>1</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#179</span><span>新建 Issue 后列表没有立即更新</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>今天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>3</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#178</span><span>关联会话已归档，返回按钮仍然可用</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>今天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>0</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#177</span><span>切换账号后需要清理旧仓库的筛选条件</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>今天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>6</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#176</span><span>窗口较小时，标签名称被按钮遮挡</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>今天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>2</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#175</span><span>评论超过一页时显示已加载的数量</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>今天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>1</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#174</span><span>保存失败后应保留当前编辑内容</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>今天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>3</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#173</span><span>在 Issue 列表中增加键盘焦点提示</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>今天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>0</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#172</span><span>里程碑为空时不应显示加载失败</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>6</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#171</span><span>重复点击创建任务时只处理一次请求</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>2</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#170</span><span>在详情中保留关联 PR 的来源链接</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>1</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#169</span><span>仓库目录失效后应允许重新选择</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>3</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#168</span><span>从详情返回时保持列表阅读位置</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>0</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#167</span><span>手动刷新时保留未提交的评论</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>6</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#166</span><span>关闭 Issue 后正确更新当前状态</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>2</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#165</span><span>为无评论的 Issue 保留回复入口</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>1</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#164</span><span>标签修改后重新读取远端状态</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>3</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#163</span><span>修正中文多行标题的行距</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="label">同步</span><span class="meta-dot">·</span><span>林舟</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>0</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#162</span><span>合并重复的项目目录记录</span></div>
+      <div class="issue-meta"><span class="label">enhancement</span><span class="meta-dot">·</span><span>陈雨</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>6</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div><div class="issue-row" >
+    <div class="issue-identity">
+      <span class="issue-state"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><circle cx="8" cy="8" r="5.5"/><path d="M8 5v4m0 2v.2"/></svg></span>
+      <div class="issue-copy"><div class="issue-title"><span class="mono number">#161</span><span>补充权限失效后的恢复提示</span></div>
+      <div class="issue-meta"><span class="label">bug</span><span class="meta-dot">·</span><span>未分配</span><span class="meta-dot">·</span><span>昨天</span><span class="comment-count"><svg viewBox="0 0 16 16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square" stroke-linejoin="miter"><path d="M2 2.5h12v9H7l-4 3v-3H2z"/></svg>2</span></div></div>
+    </div>
+    <div class="relation none"><div class="relation-top"><span class="connection" aria-hidden="true"><i></i><b></b></span><span>未关联</span></div></div>
+  </div>
+  </section>
+  <footer class="footer"><span class="sync-dot"></span><span>已同步</span><span class="mono">21:18</span><span class="separator">·</span><span>每 60 秒检查</span><span class="footer-spacer"></span><span>当前账号</span><span class="mono">team-member</span></footer>
+</main>
+</body>
+</html>

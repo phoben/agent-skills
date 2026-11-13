@@ -1,0 +1,5 @@
+{"file": ".trellis/tasks/11-03-github-issue-plugin/research/host-capabilities.md", "reason": "禁止将模拟与源码证据冒充宿主验收"}
+{"file": ".trellis/spec/backend/token-usage.md", "reason": "检查协议stdout、清单版本和包外运行契约"}
+{"file": ".trellis/spec/backend/issue-hub.md", "reason": "验证实际实现、错误和宿主证据分层"}
+{"file": ".trellis/spec/frontend/issue-hub.md", "reason": "复核页面初始上下文、异步竞争及持久请求恢复"}
+{"file": ".trellis/tasks/11-03-github-issue-plugin/research/native-flyout-correction.md", "reason": "拒绝把多global图标或内置私有桥接当作第三方原生导航"}

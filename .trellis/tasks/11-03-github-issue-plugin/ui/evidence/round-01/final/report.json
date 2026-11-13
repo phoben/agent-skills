@@ -1,0 +1,44 @@
+[
+  {
+    "file": "stitch.png",
+    "width": 2000,
+    "height": 583,
+    "columns": 3,
+    "items": [
+      {
+        "naturalWidth": 1120,
+        "naturalHeight": 880,
+        "width": 640,
+        "height": 503,
+        "labelHeight": 32,
+        "x": 24,
+        "y": 24,
+        "label": "A · 连读队列",
+        "labelY": 535
+      },
+      {
+        "naturalWidth": 1120,
+        "naturalHeight": 880,
+        "width": 640,
+        "height": 503,
+        "labelHeight": 32,
+        "x": 680,
+        "y": 24,
+        "label": "B · 比较与专注阅读",
+        "labelY": 535
+      },
+      {
+        "naturalWidth": 1120,
+        "naturalHeight": 880,
+        "width": 640,
+        "height": 503,
+        "labelHeight": 32,
+        "x": 1336,
+        "y": 24,
+        "label": "C · Issue 与会话对照",
+        "labelY": 535
+      }
+    ],
+    "issues": []
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "file": "motion-打开详情-end.jpg",
+    "state": null,
+    "size": "1120x880",
+    "zoom": 1,
+    "group": "打开详情",
+    "issues": [],
+    "frames": {
+      "start": {
+        "file": "motion-打开详情-start.jpg",
+        "source": "Page.captureScreenshot",
+        "timeMs": 590
+      },
+      "mid": {
+        "file": "motion-打开详情-mid.jpg",
+        "source": "Page.screencastFrame",
+        "timeMs": 690
+      },
+      "end": {
+        "file": "motion-打开详情-end.jpg",
+        "source": "Page.captureScreenshot",
+        "timeMs": 1952
+      }
+    },
+    "sampling": {
+      "mode": "action",
+      "step": 2,
+      "action": "click",
+      "raw": "click [data-action=open-issue][data-number=184]"
+    },
+    "durationMs": 1952,
+    "consistency": {
+      "status": "matched",
+      "reference": "motion-打开详情-end.jpg",
+      "different": false,
+      "changedPixels": 0,
+      "maxTilePixels": 0,
+      "pixelRatio": 0
+    }
+  }
+]

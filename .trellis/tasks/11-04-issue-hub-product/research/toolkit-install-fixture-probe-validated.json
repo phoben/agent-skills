@@ -1,0 +1,66 @@
+{
+  "version": "0.163.0",
+  "realUserConfigModified": false,
+  "fixtureOnly": true,
+  "steps": [
+    {
+      "action": "registered-first",
+      "sourceIsFirst": true
+    },
+    {
+      "action": "read-second",
+      "pathKind": "root",
+      "error": "failed to read plugin details: failed to read marketplace file: 拒绝访问。 (os error 5)"
+    },
+    {
+      "action": "read-second",
+      "pathKind": "manifest",
+      "responseKeys": [
+        "plugin"
+      ]
+    },
+    {
+      "action": "install-second-api",
+      "success": true
+    },
+    {
+      "action": "cli-after-install",
+      "sourceIsFirst": true,
+      "installed": [
+        {
+          "pluginId": "yg-toolkit@yg",
+          "version": "0.3.0",
+          "enabled": true
+        }
+      ]
+    },
+    {
+      "action": "new-host-live",
+      "services": [
+        {
+          "pluginId": "yg-toolkit@yg",
+          "serverInfo": null,
+          "runtimeStatus": null,
+          "toolsError": "MCP startup failed: handshaking with MCP server failed: connection closed: initialize response: connection closed: initialize response",
+          "toolCount": 0,
+          "statusKeys": [
+            "name",
+            "runtimeStatus",
+            "pluginId",
+            "httpOrigin",
+            "serverInfo",
+            "serverCapabilities",
+            "tools",
+            "toolsError",
+            "resources",
+            "resourceTemplates",
+            "authStatus"
+          ]
+        }
+      ]
+    }
+  ],
+  "failure": {
+    "message": "新宿主未读到第二源的活体版本"
+  }
+}

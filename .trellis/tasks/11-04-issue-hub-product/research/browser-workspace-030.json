@@ -1,0 +1,6 @@
+{
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": "page.waitForFunction timed out after 90000ms on page p1; last URL was \"http://127.0.0.1:18296/?theme=dark&repo=phoben%2Fagent-skills\"; last title was \"Issue Hub 只读联调\".",
+  "workspaceOptions": 1
+}

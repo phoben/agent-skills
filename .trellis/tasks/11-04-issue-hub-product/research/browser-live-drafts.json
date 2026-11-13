@@ -1,0 +1,7 @@
+{
+  "source": "real-mcp-browser-local-sqlite",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "results": [],
+  "failure": "page.fill timed out after 3004ms: page.fill failed: element is not visible in the viewport"
+}

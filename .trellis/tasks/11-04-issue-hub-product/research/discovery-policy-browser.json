@@ -1,0 +1,86 @@
+{
+  "version": "0.3.4",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "checks": [
+    {
+      "theme": "dark",
+      "items": [
+        "discover",
+        "reset-layout"
+      ],
+      "menuText": "项目与布局重新发现项目恢复默认列宽",
+      "badgeCount": 0,
+      "statusRows": 0,
+      "triggerTitles": [
+        [
+          "phoben",
+          "phoben，用户菜单"
+        ],
+        [
+          "phoben",
+          "phoben，用户菜单"
+        ]
+      ],
+      "inside": true,
+      "overflow": false
+    },
+    {
+      "diagnostics": {
+        "heading": "项目读取",
+        "hasCoverageWarning": false,
+        "hasRealReadProblem": true
+      }
+    },
+    {
+      "theme": "light",
+      "items": [
+        "discover",
+        "reset-layout"
+      ],
+      "menuText": "项目与布局重新发现项目恢复默认列宽",
+      "badgeCount": 0,
+      "statusRows": 0,
+      "triggerTitles": [
+        [
+          "phoben",
+          "phoben，用户菜单"
+        ],
+        [
+          "phoben",
+          "phoben，用户菜单"
+        ]
+      ],
+      "inside": true,
+      "overflow": false
+    },
+    {
+      "narrow": true,
+      "items": [
+        "discover",
+        "reset-layout"
+      ],
+      "menuText": "项目与布局重新发现项目恢复默认列宽",
+      "badgeCount": 0,
+      "statusRows": 0,
+      "triggerTitles": [
+        [
+          "phoben",
+          "phoben，用户菜单"
+        ],
+        [
+          "phoben",
+          "phoben，用户菜单"
+        ]
+      ],
+      "inside": true,
+      "overflow": false
+    }
+  ],
+  "screenshots": [
+    "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/discovery-policy-menu-dark.png",
+    "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/discovery-policy-menu-light.png",
+    "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/discovery-policy-menu-narrow.png"
+  ],
+  "passed": true
+}

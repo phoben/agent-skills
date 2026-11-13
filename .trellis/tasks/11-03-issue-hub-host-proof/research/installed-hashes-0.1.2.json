@@ -1,0 +1,55 @@
+{
+  "checkedAt": "2026-11-03T13:51:06.924Z",
+  "version": "0.1.2",
+  "allMatch": true,
+  "files": [
+    {
+      "file": "plugin.json",
+      "sourceSha256": "5dd80706b77a396a2dbfbc9bd44f653777256d08762d5be6d5088ad442baaac1",
+      "installedSha256": "5dd80706b77a396a2dbfbc9bd44f653777256d08762d5be6d5088ad442baaac1",
+      "matches": true
+    },
+    {
+      "file": ".codex-plugin/plugin.json",
+      "sourceSha256": "4da14276ca531a965687c3a7f962ef341bc46714040c7ef6e2101899423b8066",
+      "installedSha256": "4da14276ca531a965687c3a7f962ef341bc46714040c7ef6e2101899423b8066",
+      "matches": true
+    },
+    {
+      "file": "mcp.json",
+      "sourceSha256": "ac79fea5110763778fc90e65f3d11ccc92bc4f1ec83779107f0e26a7dba12ca2",
+      "installedSha256": "ac79fea5110763778fc90e65f3d11ccc92bc4f1ec83779107f0e26a7dba12ca2",
+      "matches": true
+    },
+    {
+      "file": "LICENSE",
+      "sourceSha256": "5f6b86385fe15af08bb1e93d098d36e10eb03da0ba629c86c35cf35dcb69c4a7",
+      "installedSha256": "5f6b86385fe15af08bb1e93d098d36e10eb03da0ba629c86c35cf35dcb69c4a7",
+      "matches": true
+    },
+    {
+      "file": "assets/icon.svg",
+      "sourceSha256": "967797b0602092c0a145cb4746de7112e09caf4dd4c2443d0d3f298299ce2a48",
+      "installedSha256": "967797b0602092c0a145cb4746de7112e09caf4dd4c2443d0d3f298299ce2a48",
+      "matches": true
+    },
+    {
+      "file": "dist/issue-hub.cjs",
+      "sourceSha256": "a0a8f32f12110d12ecb78a0aa6964a4483f50aa21aa3a4778d265a5915e01f14",
+      "installedSha256": "a0a8f32f12110d12ecb78a0aa6964a4483f50aa21aa3a4778d265a5915e01f14",
+      "matches": true
+    },
+    {
+      "file": "dist/host-proof.html",
+      "sourceSha256": "5128d6d09fd5f215043f1c4a62a20352a9b63e78b48c7f073e8b17e79138259c",
+      "installedSha256": "5128d6d09fd5f215043f1c4a62a20352a9b63e78b48c7f073e8b17e79138259c",
+      "matches": true
+    },
+    {
+      "file": "dist/THIRD-PARTY-LICENSES.txt",
+      "sourceSha256": "8d5e11bce493ef95a0813190b12a3a3de92e9b55b82f2229800b7e7179c5a73d",
+      "installedSha256": "8d5e11bce493ef95a0813190b12a3a3de92e9b55b82f2229800b7e7179c5a73d",
+      "matches": true
+    }
+  ]
+}

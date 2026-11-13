@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-03T13:24:59.498Z",
+  "method": "project/list",
+  "status": "partial",
+  "projects": 22,
+  "roots": 25,
+  "repositories": 11,
+  "workspaceBindings": 11,
+  "warningCounts": {
+    "ROOT_NOT_DIRECT_REPOSITORY": 12,
+    "NO_GITHUB_REMOTE": 2
+  },
+  "contentPrinted": false,
+  "desktopCompared": false
+}

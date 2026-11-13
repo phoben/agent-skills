@@ -1,0 +1,260 @@
+[
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/chatgpt-code-block-1cd5236a2dbc.js",
+    "offset": 24930,
+    "snippet": "]\\$schema[\"']\\s*:\\s*[\"']https:\\/\\/vega\\.github\\.io\\/schema\\/(vega-lite|vega)\\/v\\d+(?:\\.\\d+)?\\.json[\"']/i})))()}function In(e){let t={requiresReadySignal:!1,screenshotVegaPreview:e,csp:{isTrusted:!1,baseUriDomains:[],connectDomains:[],frameDomains:[],resourceDomains:[]},async buildHtml(e,t){let{getVisualizationSandboxHtml:n}=await c(async()=>{let{getVisualizationSandboxHtml:e}=await import(`./visualization-sandbox-html-d964b8a795f2.js`);return{getVisualizationSandboxHtml:e}},__vite__mapDeps([0,2]),import.meta.url),r=/<body\\b[^>]*>/i.test(e)?e.replace(/<body\\b[^>]*>/i,e=>e+Ln):e+Ln;return n(``,{...t,innerKit:r,styles:``,syncHostStyles:!1,calendarRuntime:null})}};return{none:{...t,csp:{...t.csp,disableNetworkRequests:!0}},\"deps-only\":t}}var Ln,Rn;function zn(){return(zn=e((()=>{f(),Ln=`<!--__INLINE_VISUALIZATION_FRAGMENT__-->`,Rn={html:In(),"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/code-block-execution-a408bd206201.js",
+    "offset": 1700,
+    "snippet": "NG`,e[e.INSTALLING_PACKAGES=1]=`INSTALLING_PACKAGES`,e[e.RUNNING_CODE=2]=`RUNNING_CODE`,e}({})})))()}function je({disableNetworkRequests:e,domains:t,additionalResourceDomains:n=[],unsafeAllowAllNetworkRequests:r}){return e?{disableNetworkRequests:!0,resourceDomains:[],connectDomains:[],isTrusted:!1}:r?null:{connectDomains:t,resourceDomains:[...t,...n],isTrusted:!1}}function Me(e){return Ne.has(e)?null:new URL(e).origin}var Ne;function Pe(){return(Pe=e((()=>{Ne=new Set([`blob`,`c`,`cid`,`data`,`eval`,`filesystem`,`inline`,`trusted-types-policy`,`trusted-types-sink`,`wasm-eval`])})))()}function Fe({origin:e,isStaging:t=!1}={}){return`${e??(t?`https://staging-web-sandbox.oaiusercontent.com`:`https://web-sandbox.oaiusercontent.com`)}?${t?`unsafeSkipTargetOriginCheck=true`:``}`}function Ie(){return(Ie=e((()=>{V()})))()}function Le(e){let t=(0,"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/code-block-execution-a408bd206201.js",
+    "offset": 1776,
+    "snippet": "NNING_CODE`,e}({})})))()}function je({disableNetworkRequests:e,domains:t,additionalResourceDomains:n=[],unsafeAllowAllNetworkRequests:r}){return e?{disableNetworkRequests:!0,resourceDomains:[],connectDomains:[],isTrusted:!1}:r?null:{connectDomains:t,resourceDomains:[...t,...n],isTrusted:!1}}function Me(e){return Ne.has(e)?null:new URL(e).origin}var Ne;function Pe(){return(Pe=e((()=>{Ne=new Set([`blob`,`c`,`cid`,`data`,`eval`,`filesystem`,`inline`,`trusted-types-policy`,`trusted-types-sink`,`wasm-eval`])})))()}function Fe({origin:e,isStaging:t=!1}={}){return`${e??(t?`https://staging-web-sandbox.oaiusercontent.com`:`https://web-sandbox.oaiusercontent.com`)}?${t?`unsafeSkipTargetOriginCheck=true`:``}`}function Ie(){return(Ie=e((()=>{V()})))()}function Le(e){let t=(0,Re.c)(34),{className:n,disabled:r,isRunning:a,isShowingOutput:o,showTooltip:"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/code-block-execution-a408bd206201.js",
+    "offset": 14024,
+    "snippet": ".accountId||t.userId!==this.policy.userId)this.update({unavailable:!0}),this.dispose();else if(this.policy.networkAccessEnabled&&!t.networkAccessEnabled||this.policy.csp?.connectDomains?.some(e=>!t.csp?.connectDomains?.includes(e))||this.policy.csp?.resourceDomains?.some(e=>!t.csp?.resourceDomains?.includes(e))){let e=this.state.isRunning||this.state.previewReady&&this.lastRun?.input.language!==`python`?this.lastRun:null;this.policy=t;let n=++this.runGeneration;this.cancelStartup?.(),this.operation=null;let r=this.releaseFrame(!1);this.update({isRunning:!1,isStopping:!1,previewReady:!1,networkRequests:[]}),r.then(()=>{if(e!=null&&this.isCurrentRun(n))return this.run(e.input,e.isEdited)})}});if(!this.isCurrentRun(e))return r(),null;this.stopObservingPolicy=r}let i=await this.connect(JSON.stringify([r.accountId,r.userId,n.hostId,n.browserCo"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/code-block-execution-a408bd206201.js",
+    "offset": 14057,
+    "snippet": "y.userId)this.update({unavailable:!0}),this.dispose();else if(this.policy.networkAccessEnabled&&!t.networkAccessEnabled||this.policy.csp?.connectDomains?.some(e=>!t.csp?.connectDomains?.includes(e))||this.policy.csp?.resourceDomains?.some(e=>!t.csp?.resourceDomains?.includes(e))){let e=this.state.isRunning||this.state.previewReady&&this.lastRun?.input.language!==`python`?this.lastRun:null;this.policy=t;let n=++this.runGeneration;this.cancelStartup?.(),this.operation=null;let r=this.releaseFrame(!1);this.update({isRunning:!1,isStopping:!1,previewReady:!1,networkRequests:[]}),r.then(()=>{if(e!=null&&this.isCurrentRun(n))return this.run(e.input,e.isEdited)})}});if(!this.isCurrentRun(e))return r(),null;this.stopObservingPolicy=r}let i=await this.connect(JSON.stringify([r.accountId,r.userId,n.hostId,n.browserConversationId??n.conversationId]))"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/html-preview-document-300a529f52d0.js",
+    "offset": 476,
+    "snippet": "ca55.js\";import{n as r,p as i}from\"./visualization-sandbox-config-ba8f31e9f120.js\";var a,o,s;function c(){return(c=e((()=>{i(),n(),a=`<!--__INLINE_VISUALIZATION_FRAGMENT__-->`,o={requiresReadySignal:!1,hasPaintGutter:!1,inlineMaxHeight:600,csp:{...r,resourceDomains:[...r.resourceDomains,`https://cdn.tailwindcss.com`,`https://images.openai.com`]},async buildHtml(e,n,r){let{getVisualizationSandboxHtml:i}=await t(async()=>{let{getVisualizationSandboxHtml:e}=await import(`./visualization-sandbox-html-d964b8a795f2.js`);return{getVisualizationSandboxHtml:e}},__vite__mapDeps([0,1]),import.meta.url),o=r.replace(/[^a-zA-Z0-9-]/g,``)||`en`,s;if(/<!doctype\\b|<html[\\s>]/i.test(e)){let t=e.match(/<\\/body\\s*>(?=\\s*(?:<\\/html\\s*>)?\\s*$)/i)??e.match(/<\\/html\\s*>\\s*$/i);if(t?.index==null)s=`${e}\\n${a}`;else{let n=t.index;s=[e.slice(0,n),a,e.slice(n)].join"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/html-preview-document-300a529f52d0.js",
+    "offset": 498,
+    "snippet": ",p as i}from\"./visualization-sandbox-config-ba8f31e9f120.js\";var a,o,s;function c(){return(c=e((()=>{i(),n(),a=`<!--__INLINE_VISUALIZATION_FRAGMENT__-->`,o={requiresReadySignal:!1,hasPaintGutter:!1,inlineMaxHeight:600,csp:{...r,resourceDomains:[...r.resourceDomains,`https://cdn.tailwindcss.com`,`https://images.openai.com`]},async buildHtml(e,n,r){let{getVisualizationSandboxHtml:i}=await t(async()=>{let{getVisualizationSandboxHtml:e}=await import(`./visualization-sandbox-html-d964b8a795f2.js`);return{getVisualizationSandboxHtml:e}},__vite__mapDeps([0,1]),import.meta.url),o=r.replace(/[^a-zA-Z0-9-]/g,``)||`en`,s;if(/<!doctype\\b|<html[\\s>]/i.test(e)){let t=e.match(/<\\/body\\s*>(?=\\s*(?:<\\/html\\s*>)?\\s*$)/i)??e.match(/<\\/html\\s*>\\s*$/i);if(t?.index==null)s=`${e}\\n${a}`;else{let n=t.index;s=[e.slice(0,n),a,e.slice(n)].join(`\n`)}}else s=`<!docty"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/inline-impl-948590615a72.js",
+    "offset": 33746,
+    "snippet": "rder-slate-300,.border-gray-300,.border-zinc-300,.border-neutral-300,.border-blue-200,.border-blue-300){border-color:var(--border-medium)}`})))()}function I(e,t){let r=e===`open`?N:le;return{requiresReadySignal:!0,csp:{...T,disableNetworkRequests:!t,resourceDomains:t?[...T.resourceDomains,`https://cdn.tailwindcss.com`,`https://images.openai.com`]:[]},updateHtml(e,t){return e.setAdditionalGlobals({additionalGlobals:{__appBlockStream:t}})},updateDisplayMode(e,t){return e.setAdditionalGlobals({additionalGlobals:{__appBlockSurface:t===`fullscreen`?`stage`:`inline`}})},async buildHtml(i,a,o){let{getVisualizationSandboxHtml:s}=await n(async()=>{let{getVisualizationSandboxHtml:e}=await import(`./visualization-sandbox-html-d964b8a795f2.js`);return{getVisualizationSandboxHtml:e}},__vite__mapDeps([0,1]),import.meta.url);if(/<!doctype\\b|<html[\\s>]/i"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/inline-impl-948590615a72.js",
+    "offset": 33770,
+    "snippet": "ray-300,.border-zinc-300,.border-neutral-300,.border-blue-200,.border-blue-300){border-color:var(--border-medium)}`})))()}function I(e,t){let r=e===`open`?N:le;return{requiresReadySignal:!0,csp:{...T,disableNetworkRequests:!t,resourceDomains:t?[...T.resourceDomains,`https://cdn.tailwindcss.com`,`https://images.openai.com`]:[]},updateHtml(e,t){return e.setAdditionalGlobals({additionalGlobals:{__appBlockStream:t}})},updateDisplayMode(e,t){return e.setAdditionalGlobals({additionalGlobals:{__appBlockSurface:t===`fullscreen`?`stage`:`inline`}})},async buildHtml(i,a,o){let{getVisualizationSandboxHtml:s}=await n(async()=>{let{getVisualizationSandboxHtml:e}=await import(`./visualization-sandbox-html-d964b8a795f2.js`);return{getVisualizationSandboxHtml:e}},__vite__mapDeps([0,1]),import.meta.url);if(/<!doctype\\b|<html[\\s>]/i.test(i)){let e=/<body\\b"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/public-mcp-widget-3c827f6d4229.js",
+    "offset": 1058,
+    "snippet": "dget resource`);return{resource:s,resourceIdentity:c,widget:{html:l.html,name:``,logo_url:null,logo_url_dark:null,csp:{base_uri_domains:l.csp.baseUriDomains,connect_domains:l.csp.connectDomains,frame_domains:l.csp.frameDomains,resource_domains:l.csp.resourceDomains,redirect_domains:l.redirectDomains},domain:l.widgetDomain,prefers_border:l.prefersBorder,permissions:{camera:l.permissions?.camera!=null,microphone:l.permissions?.microphone!=null,geolocation:l.permissions?.geolocation!=null,clipboardWrite:l.permissions?.clipboardWrite!=null},height_hint:l.heightHint,width_hint:l.widthHint,fit_width:l.fitWidth}}}async function C(e,{accountId:t,connectorId:i,linkId:o,uri:s,productContext:u,signal:d}){let h=e.get(m),g=new AbortController,_=d==null?g.signal:AbortSignal.any([g.signal,d]),v=e=>h!=null&&e.get(c)===t&&e.get(m)===h,y=()=>{if(_.throwIfA"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 4984,
+    "snippet": "ations/sandbox-proxy-ready`),params:_({})}),D=_({connectDomains:h(v()).optional().describe(`Origins for network requests (fetch/XHR/WebSocket).\n\n- Maps to CSP \\`connect-src\\` directive\n- Empty or omitted → no network connections (secure default)`),resourceDomains:h(v()).optional().describe(\"Origins for static resources (images, scripts, stylesheets, fonts, media).\\n\\n- Maps to CSP `img-src`, `script-src`, `style-src`, `font-src`, `media-src` directives\\n- Wildcard subdomains supported: `https://*.example.com`\\n- Empty or omitted → no network resources (secure default)\"),frameDomains:h(v()).optional().describe(\"Origins for nested iframes.\\n\\n- Maps to CSP `frame-src` directive\\n- Empty or omitted → no nested iframes allowed (`frame-src 'none'`)\"),baseUriDomains:h(v()).optional().describe(\"Allowed base URIs for the document.\\n\\n- Maps"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 17989,
+    "snippet": "let t=r.htmlFallback;return t?.html==null?e?{kind:`html`,renderData:null}:{kind:`fallback`}:{kind:`html`,renderData:t}}return e?{kind:`html`,renderData:null}:{kind:`dil`,source:r.source}}function le(e){let t=e?.ui?.csp,n=e?.[`openai/widgetCSP`],r=t?.resourceDomains??n?.resourceDomains??n?.resource_domains??[],i=t?.frameDomains??n?.frameDomains??n?.frame_domains??[];return{baseUriDomains:t?.baseUriDomains??n?.baseUriDomains??n?.base_uri_domains??[],connectDomains:[...new Set([...t?.connectDomains??n?.connectDomains??n?.connect_domains??[],...r])],frameDomains:i,includeDefaultDomains:!1,isTrusted:t!=null||n!=null,resourceDomains:r}}function z(e,t,n){return[...new Set(e.flatMap(e=>{let r=U(e,t,n);return r==null?[]:[r]}))]}function B(e){return e.endsWith(`.internal.api.openai.org`)||e.endsWith(`.extapps.openai.org`)}function V(e){return!1}fun"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 18009,
+    "snippet": ";return t?.html==null?e?{kind:`html`,renderData:null}:{kind:`fallback`}:{kind:`html`,renderData:t}}return e?{kind:`html`,renderData:null}:{kind:`dil`,source:r.source}}function le(e){let t=e?.ui?.csp,n=e?.[`openai/widgetCSP`],r=t?.resourceDomains??n?.resourceDomains??n?.resource_domains??[],i=t?.frameDomains??n?.frameDomains??n?.frame_domains??[];return{baseUriDomains:t?.baseUriDomains??n?.baseUriDomains??n?.base_uri_domains??[],connectDomains:[...new Set([...t?.connectDomains??n?.connectDomains??n?.connect_domains??[],...r])],frameDomains:i,includeDefaultDomains:!1,isTrusted:t!=null||n!=null,resourceDomains:r}}function z(e,t,n){return[...new Set(e.flatMap(e=>{let r=U(e,t,n);return r==null?[]:[r]}))]}function B(e){return e.endsWith(`.internal.api.openai.org`)||e.endsWith(`.extapps.openai.org`)}function V(e){return!1}function H(){return!1}f"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 18358,
+    "snippet": "eturn{baseUriDomains:t?.baseUriDomains??n?.baseUriDomains??n?.base_uri_domains??[],connectDomains:[...new Set([...t?.connectDomains??n?.connectDomains??n?.connect_domains??[],...r])],frameDomains:i,includeDefaultDomains:!1,isTrusted:t!=null||n!=null,resourceDomains:r}}function z(e,t,n){return[...new Set(e.flatMap(e=>{let r=U(e,t,n);return r==null?[]:[r]}))]}function B(e){return e.endsWith(`.internal.api.openai.org`)||e.endsWith(`.extapps.openai.org`)}function V(e){return!1}function H(){return!1}function U(e,t,n){let r=e.trim();if(r.length===0||K.test(r))return null;if(r===`blob:`||r===`data:`)return r;let i=r.replace(G,`$1*`),a=/^[a-z][a-z0-9+.-]*:\\/\\//i.test(i)?i:`https://${i}`,o;try{o=new URL(a)}catch{return null}let s=n&&H()&&o.hostname===`localhost`&&(o.protocol===`http:`||t&&o.protocol===`ws:`);if(!(o.protocol===`https:`||t&&o.protoc"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 19809,
+    "snippet": "on:X.optional(),clipboardWrite:X.optional()}),Q=_({_meta:_({\"openai/widgetCSP\":_({baseUriDomains:q.optional(),base_uri_domains:q.optional(),connectDomains:Y.optional(),connect_domains:Y.optional(),frameDomains:q.optional(),frame_domains:q.optional(),resourceDomains:J.optional(),resource_domains:J.optional(),redirect_domains:q.optional()}).strip().optional(),\"openai/widgetDomain\":v().optional(),\"openai/widgetHeightHint\":r().positive().optional().catch(void 0),\"openai/widgetWidthHint\":r().positive().optional().catch(void 0),\"openai/widgetFitWidth\":b().optional().catch(void 0),\"openai/widgetShowCodexWidgetInline\":b().optional(),\"openai/widgetHideAttribution\":b().optional().catch(void 0),\"openai/widgetMinFrameHeight\":r().nonnegative().optional().catch(void 0),\"openai/widgetPrefersBorder\":b().optional(),\"openai/ui\":_({availableDisplayModes:h(w"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 20564,
+    "snippet": "ch(void 0),\"openai/widgetPrefersBorder\":b().optional(),\"openai/ui\":_({availableDisplayModes:h(w).optional(),preferredDisplayMode:w.optional()}).optional(),ui:_({csp:_({baseUriDomains:q.optional(),connectDomains:Y.optional(),frameDomains:q.optional(),resourceDomains:J.optional()}).strip().optional(),domain:v().optional(),prefersBorder:b().optional(),permissions:Z.optional().catch(void 0)}).strip().optional()}).strip().optional(),mimeType:v().optional().catch(void 0),text:v().optional().catch(void 0)}).strip()})))()}export{se as a,I as c,B as i,L as l,R as n,V as o,$ as r,N as s,ce as t};\n//# sourceMappingURL=resource-104414a99f7e.js.map"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/visualization-sandbox-config-ba8f31e9f120.js",
+    "offset": 1997,
+    "snippet": "://esm.sh`,`https://fonts.bunny.net`,`https://fonts.googleapis.com`,`https://fonts.gstatic.com`,`https://unpkg.com`],y=[`blob:`,`data:`,...v],b={baseUriDomains:[],connectDomains:[`blob:`,`data:`],frameDomains:[],includeDefaultDomains:!1,isTrusted:!0,resourceDomains:y},x=/^(charts|widgets)\\/([\\w-][\\w.+-]*)\\/([\\w-][\\w.-]*)\\.js(?:[?#].*)?$/,S=new Set([`1.0.47`,`1c8383a7df79e8f31436638b38d4c8be8fcfd768eb7cb8c1bee2caa1f0bed385`,`363d845378004f630eec5281a686aa89ba02d7580c0e1b281406a98555b95971`,`4b0bb0520911026a25e30f1d903f3fe77c27d842660b08802558ca2cfac9f04d`,`5276bbd1d5442293b9d818091d122b9c5aba2b1ca029010397654afe6b394ff4`,`638570209306068d86c043de3c3b55d36b9b4b2750dd83fb5e43d101b0961107`,`76f43e6bd74a23456a939bd9419647edacb3c93f68a80a13ca5d05c938977e76`,`869b4a6b99419e1a3936b7be59ad3817012e52cfb1cfc7fe14130854e3126542`,`b6df51f66d88821b96f3"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/visualization-standalone-document-e6d4109f7c09.js",
+    "offset": 83327,
+    "snippet": "eAll(`<\\/script`,`<\\\\/script`)}<\\/script>\n</body>\n</html>\n`}function g(e){return e.replaceAll(`&`,`&amp;`).replaceAll(`<`,`&lt;`).replaceAll(`>`,`&gt;`).replaceAll(`\"`,`&quot;`)}var _,v,y;function b(){return(b=e((()=>{c(),u(),f(),n(),a(),r(),m(),_=t.resourceDomains.join(` `),v=[`default-src 'none'`,`script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' ${_}`,`style-src 'unsafe-inline' ${_}`,`img-src ${_}`,`font-src ${_}`,`media-src ${_}`,`worker-src blob:`,`connect-src blob: data:`,`frame-src 'none'`,`object-src 'none'`,`base-uri 'none'`,`form-action 'none'`].join(`; `),y=v.replace(`frame-src 'none'`,`frame-src 'self'`)})))()}b();export{h as getStandaloneVisualizationHtml};\n//# sourceMappingURL=visualization-standalone-document-e6d4109f7c09.js.map"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/wallet-onboarding-announcement-content-6f729f48a524.js",
+    "offset": 28869,
+    "snippet": ",`https://vgs-collect-keeper.apps.verygood.systems`,`https://*.verygoodproxy.com`],frameDomains:[`https://js.verygoodvault.com`,`https://js3.verygoodvault.com`,`https://vgs-collect-keeper.apps.verygood.systems`],includeDefaultDomains:!1,isTrusted:!0,resourceDomains:[`https://js.verygoodvault.com`,`https://js3.verygoodvault.com`,`https://vgs-collect-keeper.apps.verygood.systems`]},je=`https://js.verygoodvault.com/vgs-collect/3.2.2/vgs-collect.js`,Me=15e3})))()}function Pe(e){let t=(0,Ze.c)(6),n;t[0]===e.enrollmentView?n=t[1]:(n=L({view:e.enrollmentView}),t[0]=e.enrollmentView,t[1]=n);let r=n,i=ie(R,r),a;return t[2]!==r||t[3]!==i||t[4]!==e?(a=i==null?null:(0,Qe.jsx)(Fe,{...e,resourceIdentity:{context:r,identity:i}},N([i])),t[2]=r,t[3]=i,t[4]=e,t[5]=a):a=t[5],a}function Fe(e){let t=(0,Ze.c)(87),{active:n,enrollmentAttempt:r,enrollmentView:i,"
+  },
+  {
+    "needle": "resourceDomains",
+    "file": "webview/assets/widget-9db463e435db.js",
+    "offset": 83985,
+    "snippet": ".includes(`microphone`)?{}:void 0,geolocation:r.includes(`geolocation`)?{}:void 0,clipboardWrite:r.includes(`clipboard-write`)?{}:void 0},csp:D==null?void 0:{baseUriDomains:D.baseUriDomains,connectDomains:D.connectDomains,frameDomains:D.frameDomains,resourceDomains:D.resourceDomains}}:void 0},hostContext:E,hostInfo:sc(V().get(Vt).data?.version),globalSurface:P},safeArea:re,theme:y,toolInput:b,toolOutput:x,toolResponseMetadata:ee,userAgent:w,viewParams:v,widgetId:h,widgetState:_}),k=!1;for await(let t of ae){let n=V().get(oi,S)?.sandboxError;if(l.signal.aborted||al(n))break;if(ur.safeParse(t).success)return;if(Un.safeParse(t).success)Fr(t,ui()),di(Dn.CHATGPT_ECOSYSTEM_WIDGET_ERROR_SOURCE_SANDBOX_EXECUTION);else if(ci.safeParse(t).success)throw Error(`The MCP app sandbox execution failed.`);if(k||!fa.safeParse(t).success)continue;k=!0;let{d"
+  },
+  {
+    "needle": "resource_domains",
+    "file": "webview/assets/chatgpt-ecosystem-widget-resource-d3135d189e9c.js",
+    "offset": 803,
+    "snippet": "e.widget.available_display_modes??void 0,preferredDisplayMode:e.widget.preferred_display_mode??void 0},\"openai/widgetCSP\":t==null?void 0:{base_uri_domains:t.base_uri_domains??[],connect_domains:t.connect_domains??[],frame_domains:t.frame_domains??[],resource_domains:t.resource_domains??[]},\"openai/widgetHeightHint\":n??void 0,\"openai/widgetMinFrameHeight\":b(e),\"openai/widgetDomain\":e.widget.domain??void 0,\"openai/widgetPrefersBorder\":i??!1},mimeType:`text/html+skybridge`,text:r,uri:e.request.template}]},o=h(a);if(o?.kind!==`html`)throw Error(`The app returned an unsupported widget resource.`);let s=e.widget.inline_frame_padding;return{...o,inlineFramePadding:s==null?void 0:{blockStart:s.block_start,blockEnd:s.block_end,inlineStart:s.inline_start,inlineEnd:s.inline_end},resourceKey:e.resourceKey,resourceQuery:e.resourceQuery,widget:e.widget"
+  },
+  {
+    "needle": "resource_domains",
+    "file": "webview/assets/chatgpt-ecosystem-widget-resource-d3135d189e9c.js",
+    "offset": 822,
+    "snippet": "display_modes??void 0,preferredDisplayMode:e.widget.preferred_display_mode??void 0},\"openai/widgetCSP\":t==null?void 0:{base_uri_domains:t.base_uri_domains??[],connect_domains:t.connect_domains??[],frame_domains:t.frame_domains??[],resource_domains:t.resource_domains??[]},\"openai/widgetHeightHint\":n??void 0,\"openai/widgetMinFrameHeight\":b(e),\"openai/widgetDomain\":e.widget.domain??void 0,\"openai/widgetPrefersBorder\":i??!1},mimeType:`text/html+skybridge`,text:r,uri:e.request.template}]},o=h(a);if(o?.kind!==`html`)throw Error(`The app returned an unsupported widget resource.`);let s=e.widget.inline_frame_padding;return{...o,inlineFramePadding:s==null?void 0:{blockStart:s.block_start,blockEnd:s.block_end,inlineStart:s.inline_start,inlineEnd:s.inline_end},resourceKey:e.resourceKey,resourceQuery:e.resourceQuery,widget:e.widget,appIcon:{alt:e.wid"
+  },
+  {
+    "needle": "resource_domains",
+    "file": "webview/assets/public-mcp-widget-3c827f6d4229.js",
+    "offset": 1035,
+    "snippet": "app did not return a widget resource`);return{resource:s,resourceIdentity:c,widget:{html:l.html,name:``,logo_url:null,logo_url_dark:null,csp:{base_uri_domains:l.csp.baseUriDomains,connect_domains:l.csp.connectDomains,frame_domains:l.csp.frameDomains,resource_domains:l.csp.resourceDomains,redirect_domains:l.redirectDomains},domain:l.widgetDomain,prefers_border:l.prefersBorder,permissions:{camera:l.permissions?.camera!=null,microphone:l.permissions?.microphone!=null,geolocation:l.permissions?.geolocation!=null,clipboardWrite:l.permissions?.clipboardWrite!=null},height_hint:l.heightHint,width_hint:l.widthHint,fit_width:l.fitWidth}}}async function C(e,{accountId:t,connectorId:i,linkId:o,uri:s,productContext:u,signal:d}){let h=e.get(m),g=new AbortController,_=d==null?g.signal:AbortSignal.any([g.signal,d]),v=e=>h!=null&&e.get(c)===t&&e.get(m)=="
+  },
+  {
+    "needle": "resource_domains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 18029,
+    "snippet": "l?e?{kind:`html`,renderData:null}:{kind:`fallback`}:{kind:`html`,renderData:t}}return e?{kind:`html`,renderData:null}:{kind:`dil`,source:r.source}}function le(e){let t=e?.ui?.csp,n=e?.[`openai/widgetCSP`],r=t?.resourceDomains??n?.resourceDomains??n?.resource_domains??[],i=t?.frameDomains??n?.frameDomains??n?.frame_domains??[];return{baseUriDomains:t?.baseUriDomains??n?.baseUriDomains??n?.base_uri_domains??[],connectDomains:[...new Set([...t?.connectDomains??n?.connectDomains??n?.connect_domains??[],...r])],frameDomains:i,includeDefaultDomains:!1,isTrusted:t!=null||n!=null,resourceDomains:r}}function z(e,t,n){return[...new Set(e.flatMap(e=>{let r=U(e,t,n);return r==null?[]:[r]}))]}function B(e){return e.endsWith(`.internal.api.openai.org`)||e.endsWith(`.extapps.openai.org`)}function V(e){return!1}function H(){return!1}function U(e,t,n){let"
+  },
+  {
+    "needle": "resource_domains",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 19838,
+    "snippet": "e:X.optional()}),Q=_({_meta:_({\"openai/widgetCSP\":_({baseUriDomains:q.optional(),base_uri_domains:q.optional(),connectDomains:Y.optional(),connect_domains:Y.optional(),frameDomains:q.optional(),frame_domains:q.optional(),resourceDomains:J.optional(),resource_domains:J.optional(),redirect_domains:q.optional()}).strip().optional(),\"openai/widgetDomain\":v().optional(),\"openai/widgetHeightHint\":r().positive().optional().catch(void 0),\"openai/widgetWidthHint\":r().positive().optional().catch(void 0),\"openai/widgetFitWidth\":b().optional().catch(void 0),\"openai/widgetShowCodexWidgetInline\":b().optional(),\"openai/widgetHideAttribution\":b().optional().catch(void 0),\"openai/widgetMinFrameHeight\":r().nonnegative().optional().catch(void 0),\"openai/widgetPrefersBorder\":b().optional(),\"openai/ui\":_({availableDisplayModes:h(w).optional(),preferredDisplay"
+  },
+  {
+    "needle": "sandbox-resource-ready",
+    "file": "webview/assets/resource-104414a99f7e.js",
+    "offset": 12081,
+    "snippet": "tandard MCP resource types.`)})}),_({method:i(`ui/message`),params:_({role:i(`user`).describe(`Message role, currently only \"user\" is supported.`),content:h(l).describe(`Message content blocks (text, image, etc.).`)})}),_({method:i(`ui/notifications/sandbox-resource-ready`),params:_({html:v().describe(`HTML content to load into the inner iframe.`),sandbox:v().optional().describe(`Optional override for the inner iframe's sandbox attribute.`),csp:D.optional().describe(`CSP configuration from resource metadata.`),permissions:O.optional().describe(`Sandbox permissions from resource metadata.`)})}),_({method:i(`ui/notifications/tool-result`),params:te.describe(`Standard MCP tool execution result.`)}),F=_({toolInfo:_({id:n.optional().describe(`JSON-RPC id of the tools/call request.`),tool:re.describe(`Tool definition including name, inputSchema"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": ".vite/build/early-bootstrap-491-e75c34fa1b2c0832.js",
+    "offset": 3651482,
+    "snippet": ".unsubscribe()).finally(()=>{this.#ov=!1})))}}class eb0 extends el.TF{getFontFamilies(){return eo.systemPreferences.getFontFamilies()}}let eb1=\"data:text/html;charset=utf-8,\"+encodeURIComponent('<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src \\'none\\'; img-src data: https: http:; style-src \\'unsafe-inline\\'\"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}#card{position:relative;width:100%;height:100%;overflow:hidden}#snapshot{transform-origin:top left}</style><div id=\"card\"><div id=\"snapshot\"></div></div>');class eb2{#aW;#h=!1;#ok=null;#oC;#oI=null;#ox=Promise.resolve(!0);#oT=0;#o_=null;#oP=!1;#oR=null;#oE=null;#oA=null;constructor(){this.#aW=new eo.BrowserWindow({title:\"\",width:1,height:1,frame:!1,transparent:!0,backgroundColor:\"#00000000\",alway"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": ".vite/build/early-bootstrap-491-e75c34fa1b2c0832.js",
+    "offset": 4261523,
+    "snippet": "   <button id=\"ok\" type=\"button\" autofocus>${Dl()(s)}</button>\n    </footer>`,c=null==s?\"\":`\n    document.getElementById(\"ok\").addEventListener(\"click\", closeDialog);`;return`<!doctype html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'; script-src 'unsafe-inline'\">\n  <title>${Dl()(a)}</title>\n  <style>\n    :root {\n      color-scheme: ${i?\"dark\":\"light\"};\n${i?eAg:eAf}\n    }\n\n    * {\n      box-sizing: border-box;\n    }\n\n    body {\n      margin: 0;\n      width: 100vw;\n      overflow: hidden;\n      background: var(--background);\n      color: var(--text);\n      font-family: \"Segoe UI\", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;\n      font-size: 12px;\n    }\n\n    ::selection {\n      background: var(--selection);\n      color"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": ".vite/build/early-bootstrap-491-e75c34fa1b2c0832.js",
+    "offset": 4287475,
+    "snippet": "on was aborted\":String(e.reason));return t.name=\"AbortError\",t}function eA8(e,t,r){return Math.max(t,Math.min(e,r))}var eA9=r(73891);let eA7=\"data:text/html;charset=utf-8,\"+encodeURIComponent(`\n<!doctype html><meta charset=\"utf-8\">\n<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; style-src 'unsafe-inline'\">\n<style>\nhtml,body,svg{margin:0;width:100%;height:100%;overflow:hidden;background:transparent}\ng{stroke:GrayText;stroke-width:1;opacity:.65}\npath{fill:none}\n#y2{display:none}\n</style>\n<svg xmlns=\"http://www.w3.org/2000/svg\" aria-hidden=\"true\">\n<g id=\"x0\" data-snaps-x=\"0 3 5 2 7\"><path/><path/><path/><path/></g>\n<g id=\"x1\" data-snaps-x=\"1 4 6 2 8\"><path/><path/><path/><path/></g>\n<g id=\"y0\" data-snaps-y=\"0 3 5 6 8\"><path/><path/><path/></g>\n<g id=\"y1\" data-snaps-y=\"1 4 7 6 9\"><path/><path/><path/></g>\n<g id=\"y2\" da"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": ".vite/build/early-bootstrap-491-e75c34fa1b2c0832.js",
+    "offset": 4381180,
+    "snippet": "artition(o.partition);!function(e,{applicationNetwork:t,getSandboxState:r}){uI.add(e),u_.has(e)||(u_.add(e),e.protocol.handle(dT,async e=>{let t=await ug(e);return null==t?new Response(null,{status:404}):new Response(await t.arrayBuffer(),{headers:{\"Content-Security-Policy\":t.headers.get(\"Content-Security-Policy\")??\"\",\"Content-Type\":t.headers.get(\"Content-Type\")??\"application/octet-stream\",\"Permissions-Policy\":t.headers.get(\"Permissions-Policy\")??\"\",\"X-Content-Type-Options\":\"nosniff\"},status:t.status})}),e.setPermissionRequestHandler((e,t,n,i)=>{let s=r(e.id);null!=s&&uP(t,i.requestingUrl,s)||\"clipboard-sanitized-write\"===t&&null!=s&&dA(e.getURL())===s.origin&&ud(e)?n(!0):(ur().info(\"mcp_app_sandbox.permission_blocked\",{safe:{permission:t},sensitive:{guestWebContentsId:e.id,sandboxId:s?.sandboxId}}),n(!1))}),e.setPermissionCheckHandler((e"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": ".vite/build/early-bootstrap-491-e75c34fa1b2c0832.js",
+    "offset": 4381220,
+    "snippet": "cationNetwork:t,getSandboxState:r}){uI.add(e),u_.has(e)||(u_.add(e),e.protocol.handle(dT,async e=>{let t=await ug(e);return null==t?new Response(null,{status:404}):new Response(await t.arrayBuffer(),{headers:{\"Content-Security-Policy\":t.headers.get(\"Content-Security-Policy\")??\"\",\"Content-Type\":t.headers.get(\"Content-Type\")??\"application/octet-stream\",\"Permissions-Policy\":t.headers.get(\"Permissions-Policy\")??\"\",\"X-Content-Type-Options\":\"nosniff\"},status:t.status})}),e.setPermissionRequestHandler((e,t,n,i)=>{let s=r(e.id);null!=s&&uP(t,i.requestingUrl,s)||\"clipboard-sanitized-write\"===t&&null!=s&&dA(e.getURL())===s.origin&&ud(e)?n(!0):(ur().info(\"mcp_app_sandbox.permission_blocked\",{safe:{permission:t},sensitive:{guestWebContentsId:e.id,sandboxId:s?.sandboxId}}),n(!1))}),e.setPermissionCheckHandler((e,t,n)=>{let i=null==e?null:r(e.id);retur"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": ".vite/build/early-bootstrap-887-fa7954b0aa68776a.js",
+    "offset": 200,
+    "snippet": "\"use strict\";exports.ids=[887],exports.modules={88426(e,t,s){function r(e,t){if(a(new URL(e))){let e=new Headers(t.headers);return e.set(\"Document-Isolation-Policy\",\"isolate-and-require-corp\"),e.set(\"Content-Security-Policy\",\"frame-ancestors 'self'\"),new Response(t.body,{status:t.status,statusText:t.statusText,headers:e})}return t}function a(e){return\"app:\"===e.protocol&&\"-\"===e.host&&\"\"===e.username&&\"\"===e.password&&/^\\/assets\\/orbit-character-[a-f0-9]{16}\\/[a-f0-9]{16}\\/frame\\.html$/.test(e.pathname)}s.r(t),s.d(t,{addCharacterPreviewHeaders:()=>r,isCharacterPreviewFrameUrl:()=>a})}};\n//# sourceMappingURL=early-bootstrap-887-fa7954b0aa68776a.js.map"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/DILEntryPointComponent-848c8b15149f.js",
+    "offset": 924152,
+    "snippet": ",top:0}),fallbackLabel:new y({color:`gray-700`,font:`system 14 medium`,textAlign:`center`})}})))()}function N_e(e){return`<!doctype html><html><head><meta name=\"viewport\" content=\"width=device-width,initial-scale=1,maximum-scale=1\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; img-src data:; style-src 'unsafe-inline'\"><style>html,body{margin:0;width:100%;height:100%;overflow:hidden}img{display:block;width:100%;height:100%;object-fit:contain}</style></head><body><img alt=\"\" src=\"${`data:image/svg+xml;charset=utf-8,${encodeURIComponent(e)}`}\"></body></html>`}var xq,Sq,Cq,wq,Tq,Eq,Dq;function Oq(){return(Oq=e((()=>{v(),WK(),Le(),_(),Me(),bq(),xq=b,Sq=xq.makeNodePrototype(`view`,void 0,`CxTtgBFh_lDYwfzB`),Cq=xq.makeComponentPrototype(void 0,`HcIYk8k8jx-0y7OB`),wq=xq.makeNodePrototype(`view`,void 0,`RYxxY4lQzKit8Ya6`)"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/notebook-preview-panel-fa3aecadfc02.js",
+    "offset": 4353,
+    "snippet": ").nullable().optional(),id:_().optional(),metadata:B.optional(),outputs:m(H).optional(),source:V}).loose(),W=g({cells:m(U),metadata:B.optional()}).loose()})))()}function xe(e){return`<!doctype html><html><head><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"${K}\"><meta name=\"color-scheme\" content=\"light dark\"><base target=\"_blank\"><style>html,body{margin:0;background:transparent;color:CanvasText;font:13px -apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif;}body{padding:12px;}img,svg,canvas,video{max-width:100%;height:auto;}table{border-collapse:collapse;}th,td{border:1px solid color-mix(in srgb, CanvasText 18%, transparent);padding:4px 6px;}</style></head><body>${e}</body></html>`}var K;function q(){return(q=e((()=>{K=[`default-src 'none'`,`base-uri 'none'`,`connect-src 'none'`,`font-src data:`,`form-action '"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/orbit-character-16ed1c7d9045dbdf/4d3311b40f55a3e2/frame.html",
+    "offset": 89,
+    "snippet": "<!doctype html>\n<html>\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta\n      http-equiv=\"Content-Security-Policy\"\n      content=\"default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'none'\"\n    />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <link rel=\"license\" href=\"THIRD_PARTY_NOTICES.txt\" />\n    <link rel=\"stylesheet\" href=\"frame.css\" />\n    <script type=\"module\" src=\"frame.mjs\"></script>\n  </head>\n  <body>\n    <canvas id=\"character\" aria-hidden=\"true\"></canvas>\n  </body>\n</html>\n"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/orbit-character-16ed1c7d9045dbdf/4d3311b40f55a3e2/nux-avatar.html",
+    "offset": 268,
+    "snippet": "tml lang=\"en\">\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <meta name=\"color-scheme\" content=\"light dark\" />\n    <title>Alfred Dot animation</title>\n    <meta\n      http-equiv=\"Content-Security-Policy\"\n      content=\"default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self'; worker-src 'self'; base-uri 'none'\"\n    />\n    <link rel=\"stylesheet\" href=\"./nux-avatar.css\" />\n    <link\n      rel=\"modulepreload\"\n      href=\"../runtime/single-thread/orbit-characters.mjs\"\n    />\n    <link rel=\"modulepreload\" href=\"./nux-playlist.mjs\" />\n    <link rel=\"modulepreload\" href=\"./avatar-framing.mjs\" />\n    <link rel=\"modulepreload\" href=\"../runtime/single-thread/orbit-enums.mjs\" />\n    <link\n      rel=\"preload\"\n      as=\"fetch\"\n      href=\"../ru"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/report-874964f4c9d5.js",
+    "offset": 1539,
+    "snippet": "8]:(v=a(i.locale),t[7]=i.locale,t[8]=v);let y,b,x;t[9]===Symbol.for(`react.memo_cache_sentinel`)?(y=(0,T.jsx)(`meta`,{charSet:`utf-8`}),b=(0,T.jsx)(`meta`,{name:`viewport`,content:`width=device-width,initial-scale=1`}),x=(0,T.jsx)(`meta`,{httpEquiv:`Content-Security-Policy`,content:`default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'`}),t[9]=y,t[10]=b,t[11]=x):(y=t[9],b=t[10],x=t[11]);let S;t[12]===s?S=t[13]:(S=(0,T.jsx)(`title`,{children:s}),t[12]=s,t[13]=S);let D;t[14]===Symbol.for(`react.memo_cache_sentinel`)?(D=(0,T.jsx)(`style`,{children:E}),t[14]=D):D=t[14];let O;t[15]===S?O=t[16]:(O=(0,T.jsxs)(`head`,{children:[y,b,x,S,D]}),t[15]=S,t[16]=O);let k;t[17]===s?k=t[18]:(k=(0,T.jsx)(`h1`,{children:s}),t[17]=s,t[18]=k);let A;t[19]===Symbol.for(`react.memo_cache_sentinel`)?(A=(0,T.jsx)(`p`,{children:(0,T.jsx)"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/runtime-76c4e77886e1.js",
+    "offset": 13677,
+    "snippet": "ntains unsafe characters`);return e}function bt(e={}){let t=globalThis.document;if(!t?.body)return null;let n=yt(e.cspNonce??vt()),r=t.createElement(`iframe`);if(r.style.display=`none`,r.srcdoc=`<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"${_t(n)}\">`,t.body.appendChild(r),!r.contentWindow)return r.remove(),null;try{return new kt(r,r.contentWindow,n)}catch(e){throw r.remove(),e}}function xt(e){let t=Object.getOwnPropertyDescriptors(e);return Object.entries(t).filter(([,e])=>e.enumerable).map(([e,t])=>{if(!(`value`in t))throw Error(`DIL cannot pass accessor properties across realms`);return[e,t.value]})}function St(e){return C in e?e.ref??null:null}function Ct(e){let t=Object.getPrototypeOf(e);return t===null||Object.getPrototypeOf(t)===null}function wt(e){return e==null||typeof e==`string`||type"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/src-7d417fb18807.js",
+    "offset": 82937,
+    "snippet": "sage:String(t)},id:e.id,kind:`response`})}}function ol({channelId:e,html:t,token:n}){return`<!doctype html>\n<html>\n  <head>\n    <meta charset=\"utf-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />\n    <meta http-equiv=\"Content-Security-Policy\" content=\"${cl(dl)}\" />\n    <script>\n      ${Zc({channelId:e,token:n})}\n    <\\/script>\n  </head>\n  <body>\n${t}\n  </body>\n</html>`}function sl(){return globalThis.crypto?.randomUUID?.()??Math.random().toString(36).slice(2)}function cl(e){return e.replace(/&/g,`&amp;`).replace(/\"/g,`&quot;`).replace(/</g,`&lt;`)}var ll,ul,dl,fl;function pl(){return(pl=e((()=>{ll=h(),Ka(),nl(),ul=i(),dl=[`default-src 'none'`,`base-uri 'none'`,`object-src 'none'`,`form-action 'none'`,`frame-src 'none'`,`script-src 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://esm.sh htt"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/visualization-standalone-document-e6d4109f7c09.js",
+    "offset": 81774,
+    "snippet": " var(--destructive);\n}\n`,title:a,share:c}){let u=`<!doctype html>\n<html lang=\"${g(t)}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"referrer\" content=\"no-referrer\">\n<meta http-equiv=\"Content-Security-Policy\" content=\"${v}\">\n<title>${g(a)}</title>\n</head>\n<body>\n<script type=\"application/json\" id=\"codex-visualization-widget-state\">__CODEX_VISUALIZATION_WIDGET_STATE__<\\/script>\n<script>${l.replaceAll(`<\\/script`,`<\\\\/script`)}<\\/script>\n${o(e,{treatment:n,lockDocumentOverflow:!1,reportToHost:!1,styles:`${r}\\nhtml>body{padding:0}`})}\n</body>\n</html>\n`,f=`<iframe id=\"codex-visualization\" sandbox=\"allow-scripts\" scrolling=\"no\" referrerpolicy=\"no-referrer\" title=\"${g(a)}\" data-srcdoc=\"${g(u)}\"></iframe>`;return`<!doctype html>\n<html lang=\"${g(t)}\">\n<head>\n<meta charset=\"utf-8\">\n"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/assets/visualization-standalone-document-e6d4109f7c09.js",
+    "offset": 82506,
+    "snippet": "\"${g(a)}\" data-srcdoc=\"${g(u)}\"></iframe>`;return`<!doctype html>\n<html lang=\"${g(t)}\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n<meta name=\"referrer\" content=\"no-referrer\">\n<meta http-equiv=\"Content-Security-Policy\" content=\"${y}\">\n<title>${g(a)}</title>\n<style>:root{color-scheme:light dark;background:${i}}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;max-width:736px;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>\n${c==null?``:`<style>${r}\\n${p}</style>`}\n</head>\n<body>\n${f}\n${c==null?``:`<script type=\"application/json\" id=\"visualization-share\">${JSON.stringify(c).replaceAll(`<`,`\\\\u003c`)}<\\/script>\n<script>${s.replaceAll(`<\\/script`,`<\\\\/script`)}<\\/script>`}\n<script>${d.replaceAll(`<\\/script`,`<\\\\/script`"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/detached-window.html",
+    "offset": 184,
+    "snippet": "<!doctype html>\n<html lang=\"en\" data-build=\"<!-- PROD_BUILD_TAG_HERE -->\">\n  <head>\n    <meta name=\"referrer\" content=\"origin\" />\n    <!-- PROD_BASE_TAG_HERE -->\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src &#39;none&#39;; img-src &#39;self&#39; app: blob: data: https:; child-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com https://web-sandbox.oaiusercontent.com; frame-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com https://cdn.plaid.com https://cdn.platform.openai.com https://codepen.io https://docs.google.com/document/d/ https"
+  },
+  {
+    "needle": "Content-Security-Policy",
+    "file": "webview/index.html",
+    "offset": 184,
+    "snippet": "<!doctype html>\n<html lang=\"en\" data-build=\"<!-- PROD_BUILD_TAG_HERE -->\">\n  <head>\n    <meta name=\"referrer\" content=\"origin\" />\n    <!-- PROD_BASE_TAG_HERE -->\n    <meta http-equiv=\"Content-Security-Policy\" content=\"default-src &#39;none&#39;; img-src &#39;self&#39; app: blob: data: https:; child-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com https://web-sandbox.oaiusercontent.com; frame-src &#39;self&#39; blob: codex-sandbox://*.web-sandbox.oaiusercontent.com codex-sandbox://web-sandbox.oaiusercontent.com https://*.web-sandbox.oaiusercontent.com https://cdn.plaid.com https://cdn.platform.openai.com https://codepen.io https://docs.google.com/document/d/ https"
+  }
+]

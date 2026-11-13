@@ -1,0 +1,13 @@
+{
+  "version": "0.3.4",
+  "realInstalledService": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "repositoryCount": 12,
+  "internalWarnings": [
+    "ROOT_INSPECTION_FAILED",
+    "GIT_READ_FAILED"
+  ],
+  "offline": true,
+  "passed": true
+}

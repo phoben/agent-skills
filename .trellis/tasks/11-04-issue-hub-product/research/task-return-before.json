@@ -1,0 +1,17 @@
+{
+  "variant": "before",
+  "navigation": "stubbed",
+  "productionDataReadOnly": true,
+  "catalogInitiallyChecking": true,
+  "passed": true,
+  "milliseconds": 15572,
+  "counts": {
+    "githubIdentity": 6,
+    "githubFingerprint": 22,
+    "githubResources": 12,
+    "projectList": 1,
+    "threadRead": 1,
+    "fullRefresh": 1
+  },
+  "navigationRequests": 1
+}

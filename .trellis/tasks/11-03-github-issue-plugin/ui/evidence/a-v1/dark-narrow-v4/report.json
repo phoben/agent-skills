@@ -1,0 +1,29 @@
+[
+  {
+    "file": "page-窄窗导航.png",
+    "state": null,
+    "size": "960x680",
+    "zoom": 1,
+    "group": "窄窗导航",
+    "animationWaitMs": 0,
+    "issues": [],
+    "lint": [
+      {
+        "rule": "headingSpacing",
+        "label": "标题离上文比离下文还近",
+        "count": 1,
+        "examples": [
+          "h1#detail-title「切换仓库后，评论仍保留上一次的筛选结果」（上 9px，下 14px）"
+        ]
+      },
+      {
+        "rule": "sideStripe",
+        "label": "彩色单侧边线",
+        "count": 1,
+        "examples": [
+          "button#issue-row-184.issue-row.selected「#184 切换仓库后，评论仍保留上一次的筛选结果」（::before）"
+        ]
+      }
+    ]
+  }
+]

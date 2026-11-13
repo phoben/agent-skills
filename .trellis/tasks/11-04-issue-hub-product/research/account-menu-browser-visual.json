@@ -1,0 +1,49 @@
+{
+  "version": "0.3.3",
+  "remoteWrites": false,
+  "checks": [
+    {
+      "theme": "light",
+      "open": true,
+      "viewport": [
+        1120,
+        880
+      ],
+      "upward": true,
+      "inside": true,
+      "overflow": false,
+      "focus": "discover"
+    },
+    {
+      "theme": "dark",
+      "open": true,
+      "viewport": [
+        1120,
+        880
+      ],
+      "upward": true,
+      "inside": true,
+      "overflow": false,
+      "focus": "discover"
+    },
+    {
+      "theme": "dark",
+      "narrow": true,
+      "open": true,
+      "viewport": [
+        960,
+        680
+      ],
+      "upward": true,
+      "inside": true,
+      "overflow": false,
+      "focus": "discover"
+    }
+  ],
+  "screenshots": [
+    "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/account-menu-final-light.png",
+    "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/account-menu-final-dark.png",
+    "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/account-menu-final-narrow.png"
+  ],
+  "passed": true
+}

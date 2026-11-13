@@ -1,0 +1,19 @@
+{
+  "variant": "after",
+  "navigation": "stubbed",
+  "productionDataReadOnly": true,
+  "catalogInitiallyChecking": true,
+  "passed": true,
+  "milliseconds": 625,
+  "counts": {
+    "githubIdentity": 0,
+    "githubFingerprint": 4,
+    "githubResources": 0,
+    "projectList": 1,
+    "threadRead": 1,
+    "fullRefresh": 0
+  },
+  "navigationRequests": 1,
+  "associationMilliseconds": 916,
+  "associationVerified": true
+}

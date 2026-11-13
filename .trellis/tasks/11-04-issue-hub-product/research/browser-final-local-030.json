@@ -1,0 +1,44 @@
+{
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": "Selector #overlay-root [data-action=\"close-overlay\"] matched 2 elements (2 visible, 0 hidden). Candidates: 1. button \"关闭窗口\" (visible); 2. button \"关闭\" (visible). Use a current snapshot ref or a more specific role, text, or CSS selector.",
+  "testDraftCleared": true,
+  "diagnostics": [
+    {
+      "label": "Windows",
+      "status": "ok"
+    },
+    {
+      "label": "Node.js",
+      "status": "ok"
+    },
+    {
+      "label": "Git",
+      "status": "ok"
+    },
+    {
+      "label": "GitHub CLI",
+      "status": "ok"
+    },
+    {
+      "label": "Codex",
+      "status": "ok"
+    },
+    {
+      "label": "GitHub登录",
+      "status": "ok"
+    },
+    {
+      "label": "桌面项目接口",
+      "status": "ok"
+    },
+    {
+      "label": "会话身份",
+      "status": "ok"
+    },
+    {
+      "label": "本机存储",
+      "status": "ok"
+    }
+  ]
+}

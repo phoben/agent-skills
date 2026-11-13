@@ -1,0 +1,16 @@
+{
+  "version": "0.3.0",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "messagesSent": false,
+  "failure": null,
+  "result": {
+    "currentRequestRestored": true,
+    "status": "linked",
+    "sameThread": true,
+    "referenceMatches": true,
+    "originalWorkspace": true,
+    "bindingValid": true
+  },
+  "passed": true
+}

@@ -1,0 +1,25 @@
+{
+  "version": "0.3.4",
+  "realGithub": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": null,
+  "dark": {
+    "selected": "3",
+    "sourceText": "附件：暂无关联 PR：暂无",
+    "background": "rgb(33, 33, 33)",
+    "overflow": false
+  },
+  "activity": {
+    "active": "true",
+    "sourceText": "附件：暂无关联 PR：暂无",
+    "commentEditorPresent": true
+  },
+  "screenshot": "E:/Develop/agent-skills/.trellis/tasks/11-04-issue-hub-product/research/acceptance-sources-034.png",
+  "light": {
+    "sourceText": "附件：暂无关联 PR：暂无",
+    "background": "rgb(255, 255, 255)",
+    "overflow": false
+  },
+  "passed": true
+}

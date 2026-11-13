@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Issue Hub</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%23236248'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='white' stroke-width='2'/%3E%3Cpath d='M16 10v7m0 4v1' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <div id="app" class="app">
+    <div class="mobile-bar"><button id="repository-drawer" class="button" aria-haspopup="dialog">仓库</button><span id="mobile-repository"></span></div>
+    <main id="workspace" class="workspace">
+      <aside id="navigation" class="navigation" aria-label="仓库导航"></aside>
+      <section id="queue" class="queue" aria-label="Issue 队列"><div class="initial-load" role="status">正在读取仓库…</div></section>
+      <section id="detail" class="detail" aria-label="Issue 详情" hidden></section>
+    </main>
+    <footer id="statusbar" class="statusbar" aria-live="polite"></footer>
+  </div>
+  <div id="overlay-root"></div>
+  <div id="announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <noscript>请启用 JavaScript 以浏览 Issue 和保留本机草稿。</noscript>
+</body>
+</html>

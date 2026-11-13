@@ -1,0 +1,50 @@
+{
+  "realGithub": true,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "contentPrinted": false,
+  "images": [
+    {
+      "mimeType": "image/png",
+      "bytes": 194738,
+      "width": 1957,
+      "height": 811,
+      "sha256": "9bc19ca3ec7379b0d755a094f5969446d431afc51fdbe8dab7992172926dc44a",
+      "privateMetaOnly": true
+    },
+    {
+      "mimeType": "image/png",
+      "bytes": 151748,
+      "width": 1527,
+      "height": 522,
+      "sha256": "0a066b2af66c07fbf8a31249386423f46527bf65f95f1fa9fc66aa2aacd1468c",
+      "privateMetaOnly": true
+    },
+    {
+      "mimeType": "image/png",
+      "bytes": 129891,
+      "width": 890,
+      "height": 144,
+      "sha256": "9cff44852aa283f58a3819b5ceeb2509d4314f7f2593279b26441fb2c8d98079",
+      "privateMetaOnly": true
+    },
+    {
+      "mimeType": "image/png",
+      "bytes": 53102,
+      "width": 960,
+      "height": 490,
+      "sha256": "207d21321bddb7264aa19b765b3773453b328ff62ad1d06dda0b9ce15ab0e263",
+      "privateMetaOnly": true
+    }
+  ],
+  "failure": null,
+  "version": "0.3.2",
+  "csp": {
+    "connectDomains": [],
+    "resourceDomains": [
+      "data:"
+    ],
+    "frameDomains": []
+  },
+  "passed": true
+}

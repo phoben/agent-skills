@@ -1,0 +1,35 @@
+{
+  "actualUserProfileModified": false,
+  "actualUserDataModified": false,
+  "sandboxedUserDirectories": true,
+  "secondMachineVerified": false,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "failure": null,
+  "archiveSha256": "03ad7b6bf8531291e3c0a22c5db2c506041634858ac958069cab917f3b273729",
+  "version": "0.3.0",
+  "pluginFiles": 159,
+  "skillFiles": 146,
+  "skills": 10,
+  "publishedSkillsMatched": true,
+  "checkOnlyPassed": true,
+  "checkOnlyUnchanged": true,
+  "installPassed": true,
+  "installedFilesMatched": true,
+  "services": [
+    {
+      "name": "issue-hub",
+      "version": "0.3.0",
+      "tools": 8,
+      "toolsError": null
+    },
+    {
+      "name": "yg-token-usage",
+      "version": "0.3.0",
+      "tools": 3,
+      "toolsError": null
+    }
+  ],
+  "passed": true,
+  "cleaned": true
+}

@@ -1,0 +1,1 @@
+{"mcpServers":{"yg-token-usage":{"type":"stdio","command":"node","args":["${PLUGIN_ROOT}/dist/probe.cjs"]}}}

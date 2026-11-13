@@ -1,0 +1,23 @@
+{
+  "version": "0.3.3",
+  "pluginId": "yg-toolkit@yg",
+  "localCommit": "3a777ebb0cbdcba1e954ff87a9b9eca9e88bb2c5",
+  "remotePushed": false,
+  "originalSourceUpdated": true,
+  "issueTests": 291,
+  "syntaxModules": 60,
+  "targetedTests": 38,
+  "browserInteractionRounds": 3,
+  "browserViewports": ["1120x880 light", "1120x880 dark", "960x680 dark"],
+  "cacheFilesVerified": 159,
+  "issueTools": 9,
+  "tokensTools": 3,
+  "globalEntrypoints": 2,
+  "protectedStateUnchanged": true,
+  "githubWrites": false,
+  "chatCreatedOrSent": false,
+  "nativeCodexUiAutomated": false,
+  "secondWindows": "deferred-by-user",
+  "egoSpace27Finished": true,
+  "temporaryWorktreeRemoved": true
+}

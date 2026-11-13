@@ -1,0 +1,39 @@
+{
+  "repository": "phoben/aoy-erp",
+  "number": 191,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "images": [
+    {
+      "anonymous": true,
+      "status": 404,
+      "contentType": "text/plain; charset=utf-8",
+      "finalHost": "github.com"
+    },
+    {
+      "anonymous": true,
+      "status": 404,
+      "contentType": "text/plain; charset=utf-8",
+      "finalHost": "github.com"
+    },
+    {
+      "anonymous": true,
+      "status": 404,
+      "contentType": "text/plain; charset=utf-8",
+      "finalHost": "github.com"
+    },
+    {
+      "anonymous": true,
+      "status": 404,
+      "contentType": "text/plain; charset=utf-8",
+      "finalHost": "github.com"
+    }
+  ],
+  "failure": null,
+  "privateRepository": true,
+  "htmlImages": 4,
+  "renderer": {
+    "emitsImages": false,
+    "escapesImageTags": true
+  }
+}

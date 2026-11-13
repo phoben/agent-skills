@@ -1,0 +1,16 @@
+{
+  "repository": "openai/codex",
+  "remoteWrites": false,
+  "chatOpened": false,
+  "catalogSource": "controlled-read-only-adapter",
+  "inspectedIssues": 3,
+  "found": {
+    "number": 37362,
+    "url": "https://github.com/openai/codex/issues/37362",
+    "attachments": 0,
+    "normalizedPrLinks": 1,
+    "activityComplete": true
+  },
+  "failure": null,
+  "cleaned": true
+}

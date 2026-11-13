@@ -1,0 +1,19 @@
+{
+  "systemNetworkChanged": false,
+  "actualUserDataModified": false,
+  "realGhTransport": true,
+  "controlledProxyFailure": true,
+  "desktopUiVerified": false,
+  "remoteWrites": false,
+  "chatOpened": false,
+  "stages": [],
+  "failure": {
+    "code": "OFFLINE_UNCACHED",
+    "message": "当前离线，此内容尚未缓存。"
+  },
+  "version": "0.3.3",
+  "passed": false,
+  "deniedConnections": 0,
+  "localMutationCalls": [],
+  "cleaned": true
+}
