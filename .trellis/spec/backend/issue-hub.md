@@ -58,6 +58,8 @@
 
 从 0.3.8 起，待关联检查、已确认会话和历史会话返回使用现存目标工作区定位当前注册项目，并核验真实路径、发现范围及 Git remote。返回时，目标会话须匹配已确认的 threadId、cwd 和项目。缺少目标定位信息时使用整批发现。`issues.verifyContext(ctx)` 核验本次已确认的 GitHub 凭据指纹及身份缓存资格，本地任务也复核 Codex 身份。
 
+新建任务沿用目标工作区核验，只在目录不可用或缺少定位信息时回到整批发现。工作区核验与严格读取当前仓库和 Issue 并行。整次操作复用一次远端身份查询，交接前再核对凭据、仓库访问和 Codex 身份。事务一并保存请求与选中的工作区。`latest` 只恢复本机投影，用于展示和选择，实际打开必须复核。关联检查最多四路读取候选首条消息，单个候选请求失败保留部分覆盖，无法自动确认唯一关联。
+
 `thread/items/list.data`当前返回 `{turnId:string,item:ThreadItem,startedAtMs?,completedAtMs?}[]`。任务解析只解这一层官方包装，并兼容旧裸ThreadItem；外层同时自带type、缺失turnId、损坏item或未知无类型对象均HOST_PROTOCOL，不能当空且完整的页。自动检查与人工resolve共用firstUserLine，只匹配首条userMessage完整首行，不搜索代理消息、后续用户消息或任意正文内nonce。包装分页仍保留完整覆盖和重复游标保护。
 
 - confirmed 操作保存规范原请求的 `requestSignature`，与最终PATCH差量摘要分开。相同 operationId 在当前身份、仓库、对象、权限及请求内容匹配后重放成功回执，先于旧revision冲突；换对象或内容仍拒绝。旧回执无新摘要时只允许既有数据足以证明相同请求的兼容路径。

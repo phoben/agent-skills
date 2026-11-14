@@ -89,6 +89,30 @@ test('相同在途读取只执行一次身份和API链路', async t => {
   await new Promise(resolve => setImmediate(resolve)); assert.equal(counters.identity, 1); assert.equal(counters.metadata, 1);
   gate.release(); const result = await Promise.all([first, second]); assert.equal(counters.issue, 1); assert.equal(result[0].data.issue.id, result[1].data.issue.id);
 });
+
+test('编辑候选三个分页入口并行，失权后已完成的候选也不能留在缓存', async t => {
+  const { service, github, storage } = await setup(t);
+  const originalRequest = github.request, held = pause(), entered = pause();
+  const started = [];
+  github.request = async (method, path) => {
+    const kind = /\/(labels|assignees|milestones)\?/.exec(path)?.[1];
+    if (!kind) return originalRequest(method, path);
+    started.push(kind);
+    if (started.length === 3) entered.release();
+    if (kind === 'labels') throw new ProofError('PERMISSION_DENIED', '仓库权限已撤销');
+    await held.promise;
+    return { data: [], headers: {}, status: 200 };
+  };
+  const fetching = assert.rejects(service.execute('options', { repositoryKey }), { code: 'PERMISSION_DENIED' });
+  try {
+    const didEnter = await Promise.race([entered.promise.then(() => true), new Promise(resolve => setTimeout(() => resolve(false), 500).unref())]);
+    assert.ok(didEnter);
+    assert.deepEqual(started.sort(), ['assignees', 'labels', 'milestones']);
+  } finally { held.release(); }
+  await fetching;
+  assert.equal(storage.list('github.com:8', 'page').length, 0);
+  assert.equal(storage.list('github.com:8', 'repository').length, 0);
+});
 test('列宽和选仓记忆只写当前账号本机状态并校验范围', async t => {
   const { service, counters, storage } = await setup(t);
   await service.execute('read-summary', { repositoryKey, number: 1 }); const previous = { ...counters };

@@ -100,10 +100,11 @@ export async function discoverGitRepositories(directory, { gitInspector = inspec
 export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 20, discover = discoverGitRepositories, discoveryOptions = {} } = {}) {
   let state = { schemaVersion: 1, status: 'unavailable', projects: 0, roots: 0, repositories: [], warnings: [], sampledAt: null };
   let rawRepositories = [];
+  let previousNormalized = [];
   const refreshes = new Map();
   let revision = 0;
   let sourceRevision = 0;
-  async function readProjects() {
+  async function readProjects(targetId) {
     const projects = [], seen = new Set();
     let cursor = null;
     for (let page = 0; page < pageLimit; page++) {
@@ -112,6 +113,7 @@ export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 2
       for (const project of result.data) {
         requireValue(typeof project?.id === 'string' && Array.isArray(project.roots) && project.roots.every(root => typeof root?.path === 'string' && isAbsolute(root.path)), 'HOST_PROTOCOL', '项目目录格式不可识别。');
         projects.push(project);
+        if (project.id === targetId) return { projects, complete: false };
       }
       const next = result.nextCursor;
       requireValue(next === null || next === undefined || typeof next === 'string', 'HOST_PROTOCOL', '项目分页格式不可识别。');
@@ -153,6 +155,7 @@ export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 2
         }
       }));
       if (quick && revision !== startedRevision && state.status !== 'unavailable' && !state.checking) return snapshot();
+      if (state.repositories.some(repository => repository.id)) previousNormalized = state.repositories;
       state = { schemaVersion: 1, status: warnings.length ? 'partial' : 'complete', projects: projects.length, roots: roots.length, repositories: [...repositories.values()].sort((a, b) => a.fullName.localeCompare(b.fullName)), warnings: [...new Set(warnings)], sampledAt: new Date().toISOString(), ...(quick ? { checking: true } : {}) }; revision++; sourceRevision++;
       // 刷新回到实际 Git 发现项，由调用方按当前 GitHub 身份重新确认后再归一。
       rawRepositories = structuredClone(state.repositories);
@@ -169,6 +172,7 @@ export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 2
     }
     // 快照只供先显示；工作区操作必须等本轮真实项目与Git复核，不以缓存打开目录。
     rawRepositories = structuredClone(value.repositories);
+    previousNormalized = [];
     state = { ...structuredClone(value), repositories: rawRepositories, status: 'partial', checking: true, warnings: [...new Set([...value.warnings, 'CATALOG_CACHE_CHECKING'])] }; revision++; sourceRevision++;
     return snapshot();
   }
@@ -208,18 +212,29 @@ export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 2
     }
     // 整轮替换而非叠加，另一账号未确认的旧规范元数据不会留在当前目录。
     const normalized = [...repositories.values()].sort((left, right) => left.fullName.localeCompare(right.fullName));
+    previousNormalized = [];
     if (JSON.stringify(state.repositories) !== JSON.stringify(normalized)) { state = { ...state, repositories: normalized }; revision++; }
     return snapshot();
+  }
+  function taskRepository(repositoryKey) {
+    const current = state.repositories.find(entry => entry.key === repositoryKey);
+    if (current) return structuredClone(current);
+    const previous = previousNormalized.find(entry => entry.key === repositoryKey);
+    if (!previous || state.status === 'unavailable') return null;
+    // GitHub 正在归一新目录时，用上轮的仓库标识定位本轮已发现的工作区。
+    const currentWorkspaceKeys = new Set(rawRepositories.filter(entry => previous.sourceKeys.includes(entry.key)).flatMap(entry => entry.workspaces.map(workspace => workspace.key)));
+    const workspaces = previous.workspaces.filter(workspace => workspace.authorizedRoot && currentWorkspaceKeys.has(workspace.key));
+    return workspaces.length ? structuredClone({ ...previous, workspaces }) : null;
   }
   async function resolveWorkspace(repositoryKey, workspaceKey, { recheckRegistration = false } = {}) {
     requireValue(state.status !== 'unavailable', 'CATALOG_UNAVAILABLE', '请先重新发现项目目录。');
     requireValue(recheckRegistration || !state.checking, 'CATALOG_CHECKING', '正在核对项目和工作区，请稍后再创建任务。');
-    const repository = state.repositories.find(entry => entry.key === repositoryKey);
+    const repository = recheckRegistration ? taskRepository(repositoryKey) : state.repositories.find(entry => entry.key === repositoryKey);
     const workspace = repository?.workspaces.find(entry => entry.key === workspaceKey);
     requireValue(workspace, 'WORKSPACE_UNKNOWN', '工作区不属于当前已发现仓库。');
     if (recheckRegistration) {
       // 目录快照只定位既有工作区，宿主当前登记与真实 Git remote 决定是否能打开会话。
-      const { projects } = await readProjects();
+      const { projects } = await readProjects(workspace.projectId);
       const project = projects.find(entry => entry.id === workspace.projectId);
       let registered = false;
       for (const root of project?.roots || []) {
@@ -242,5 +257,5 @@ export function createCatalog({ bridge, gitInspector = inspectGit, pageLimit = 2
     }
     return { repository: structuredClone(repository), workspace: structuredClone(workspace) };
   }
-  return { refresh, snapshot, remap, restore, resolveWorkspace };
+  return { refresh, snapshot, remap, restore, taskRepository, resolveWorkspace };
 }

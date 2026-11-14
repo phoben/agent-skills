@@ -244,10 +244,31 @@ export function createIssueService({ github, storage, catalog, pageLimit = 10, n
     await guard(ctx); storage.set(ctx.scope, 'issue-detail', `${repo.id}#${number}`, issue); return issue;
   }
   async function options(ctx, repo) {
-    const labels = await allPages(ctx, repo, '/labels', row => ({ id: row.id, name: row.name, color: row.color, description: row.description || '' }));
-    const assignees = await allPages(ctx, repo, '/assignees', row => ({ id: row.id, login: row.login, name: row.login }));
-    const milestones = await allPages(ctx, repo, '/milestones', row => ({ id: row.id, number: row.number, title: row.title, state: row.state }), '&state=all');
+    const results = await Promise.allSettled([
+      allPages(ctx, repo, '/labels', row => ({ id: row.id, name: row.name, color: row.color, description: row.description || '' })),
+      allPages(ctx, repo, '/assignees', row => ({ id: row.id, login: row.login, name: row.login })),
+      allPages(ctx, repo, '/milestones', row => ({ id: row.id, number: row.number, title: row.title, state: row.state }), '&state=all'),
+    ]);
+    const errors = results.filter(result => result.status === 'rejected').map(result => result.reason);
+    const revoked = errors.find(error => ['PERMISSION_DENIED', 'NOT_FOUND'].includes(error?.code));
+    // 等同批读取收尾后再清理，避免成功分支的迟到写入恢复已撤销的缓存。
+    if (revoked) invalidateAccess(ctx, 'repository', repositoryIdKey(repo.id), { id: repo.id });
+    if (errors.length) throw errors.find(error => ['AUTH_REQUIRED', 'IDENTITY_CHANGED'].includes(error?.code)) || revoked || errors[0];
+    const [labels, assignees, milestones] = results.map(result => result.value);
     return { labels: labels.items.map(row => row.name), assignees: assignees.items.map(row => row.login), milestones: milestones.items.map(row => row.title), labelItems: labels.items, assigneeItems: assignees.items, milestoneItems: milestones.items, coverage: { labels: labels.pageInfo, assignees: assignees.pageInfo, milestones: milestones.pageInfo } };
+  }
+  async function readTaskIssue(identityContext, entry, number) {
+    const ctx = { ...identityContext, checkingIdentity: Boolean(identityContext.fingerprint) };
+    let metadata;
+    try { metadata = await repositoryMetadata(ctx, entry); }
+    catch (error) {
+      if (error?.code !== 'NOT_FOUND') throw error;
+      throw new ProofError('REPOSITORY_NOT_FOUND', error.message);
+    }
+    const repo = repositoryProjection(entry, metadata);
+    const issue = await rawIssue(ctx, repo, number);
+    requireValue(!ctx.offline, 'NETWORK_UNAVAILABLE', '暂时无法核对 GitHub 上的 Issue，请检查网络后重试。');
+    return { title: issue.title, repositoryId: repo.id };
   }
   function local(ctx, repositories) {
     const byId = new Map();
@@ -456,9 +477,9 @@ export function createIssueService({ github, storage, catalog, pageLimit = 10, n
     storage.transaction(() => { requireValue(storage.get(ctx.scope, 'operation', previous.id)?.status === 'readback-failed', 'OPERATION_STATE', '操作状态已变化，请刷新。'); storage.set(ctx.scope, 'operation', previous.id, operation); });
     return { issue, operation };
   }
-  async function executeAction(action, payload = {}) {
+  async function executeAction(action, payload = {}, verifiedContext) {
     const fast = action === 'bootstrap' || ['view-state-save', 'draft-save', 'preference-save', 'local-state'].includes(action) || ['list', 'read-summary'].includes(action) && payload.cacheFirst === true;
-    const ctx = await context({ fast });
+    const ctx = verifiedContext || await context({ fast });
     ctx.preferCache = ['list', 'read-summary'].includes(action) && payload.cacheFirst === true;
     const allowed = {
       bootstrap: [], refresh: ['repositoryKey'], list: ['repositoryKey', 'state', 'cursor', 'cacheFirst'], read: ['repositoryKey', 'number'], 'read-summary': ['repositoryKey', 'number', 'cacheFirst'], comments: ['repositoryKey', 'number', 'cursor'], activity: ['repositoryKey', 'number', 'cursor'], options: ['repositoryKey'], 'local-state': ['repositoryKey', 'expectedIdentity'], 'view-state-save': ['value'],
@@ -549,5 +570,12 @@ export function createIssueService({ github, storage, catalog, pageLimit = 10, n
     const pending = executeAction(action, payload); inflight.set(key, pending);
     try { return await pending; } finally { if (inflight.get(key) === pending) inflight.delete(key); }
   }
-  return { execute, context, verifyContext: ctx => guard({ ...ctx, checkingIdentity: Boolean(ctx.fingerprint) }) };
+  return {
+    execute, context, readTaskIssue,
+    refreshForTask: ctx => executeAction('refresh', {}, { ...ctx }),
+    async verifyContext(ctx, repositoryId) {
+      await guard({ ...ctx, checkingIdentity: Boolean(ctx.fingerprint) });
+      if (repositoryId !== undefined) requireValue(storage.get(ctx.scope, 'repository', repositoryIdKey(repositoryId)), 'PERMISSION_DENIED', '当前 GitHub 身份无法访问任务所属仓库。');
+    },
+  };
 }

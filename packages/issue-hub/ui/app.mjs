@@ -10,7 +10,7 @@ import { createSummaryPainter } from './summary.mjs';
 import { createImageController } from './images.mjs';
 import { accountTriggerMarkup, accountMenuHeader } from './account-menu.mjs';
 import './style.css';
-import { esc, icon, labels, button, options, taskText, taskAction, taskDestination, bodyMarkup, issueForm, safeUrl, issueCountLabels, brandMark } from './ui.mjs';
+import { esc, icon, labels, button, options, taskText, taskAction, taskDestination, bodyMarkup, issueForm, issuePropertyChoices, safeUrl, issueCountLabels, brandMark } from './ui.mjs';
 
 const app = new App({ name: 'Issue Hub', version: VERSION });
 const themeController = createThemeController();
@@ -85,7 +85,10 @@ const announce = (message) => { $('#announcer').textContent = message; };
 const current = () => store.issue(state.repo, state.selected);
 const writable = () => !store.readonly;
 const permission = (name) => current()?.permissions?.[name] ?? store.repository(state.repo)?.permissions?.[name] ?? false;
-const editorOptions = () => ({ labels: store.options(state.repo).labels || [], assignees: ['', ...(store.options(state.repo).assignees || [])], milestones: ['', ...(store.options(state.repo).milestones || [])] });
+const editorOptions = () => {
+  const { labels, assignees, milestones } = store.options(state.repo);
+  return { labels: labels || [], assignees: assignees || [], milestones: milestones || [] };
+};
 const action = (name, text, className = '', extra = '') => button(name, text, { className, extra });
 const hasEditor = () => Boolean(state.editor || state.commentId || state.comment.trim() || (state.selected && store.draft(state.repo, state.selected, 'comment')));
 
@@ -216,7 +219,9 @@ function renderDetail({ focus = false } = {}) {
   syncLayout();
   if (!state.selected && !state.editor) { $('#detail').innerHTML = ''; return; }
   if (state.editor) {
-    $('#detail').innerHTML = issueForm(state.editor, editorOptions(), { isNew: !state.editor.number, offline: !store.online, error: state.formError, conflict: state.conflict, busy: state.saving, saved: state.draftSaved, manage: permission('manage') });
+    const manage = permission('manage'), optionsReady = store.hasOptions(state.repo);
+    $('#detail').innerHTML = issueForm(state.editor, editorOptions(), { isNew: !state.editor.number, offline: !store.online, error: state.formError, conflict: state.conflict, busy: state.saving, saved: state.draftSaved, manage, optionsReady });
+    if (manage && !optionsReady) void loadEditorOptions();
   } else {
     const issue = current();
     if (!issue) { state.selected = null; syncLayout(); return; }
@@ -461,15 +466,46 @@ async function hydrateIssue(repo, number, isCurrent) {
   if (isCurrent()) { renderDetailStaleness(); status(); }
 }
 function editIssue(isNew = false) {
-  return preserveBefore(async () => {
-    try { await store.loadOptions(state.repo); } catch (error) { throw new StoreError('options', `编辑候选读取失败：${error.message}`); }
+  const repo = state.repo, number = state.selected, identity = store.identity, generation = detailGeneration;
+  return preserveBefore(() => {
+    if (repo !== state.repo || number !== state.selected || identity !== store.identity || generation !== detailGeneration) return;
     const issue = isNew ? { title: '', body: '', labels: [], assignee: '', milestone: '' } : current();
     if (!issue) return;
-    state.editor = store.draft(state.repo, isNew ? 'new' : state.selected, 'issue') || { ...issue, _base: structuredClone(issue) };
-    state.formError = ''; state.conflict = null; state.notice = ''; state.draftSaved = Boolean(store.draft(state.repo, isNew ? 'new' : state.selected, 'issue'));
+    const draft = store.draft(repo, isNew ? 'new' : number, 'issue');
+    state.editor = draft || { ...issue, _base: structuredClone(issue) };
+    state.formError = ''; state.conflict = null; state.notice = ''; state.draftSaved = Boolean(draft);
     if (isNew) state.selected = null;
     renderRows(); renderDetail(); $('#issue-title')?.focus();
   });
+}
+
+async function loadEditorOptions() {
+  const form = $('#issue-form'), repo = state.repo, identity = store.identity;
+  if (!form || !permission('manage')) return;
+  const notice = $('#issue-options-status', form);
+  if (!notice || notice.hidden) return;
+  const message = $('span', notice), retry = $('button', notice);
+  const isCurrent = () => !store.closed && state.editor && repo === state.repo && identity === store.identity && form === $('#issue-form') && permission('manage');
+  const retryFocused = document.activeElement === retry;
+  message.textContent = '正在读取标签、负责人和里程碑…';
+  retry.disabled = true;
+  try {
+    await store.loadOptions(repo, { cacheFirst: true });
+    if (!isCurrent() || notice.hidden) return;
+    const properties = issuePropertyChoices(state.editor, editorOptions());
+    $('.checkboxes', form).innerHTML = properties.labels;
+    $('#issue-assignee', form).innerHTML = properties.assignee;
+    $('#issue-milestone', form).innerHTML = properties.milestone;
+    $('#issue-properties', form).disabled = state.saving;
+    if (retryFocused && (document.activeElement === retry || document.activeElement === document.body)) {
+      (state.saving ? $('#save-issue', form) : $('#issue-assignee', form)).focus({ preventScroll: true });
+    }
+    notice.hidden = true;
+  } catch {
+    if (!isCurrent()) return;
+    message.textContent = '属性候选暂时无法读取。仍可编辑标题和正文。';
+    retry.hidden = false;
+  } finally { if (isCurrent()) retry.disabled = false; }
 }
 function showFormError(message) {
   state.formError = message;
@@ -477,7 +513,10 @@ function showFormError(message) {
   if (error) { error.textContent = message; error.hidden = false; error.focus(); }
 }
 function lockForm(form, locked) {
-  if (form) $$('input,textarea,select', form).forEach((field) => field.disabled = locked);
+  if (!form) return;
+  const properties = $('#issue-properties', form);
+  if (properties) properties.disabled = locked || !permission('manage') || !store.hasOptions(state.repo);
+  $$('input,textarea,select', form).filter(field => !properties?.contains(field)).forEach(field => { field.disabled = locked; });
 }
 async function saveIssue(force = false) {
   if (state.saving) return;
@@ -625,15 +664,15 @@ function currentTaskPreparation() {
   return taskPreparing && taskPreparing.generation === detailGeneration ? taskPreparing : null;
 }
 
-function showOpeningFeedback(target) {
+function showTaskFeedback(target, message = '正在打开会话…') {
   if (!target) return () => {};
-  const label = target.textContent;
-  target.textContent = '正在打开会话…';
+  const label = target.textContent, previousAction = target.dataset?.action;
+  target.textContent = message;
   target.disabled = true;
   target.setAttribute('aria-busy', 'true');
   return () => {
     if (!target.isConnected) return;
-    target.textContent = label;
+    if (target.dataset?.action === previousAction && target.textContent === message) target.textContent = label;
     target.disabled = false;
     target.setAttribute('aria-busy', 'false');
   };
@@ -678,7 +717,7 @@ function scheduleTaskAssociation(restart = false) {
     await automaticAssociationFlight;
     if (!isCurrent()) return;
     const after = store.task(repo, number).current;
-    if (before.status !== after.status || JSON.stringify(before.candidates) !== JSON.stringify(after.candidates)) {
+    if (before.status !== after.status || before.coverage !== after.coverage || JSON.stringify(before.candidates) !== JSON.stringify(after.candidates)) {
       renderTaskOnly();
       paintTaskAssociation(after, before);
     }
@@ -696,7 +735,7 @@ function paintTaskAssociation(task, previous) {
   const linked = task.status === 'linked';
   $('#modal-title', overlay).textContent = linked ? '关联会话' : '会话关联状态';
   primary.dataset.action = linked ? 'return-task' : 'task-check';
-  primary.textContent = linked ? '返回会话' : '检查关联';
+  if (linked || currentTaskOperation()?.label !== '正在检查关联…') primary.textContent = linked ? '返回会话' : '检查关联';
   const candidates = $('.task-candidate-list', overlay), markup = taskCandidatesMarkup(task);
   if (markup !== taskCandidatesMarkup(previous)) {
     const selected = $('input[name="task-candidate"]:checked', candidates)?.value;
@@ -712,12 +751,12 @@ async function openTask(another, workspaceKey, expectedRequestId, target) {
   const prior = store.task(repo, number).current;
   const returning = !another && prior?.status === 'linked' && prior.threadId;
   if (expectedRequestId !== undefined && (!returning || prior.requestId !== expectedRequestId)) throw new StoreError('task', '当前会话关联已变化，请重新选择。');
-  const operation = { generation: detailGeneration, label: returning ? '正在打开会话…' : '正在核对工作区…' };
+  const operation = { generation: detailGeneration, label: '正在打开会话…' };
   taskBusy = operation;
-  const restoreButton = showOpeningFeedback(returning ? target : null);
+  const restoreButton = showTaskFeedback(target?.id === 'task-primary' ? null : target);
   renderTaskOnly();
   try {
-    if (!returning || !state.draftSaved) await flushDrafts();
+    if (!state.draftSaved) await flushDrafts();
     if (operation.generation !== detailGeneration || overlayAtStart !== overlayGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
     const active = store.task(repo, number).current;
     if (returning && (active?.requestId !== prior.requestId || active?.status !== 'linked' || active.threadId !== prior.threadId)) throw new StoreError('task', '当前会话关联已变化，请重新选择。');
@@ -736,24 +775,53 @@ async function createTask(another) {
   const preparation = { generation: detailGeneration };
   const isCurrent = () => preparation.generation === detailGeneration && generation === taskViewGeneration
     && repo === state.repo && number === state.selected && identity === store.identity;
+  const clearPreparation = () => {
+    if (taskPreparing === preparation) { taskPreparing = null; renderTaskOnly(); }
+  };
   taskPreparing = preparation; renderTaskOnly();
   try { return await preserveBefore(async () => {
     if (!isCurrent()) return;
+    if (taskPreparing !== preparation) { taskPreparing = preparation; renderTaskOnly(); }
     const overlayAtStart = overlayGeneration;
-    await store.prepareTask();
-    if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
-    await store.loadTask(repo, number);
-    if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
-    store.activeNumber = number;
-    const valid = store.workspaces(repo).filter(workspace => workspace.valid), binding = store.binding(repo);
-    if (binding?.valid || valid.length === 1) return openTask(another, binding?.valid ? binding.id : valid[0].id);
-    showWorkspacePicker('create', another);
-  }); } finally { if (taskPreparing === preparation) { taskPreparing = null; renderTaskOnly(); } }
+    // 草稿保存失败后可能由弹层重新调用本回调，重试同样负责清理忙态。
+    try {
+      try { await store.loadTask(repo, number, { cacheFirst: true }); }
+      catch (error) {
+        if (!isCurrent()) return;
+        if (!['CATALOG_UNAVAILABLE', 'REPOSITORY_UNKNOWN'].includes(error.code)) throw error;
+      }
+      if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
+      let valid = store.workspaces(repo, number).filter(workspace => workspace.valid);
+      if (!valid.length && (another || !store.task(repo, number).current) && (store.refreshNeeded || store.catalog?.checking || store.catalog?.status === 'unavailable')) {
+        await store.prepareTask();
+        if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
+        await store.loadTask(repo, number);
+        if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
+        valid = store.workspaces(repo, number).filter(workspace => workspace.valid);
+      }
+      const task = store.task(repo, number).current;
+      if (!another && task) {
+        if (task.status === 'linked') return await openTask(false, undefined, task.requestId);
+        return showTask();
+      }
+      const binding = store.binding(repo, number);
+      if (binding?.valid || !binding && valid.length === 1) {
+        try { return await openTask(another, binding?.valid ? undefined : valid[0].id); }
+        catch (error) {
+          if (!isCurrent() || overlayAtStart !== overlayGeneration) return;
+          if (!/^WORKSPACE_(CHANGED|INVALID|UNKNOWN|REQUIRED)$/.test(error.code)) throw error;
+          return showWorkspacePicker('create', another, error.message);
+        }
+      }
+      showWorkspacePicker('create', another);
+    } finally { clearPreparation(); }
+  }); } finally { clearPreparation(); }
 }
-function showWorkspacePicker(mode, another = false) {
-  const workspaces = store.workspaces(state.repo), binding = store.binding(state.repo);
+function showWorkspacePicker(mode, another = false, error = '') {
+  const workspaces = store.workspaces(state.repo, state.selected), binding = store.binding(state.repo, state.selected);
   const intent = { repo: state.repo, number: state.selected, identity: store.identity, another, mode };
-  openModal(mode === 'bind' ? '修改后续任务工作区' : '选择本地工作区', workspacePickerMarkup(workspaces, binding, mode), `${action('close-overlay', '取消')}${workspaces.some(item => item.valid) ? action('confirm-workspace', mode === 'bind' ? '保存工作区' : '确认并打开草稿', 'primary') : ''}`, { onClose: () => { if (taskIntent === intent) taskIntent = null; } });
+  const warning = error ? `<p class="form-error" role="alert">${esc(error)}</p>` : '';
+  openModal(mode === 'bind' ? '修改后续任务工作区' : '选择本地工作区', warning + workspacePickerMarkup(workspaces, binding, mode), `${action('close-overlay', '取消')}${workspaces.some(item => item.valid) ? action('confirm-workspace', mode === 'bind' ? '保存工作区' : '确认并打开草稿', 'primary') : ''}`, { onClose: () => { if (taskIntent === intent) taskIntent = null; } });
   taskIntent = intent;
 }
 async function changeWorkspace() {
@@ -763,7 +831,7 @@ async function changeWorkspace() {
     const overlayAtStart = overlayGeneration;
     await store.loadTask(repo, number);
     if (generation !== taskViewGeneration || overlayAtStart !== overlayGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) return;
-    store.activeNumber = number; showWorkspacePicker('bind');
+    showWorkspacePicker('bind');
   });
 }
 async function showTaskHistory() {
@@ -781,7 +849,7 @@ async function openHistory(requestId, target) {
   const overlayAtStart = overlayGeneration;
   const operation = { generation: detailGeneration, label: '正在打开会话…' };
   taskBusy = operation;
-  const restoreButton = showOpeningFeedback(target);
+  const restoreButton = showTaskFeedback(target);
   renderTaskOnly();
   try {
     if (!state.draftSaved) await flushDrafts();
@@ -820,6 +888,7 @@ async function handleAction(name, target, event) {
     case 'close-detail': await closeDetail(); break;
     case 'new-issue': if (store.repository(state.repo)?.permissions?.createIssue) await editIssue(true); break;
     case 'edit-issue': closeOverlay(); if (permission('edit') || permission('manage')) await editIssue(); break;
+    case 'retry-editor-options': await loadEditorOptions(); break;
     case 'cancel-edit': {
       if (state.saving) break;
       clearTimeout(draftTimer);
@@ -865,7 +934,7 @@ async function handleAction(name, target, event) {
     case 'task': {
       if (overlay.children.length) closeOverlay();
       const task = store.task(state.repo, state.selected).current;
-      if (task?.status === 'linked') await openTask(false, undefined, task.requestId);
+      if (task?.status === 'linked') await openTask(false, undefined, task.requestId, target);
       else if (task) showTask();
       else await createTask(false); break;
     }
@@ -880,12 +949,12 @@ async function handleAction(name, target, event) {
       const intent = taskIntent;
       if (!chosen || !intent || workspaceSaving || intent.repo !== state.repo || intent.number !== state.selected || intent.identity !== store.identity) break;
       const overlayAtStart = overlayGeneration;
+      if (intent.mode !== 'bind') { await openTask(intent.another, chosen, undefined, target); break; }
       workspaceSaving = true; target.disabled = true;
       try {
         await store.bind(intent.repo, chosen);
         if (intent.repo !== state.repo || intent.number !== state.selected || intent.identity !== store.identity || overlayAtStart !== overlayGeneration) break;
-        if (intent.mode === 'bind') { closeOverlay(false); renderTaskOnly(); showTask(); announce('后续新任务工作区已保存，现有会话仍使用原工作区。'); }
-        else await openTask(intent.another, chosen);
+        closeOverlay(false); renderTaskOnly(); showTask(); announce('后续新任务工作区已保存，现有会话仍使用原工作区。');
       } finally { workspaceSaving = false; if (target.isConnected) target.disabled = false; }
       break;
     }
@@ -895,15 +964,17 @@ async function handleAction(name, target, event) {
       const before = store.task(repo, number).current;
       if (!before || target.dataset.requestId !== before.requestId) break;
       const operation = { generation: detailGeneration, label: '正在检查关联…' };
-      taskBusy = operation; target.disabled = true; renderTaskOnly();
+      taskBusy = operation;
+      const restoreButton = showTaskFeedback(target, operation.label);
+      renderTaskOnly();
       try {
         await store.checkTask(repo, number);
         if (operation.generation !== detailGeneration || repo !== state.repo || number !== state.selected || identity !== store.identity) break;
         const after = store.task(repo, number).current;
         if (after?.requestId === before.requestId && overlayAtStart === overlayGeneration) paintTaskAssociation(after, before);
       } finally {
+        restoreButton();
         if (taskBusy === operation) { taskBusy = null; renderTaskOnly(); }
-        if (target.isConnected) target.disabled = false;
       }
       break;
     }

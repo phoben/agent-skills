@@ -1,0 +1,2 @@
+{"file": ".trellis/spec/backend/issue-hub.md", "reason": "任务身份、工作区和会话关联契约"}
+{"file": ".trellis/spec/frontend/issue-hub.md", "reason": "页面交互、草稿与异步隔离契约"}

@@ -88,15 +88,25 @@ export function bodyMarkup(body) {
   }).join('');
 }
 
-export function issueForm(values, fields, { isNew, offline, error = '', conflict = null, busy = false, saved = false, manage = false }) {
+export function issuePropertyChoices(values, fields) {
+  return {
+    labels: [...new Set([...values.labels, ...fields.labels])].map(label => `<label><input type="checkbox" name="labels" value="${esc(label)}" ${values.labels.includes(label) ? 'checked' : ''}>${esc(label)}</label>`).join(''),
+    assignee: options([...new Set(['', ...fields.assignees, values.assignee])], values.assignee, '未分配'),
+    milestone: options([...new Set(['', ...fields.milestones, values.milestone])], values.milestone, '无里程碑'),
+  };
+}
+
+export function issueForm(values, fields, { isNew, offline, error = '', conflict = null, busy = false, saved = false, manage = false, optionsReady = true }) {
+  const properties = issuePropertyChoices(values, fields);
   return `<form id="issue-form" class="editor" novalidate>
     <div class="editor-heading"><h1 id="detail-title" tabindex="-1">${isNew ? '新建 Issue' : `编辑 #${values.number}`}</h1><span class="muted">${saved ? '本机草稿已保存' : '未发布内容'}</span></div>
     <div id="form-error" class="form-error" ${error ? '' : 'hidden'} role="alert" tabindex="-1">${esc(error)}</div>
     ${conflict ? `<section class="conflict" aria-label="远端冲突比较"><h2>远端内容已变化</h2><p>当前输入仍保留在下方。比较后选择采用哪份，不会自动覆盖。</p><div class="compare"><div><h3>远端版本</h3><pre>${esc(conflict.body)}</pre></div><div><h3>本机输入</h3><pre>${esc(values.body)}</pre></div></div><div class="form-actions">${button('use-remote', '采用远端版本')}${button('force-save', '保留本机版本并保存')}</div></section>` : ''}
     <label for="issue-title">标题</label><input id="issue-title" name="title" value="${esc(values.title)}" maxlength="240" required aria-describedby="title-error"><span id="title-error" class="field-error"></span>
     <label for="issue-body">正文</label><textarea id="issue-body" name="body" rows="12">${esc(values.body)}</textarea>
-    <fieldset ${manage ? '' : 'disabled'}><legend>标签${manage ? '' : ' · 需仓库管理权限'}</legend><div class="checkboxes">${[...new Set([...fields.labels, ...values.labels])].map((label) => `<label><input type="checkbox" name="labels" value="${esc(label)}" ${values.labels.includes(label) ? 'checked' : ''}>${esc(label)}</label>`).join('')}</div></fieldset>
-    <div class="field-grid"><div><label for="issue-assignee">负责人</label><select id="issue-assignee" name="assignee" ${manage ? '' : 'disabled'}>${options([...new Set([...fields.assignees, values.assignee])], values.assignee, '未分配')}</select></div><div><label for="issue-milestone">里程碑</label><select id="issue-milestone" name="milestone" ${manage ? '' : 'disabled'}>${options([...new Set([...fields.milestones, values.milestone])], values.milestone, '无里程碑')}</select></div></div>
+    <fieldset id="issue-properties" ${manage && optionsReady ? '' : 'disabled'}><legend>标签${manage ? '' : ' · 需仓库管理权限'}</legend><div class="checkboxes">${properties.labels}</div>
+    <div class="field-grid"><div><label for="issue-assignee">负责人</label><select id="issue-assignee" name="assignee">${properties.assignee}</select></div><div><label for="issue-milestone">里程碑</label><select id="issue-milestone" name="milestone">${properties.milestone}</select></div></div></fieldset>
+    ${manage ? `<div id="issue-options-status" class="field-error" ${optionsReady ? 'hidden' : ''}><span role="status">正在读取标签、负责人和里程碑…</span>${button('retry-editor-options', '重试', { className: 'plain', extra: 'hidden' })}</div>` : ''}
     <div class="form-actions sticky-actions">${button('cancel-edit', '取消')}<button class="button primary" type="submit" id="save-issue" ${busy ? 'disabled' : ''}>${busy ? '保存中…' : offline ? '保存本机草稿' : '保存'}</button></div>
   </form>`;
 }

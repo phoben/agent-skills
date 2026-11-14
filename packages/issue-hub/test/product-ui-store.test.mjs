@@ -162,40 +162,58 @@ test('在线元数据缓存不冒充离线', async () => {
   await store.load(); assert.equal(store.online, true);
 });
 
-test('创建任务先核对缓存目录，只有真实query成功才解除离线并自动继续', async () => {
+test('进入编辑复用同仓库在途请求和已加载的候选集', async () => {
+  const waiting = deferred(), calls = [];
+  const store = new LiveStore(async (_group, action) => {
+    calls.push(action);
+    return action === 'bootstrap' ? envelope(bootstrap()) : waiting.promise;
+  });
+  await store.load();
+  const filter = store.loadOptions(repo.fullName);
+  const editor = store.loadOptions(repo.fullName, { cacheFirst: true });
+  await Promise.resolve();
+  assert.deepEqual(calls, ['bootstrap', 'options']);
+  assert.equal(store.hasOptions(repo.fullName), false);
+  waiting.resolve(envelope({ labels: [], assignees: [], milestones: [] }));
+  await Promise.all([filter, editor]);
+  assert.equal(store.hasOptions(repo.fullName), true);
+  assert.deepEqual(await store.loadOptions(repo.fullName, { cacheFirst: true }), { labels: [], assignees: [], milestones: [] });
+  assert.deepEqual(calls, ['bootstrap', 'options']);
+});
+
+test('创建任务直接请求打开，目录待核对时不发起全量刷新也不解除离线', async () => {
   const calls = [];
   const store = new LiveStore(async (group, action) => {
     calls.push([group, action]);
     if (action === 'bootstrap') return envelope({ ...bootstrap(), refreshNeeded: true, catalog: { status: 'partial', checking: true } }, 42, { offline: true, cached: true, networkChecked: false });
-    if (action === 'refresh') return envelope({ ...bootstrap(), refreshNeeded: false }, 42, { offline: false, networkChecked: true });
     return envelope({ current: { requestId: 'new', status: 'requested' } });
   });
   await store.load(); assert.equal(store.online, false);
   await store.createTask(repo.fullName, 7);
-  assert.equal(store.online, true); assert.equal(store.catalog.checking, undefined);
-  assert.deepEqual(calls, [['query', 'bootstrap'], ['query', 'refresh'], ['task', 'open']]);
+  assert.equal(store.online, false); assert.equal(store.catalog.checking, true);
+  assert.deepEqual(calls, [['query', 'bootstrap'], ['task', 'open']]);
 });
 
-test('目录核对失败保留离线和本机输入，不调用打开任务', async () => {
+test('目录补查失败保留离线和本机输入', async () => {
   const calls = [];
   const store = new LiveStore(async (group, action) => {
     calls.push([group, action]);
     return envelope({ ...bootstrap(), refreshNeeded: true, catalog: { status: 'unavailable', checking: true, error: { code: 'HOST_UNAVAILABLE', message: '项目接口暂不可用' } } }, 42, { offline: true, cached: true, networkChecked: false });
   });
   await store.load(); store.retainDraft(repo.fullName, 7, 'comment', { text: '输入保留' });
-  await assert.rejects(store.createTask(repo.fullName, 7), { code: 'HOST_UNAVAILABLE' });
+  await assert.rejects(store.prepareTask(), { code: 'HOST_UNAVAILABLE' });
   assert.equal(store.online, false); assert.equal(store.commentDraft(repo.fullName, 7).text, '输入保留');
   assert.ok(calls.every(([group]) => group === 'query'));
 });
 
-test('核对目录期间GitHub账号变化后不得在新账号下继续旧任务', async () => {
+test('补查目录期间GitHub账号变化后取消旧操作', async () => {
   const calls = [];
   const store = new LiveStore(async (group, action) => {
     calls.push([group, action]);
     return action === 'bootstrap' ? envelope({ ...bootstrap(), refreshNeeded: true, catalog: { status: 'partial', checking: true } }) : envelope({ ...bootstrap(99), refreshNeeded: false }, 99);
   });
   await store.load();
-  await assert.rejects(store.createTask(repo.fullName, 7), { code: 'stale' });
+  await assert.rejects(store.prepareTask(), { code: 'stale' });
   assert.equal(store.identity, 99); assert.ok(calls.every(([group]) => group === 'query'));
 });
 
@@ -296,6 +314,7 @@ test('旧账号迟到的授权错误不能清除新账号投影', async () => {
   const waiting = deferred();
   const store = new LiveStore(async (_group, action) => action === 'bootstrap' ? envelope(bootstrap()) : waiting.promise);
   await store.load(); const pending = store.loadIssue(repo.fullName, 7);
+  await Promise.resolve();
   store.clearIdentity(99); store.applyBootstrap(bootstrap(99));
   waiting.reject(new StoreError('AUTH_REQUIRED', '旧账号授权失败'));
   await assert.rejects(pending, { code: 'stale' });
@@ -519,7 +538,7 @@ test('代码和显式转义示例中的注释写法仍可阅读', () => {
 
 test('属性编辑与正文编辑分开授权，现有属性不因候选缺页消失', () => {
   const html = issueForm(issue(), { labels: [], assignees: [''], milestones: [''] }, { isNew: false, offline: false, manage: false });
-  assert.match(html, /<fieldset disabled>/); assert.match(html, /value="bug" checked/); assert.match(html, /id="issue-assignee"[^>]+disabled/);
+  assert.match(html, /<fieldset id="issue-properties" disabled>/); assert.match(html, /value="bug" checked/); assert.match(html, /id="issue-assignee"/);
   assert.match(html, /id="issue-body"/);
 });
 

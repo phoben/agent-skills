@@ -106,7 +106,10 @@ export class LiveStore {
       const canJoin = group === 'query' || group === 'image' || group === 'task' && ['latest', 'check'].includes(action);
       let request = canJoin && this.inflight.get(requestKey);
       if (!request) {
-        request = Promise.resolve().then(() => this.call(group, action, payload));
+        request = Promise.resolve().then(() => {
+          if (generation !== this.generation) throw new StoreError('stale', '账号已变化，已停止旧请求。');
+          return this.call(group, action, payload);
+        });
         this.requestSequences.set(request, ++this.requestSequence);
         if (canJoin) {
           this.inflight.set(requestKey, request);
@@ -138,7 +141,10 @@ export class LiveStore {
     } catch (error) {
       if (generation !== this.generation) throw new StoreError('stale', '账号已变化，已忽略旧请求错误。');
       if (identityErrors.has(String(error.code).toUpperCase())) this.clearIdentity();
-      if ((group === 'query' || group === 'image') && ['PERMISSION_DENIED', 'NOT_FOUND', 'REPOSITORY_CHANGED'].includes(String(error.code).toUpperCase()) && payload.repositoryKey) {
+      const code = String(error.code).toUpperCase();
+      const accessLost = (group === 'query' || group === 'image') && ['PERMISSION_DENIED', 'NOT_FOUND', 'REPOSITORY_CHANGED'].includes(code)
+        || group === 'task' && action === 'open' && ['PERMISSION_DENIED', 'REPOSITORY_NOT_FOUND', 'REPOSITORY_CHANGED'].includes(code);
+      if (accessLost && payload.repositoryKey) {
         const repo = this.data.repositories.find(item => item.key === payload.repositoryKey);
         if (repo) { this.invalidateRepository(repo.fullName); repo.access = 'unavailable'; }
       }
@@ -254,10 +260,12 @@ export class LiveStore {
     this.pages[repo] = copy(data.pageInfo || { complete: false });
     return data;
   }
-  async loadOptions(repo) {
+  async loadOptions(repo, { cacheFirst = false } = {}) {
+    if (cacheFirst && this.hasOptions(repo)) return this.options(repo);
     const data = await this.request('query', 'options', { repositoryKey: this.repositoryKey(repo) });
     this.optionSets[repo] = copy(data); return data;
   }
+  hasOptions(repo) { return Object.hasOwn(this.optionSets, repo); }
   options(repo) { return copy(this.optionSets[repo] || { labels: [], assignees: [], milestones: [] }); }
   async loadIssue(repo, number, { summary = false, cacheFirst = false } = {}) {
     const writeKey = `${this.repositoryKey(repo)}:${number}`, version = this.issueWriteVersions.get(writeKey) || 0;
@@ -393,18 +401,21 @@ export class LiveStore {
     if (generation !== this.generation || identity !== this.identity) throw new StoreError('stale', '账号已变化，已停止旧页面的任务操作。');
     if (this.catalog?.checking || this.catalog?.status === 'unavailable') throw new StoreError(this.catalog.error?.code || 'CATALOG_CHECKING', this.catalog.error?.message || '项目和工作区尚未核对成功，请检查连接后重试。');
   }
-  async loadTask(repo, number) {
-    const key = `${repo}#${number}`, version = this.taskVersions.get(key) || 0;
+  async loadTask(repo, number, { cacheFirst = false } = {}) {
+    const key = `${repo}#${number}`;
+    if (cacheFirst && Object.hasOwn(this.taskRecords, key)) return this.task(repo, number);
+    const version = this.taskVersions.get(key) || 0;
     this.taskVersions.set(key, version);
     const result = await this.request('task', 'latest', { repositoryKey: this.repositoryKey(repo), number });
     if (version !== (this.taskVersions.get(key) || 0)) return this.task(repo, number);
     this.taskRecords[key] = copy(result); return result;
   }
-  workspaces(repo) {
-    return (this.task(repo, this.activeNumber).workspaces?.length ? this.task(repo, this.activeNumber).workspaces : this.repository(repo)?.workspaces || []).map(item => ({ ...item, id: item.key || item.workspaceKey || item.id, path: item.cwd || item.path, name: item.projectName || item.name || '工作区', valid: item.valid !== false }));
+  workspaces(repo, number = this.activeNumber) {
+    const recorded = this.task(repo, number).workspaces;
+    return (recorded?.length ? recorded : this.repository(repo)?.workspaces || []).map(item => ({ ...item, id: item.key || item.workspaceKey || item.id, path: item.cwd || item.path, name: item.projectName || item.name || '工作区', valid: item.valid !== false }));
   }
-  binding(repo) {
-    const value = this.task(repo, this.activeNumber).binding;
+  binding(repo, number = this.activeNumber) {
+    const value = this.task(repo, number).binding;
     if (!value) return null;
     return { ...value, id: value.workspaceKey || value.key || value.id, valid: value.valid !== false };
   }
@@ -418,10 +429,6 @@ export class LiveStore {
     return result;
   }
   async createTask(repo, number, { another = false, workspaceKey } = {}) {
-    const generation = this.generation, identity = this.identity;
-    const prior = this.task(repo, number).current;
-    if (another || prior?.status !== 'linked' || !prior.threadId) await this.prepareTask();
-    if (generation !== this.generation || identity !== this.identity) throw new StoreError('stale', '账号已变化，已停止旧页面的任务操作。');
     const key = `${repo}#${number}`, version = (this.taskVersions.get(key) || 0) + 1; this.taskVersions.set(key, version);
     const record = this.task(repo, number);
     const requestId = !another && record.current?.requestId ? record.current.requestId : this.operation('task', repo, { number, another, existing: record.current?.id });

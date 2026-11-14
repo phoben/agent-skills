@@ -6,6 +6,7 @@ const time = value => {
 };
 
 export function taskDescription(task) {
+  if (task.status === 'pending' && task.coverage === 'partial') return '部分候选会话尚未核对。请稍后重试。';
   return { draft: '草稿已准备。请在 Codex 中确认工作区并手动发送。', requested: '已请求打开草稿。发送首条消息后，Issue Hub 会自动核对关联。', pending: '关联尚待确认。发送首条消息后，Issue Hub 会自动核对关联。', 'open-unconfirmed': '打开请求结果尚未确认，请先检查桌面草稿。发送首条消息后会自动核对关联。', ambiguous: '以下候选已经通过本次任务引用和工作区核验。请选择一个，服务会再次核验。', linked: task.associationSource === 'user-confirmed' ? '此关联已由成员选择并再次核验，可返回同一会话。' : '已确认唯一关联，可返回同一会话。' }[task.status] || '关联尚待确认。';
 }
 

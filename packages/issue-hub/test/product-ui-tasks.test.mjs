@@ -74,6 +74,36 @@ test('返回已确认会话直接请求精确复用，即使整批目录仍待�
   assert.equal(calls.at(-1).payload.requestId, linked.current.requestId);
 });
 
+test('打开任务确认仓库失权只撤销对应仓库，单个 Issue 不存在时保留仓库视图', async () => {
+  const other = { key: 'b'.repeat(20), fullName: 'team/two', workspaces: [] };
+  const invalidated = [];
+  let openError = 'NOT_FOUND';
+  const store = new LiveStore(async (_group, action) => {
+    if (action === 'bootstrap') return envelope({ ...bootstrap().data, repositories: [repo, other] });
+    if (action === 'open') throw new StoreError(openError, '无法打开任务');
+    if (action === 'options') return envelope({ labels: ['回归验证'], assignees: [], milestones: [] });
+    return envelope(record());
+  }, { onRepositoryAccessLost: name => invalidated.push(name) });
+  await store.load();
+  await store.loadTask(repo.fullName, 7);
+  await store.loadTask(other.fullName, 7);
+  await store.loadOptions(repo.fullName);
+  await store.loadOptions(other.fullName);
+
+  await assert.rejects(store.createTask(repo.fullName, 7, { another: true }), { code: 'NOT_FOUND' });
+  assert.deepEqual(invalidated, []);
+  assert.ok(store.hasOptions(repo.fullName));
+
+  openError = 'REPOSITORY_NOT_FOUND';
+  await assert.rejects(store.createTask(repo.fullName, 7, { another: true }), { code: 'REPOSITORY_NOT_FOUND' });
+  assert.deepEqual(invalidated, [repo.fullName]);
+  assert.equal(store.repository(repo.fullName).access, 'unavailable');
+  assert.equal(store.hasOptions(repo.fullName), false);
+  assert.equal(store.task(repo.fullName, 7).current, null);
+  assert.ok(store.hasOptions(other.fullName));
+  assert.equal(store.task(other.fullName, 7).current.requestId, current.requestId);
+});
+
 test('同一请求的后台和手动检查共享调用，仓库失权后丢弃迟到关联', async () => {
   const response = deferred(), calls = [];
   const pending = { ...record(), current: { ...current, status: 'pending' } };
@@ -90,6 +120,22 @@ test('同一请求的后台和手动检查共享调用，仓库失权后丢弃�
   response.resolve(envelope({ ...pending, current: { ...pending.current, status: 'linked', threadId: 'confirmed-thread' } }));
   await Promise.all([background, manual]);
   assert.equal(store.task(repo.fullName, 7).current, null);
+});
+
+test('创建复用正在恢复的任务状态和已加载的空任务状态', async () => {
+  const waiting = deferred(), calls = [];
+  const store = new LiveStore(async (_group, action) => {
+    calls.push(action);
+    return action === 'bootstrap' ? bootstrap() : waiting.promise;
+  });
+  await store.load();
+  const loading = store.loadTask(repo.fullName, 7), creating = store.loadTask(repo.fullName, 7, { cacheFirst: true });
+  await Promise.resolve();
+  assert.deepEqual(calls, ['bootstrap', 'latest']);
+  waiting.resolve(envelope({ ...record(), current: null }));
+  await Promise.all([loading, creating]);
+  assert.equal((await store.loadTask(repo.fullName, 7, { cacheFirst: true })).current, null);
+  assert.deepEqual(calls, ['bootstrap', 'latest']);
 });
 
 test('检查期间发出的旧恢复读取不能覆盖已确认关联', async () => {
@@ -228,20 +274,25 @@ test('自动核对有次数上限，切换详情后迟到结果不绘制旧关�
   assert.equal(p.timers.size, 0);
 });
 
-test('手动检查结束清理主按钮忙态，关联确认后可直接返回', async () => {
+test('手动检查立即显示弹层按钮忙态，结束后清理', async () => {
   const result = { ...current, status: 'pending' }, feedback = [];
-  const state = { repo: repo.fullName, selected: 7 };
-  const store = { identity: 42, task: () => ({ current: result }), async checkTask() { result.status = 'linked'; result.threadId = 'confirmed-thread'; } };
+  const state = { repo: repo.fullName, selected: 7 }, wait = deferred();
+  const store = { identity: 42, task: () => ({ current: result }), async checkTask() { await wait.promise; result.status = 'linked'; result.threadId = 'confirmed-thread'; } };
   const context = createContext({ state, store, feedback, paintTaskAssociation() {} });
   new Script(`let detailGeneration = 1, overlayGeneration = 0, taskBusy = null;
     ${operation}
     function renderTaskOnly() { feedback.push(currentTaskOperation()?.label || store.task().current.status); }
     ${handler}
     globalThis.act = handleAction;`).runInContext(context);
-  const target = { dataset: { requestId: current.requestId }, isConnected: true };
-  await context.act('task-check', target, {});
+  const target = { dataset: { requestId: current.requestId, action: 'task-check' }, textContent: '检查关联', isConnected: true, setAttribute(key, value) { this[key] = value; } };
+  const checking = context.act('task-check', target, {});
+  assert.equal(target.textContent, '正在检查关联…');
+  assert.equal(target.disabled, true);
+  assert.equal(target['aria-busy'], 'true');
+  wait.resolve(); await checking;
   assert.deepEqual(feedback, ['正在检查关联…', 'linked']);
   assert.equal(target.disabled, false);
+  assert.equal(target['aria-busy'], 'false');
 });
 
 test('返回已确认会话给出打开反馈，保存期间换掉关联后停止原点击', async () => {
@@ -273,10 +324,10 @@ test('返回已确认会话给出打开反馈，保存期间换掉关联后停�
   assert.deepEqual(calls.slice(3), ['正在打开会话…', 'flush', '空闲']);
 });
 
-test('实际创建任务在首次核对期间立即反馈并阻止连续误点，完成后自动继续', async () => {
+test('实际创建任务立即反馈并复用在途状态，已知工作区不等待全量项目', async () => {
   const wait = deferred(), primary = { innerHTML: '创建任务', disabled: false, setAttribute() {} };
   let prepared = 0, loaded = 0, opened = 0;
-  const store = { identity: 42, prepareTask: async () => { prepared++; await wait.promise; }, loadTask: async () => { loaded++; }, workspaces: () => [{ id: 'one', valid: true }], binding: () => null, activeNumber: null };
+  const store = { identity: 42, refreshNeeded: true, task: () => ({ current: null }), prepareTask: async () => { prepared++; }, loadTask: async () => { loaded++; await wait.promise; }, workspaces: () => [{ id: 'one', valid: true }], binding: () => null };
   const context = createContext({ store, state: { repo: repo.fullName, selected: 7 }, current: () => ({}), preserveBefore: async fn => fn(), renderTaskOnly() { primary.disabled = context.busy(); primary.innerHTML = primary.disabled ? '正在核对工作区…' : '创建任务'; }, showWorkspacePicker() { throw new Error('不应要求单路径再次选择'); } });
   new Script(`let detailGeneration = 1, taskBusy = false, taskPreparing = false, taskViewGeneration = 0, overlayGeneration = 0;
     ${operation}
@@ -287,18 +338,18 @@ test('实际创建任务在首次核对期间立即反馈并阻止连续误点�
   context.opened = 0;
   const first = context.run(false), duplicate = context.run(false);
   assert.equal(primary.disabled, true); assert.match(primary.innerHTML, /正在核对工作区/);
-  assert.equal(prepared, 1); assert.equal(loaded, 0);
+  assert.equal(prepared, 0); assert.equal(loaded, 1);
   wait.resolve(); await Promise.all([first, duplicate]);
   opened = context.opened;
   assert.equal(loaded, 1); assert.equal(opened, 1); assert.equal(primary.disabled, false);
 });
 
-test('切换详情后新任务准备不受旧等待影响，旧准备完成也不读取或打开任务', async () => {
+test('切换详情后新任务准备不受旧等待影响，旧状态到达后也不打开任务', async () => {
   const old = deferred(), calls = [];
   const state = { repo: repo.fullName, selected: 7 };
   const store = {
-    identity: 42, prepareTask() { calls.push(['prepare', state.selected]); return state.selected === 7 ? old.promise : Promise.resolve(); },
-    async loadTask(_repo, number) { calls.push(['latest', number]); },
+    identity: 42, task: () => ({ current: null }),
+    async loadTask(_repo, number) { calls.push(['latest', number]); if (number === 7) await old.promise; },
     workspaces: () => [{ id: 'one', valid: true }], binding: () => null,
   };
   const context = createContext({ state, store, calls, current: () => ({}), preserveBefore: callback => callback(), renderTaskOnly() {} });
@@ -311,7 +362,7 @@ test('切换详情后新任务准备不受旧等待影响，旧准备完成也�
   state.selected = 8; context.changeDetail();
   await context.run(false);
   old.resolve(); await before;
-  assert.deepEqual(structuredClone(calls), [['prepare', 7], ['prepare', 8], ['latest', 8], ['open', 8]]);
+  assert.deepEqual(structuredClone(calls), [['latest', 7], ['latest', 8], ['open', 8]]);
 });
 
 for (const change of ['issue', 'repository', 'identity']) {
@@ -379,6 +430,36 @@ test('实际控制器有效绑定也可修改，取消不bind，确认绑定不o
   await context.act('confirm-workspace', { dataset: {}, isConnected: true }, {}); assert.equal(calls.some(call => Array.isArray(call) && call[0] === 'bind'), false);
   await context.change(); await context.act('confirm-workspace', { dataset: {}, isConnected: true }, {});
   assert.deepEqual(calls.filter(call => Array.isArray(call)), [['bind', 'two']]); assert.equal(calls.includes('open'), false);
+});
+
+test('显式选择创建工作区立即反馈并一次请求打开，绑定由服务保存', async () => {
+  const calls = [], state = { repo: repo.fullName, selected: 7, draftSaved: true };
+  const waiting = deferred(), attributes = {};
+  const target = {
+    dataset: { action: 'confirm-workspace' }, textContent: '确认并打开草稿', isConnected: true,
+    setAttribute(key, value) { attributes[key] = value; },
+  };
+  const store = {
+    identity: 42, task: () => ({ current: null }), bind: async () => calls.push('bind'),
+    async createTask(_repo, _number, { workspaceKey }) { calls.push(workspaceKey); await waiting.promise; },
+  };
+  const context = createContext({
+    state, store, current: () => ({}), overlay: {}, $: () => ({ value: 'two' }),
+    renderTaskOnly() {}, closeOverlay() {}, showTask() {}, scheduleTaskAssociation() {},
+  });
+  new Script(`
+    let detailGeneration = 1, overlayGeneration = 0, taskBusy = null, workspaceSaving = false;
+    let taskIntent = { repo: state.repo, number: 7, identity: 42, mode: 'create', another: false };
+    ${operation}${section('async function openTask(', 'async function createTask(')}${handler}
+    globalThis.act = handleAction;`).runInContext(context);
+  const pending = context.act('confirm-workspace', target, {});
+  assert.equal(target.textContent, '正在打开会话…');
+  assert.equal(attributes['aria-busy'], 'true');
+  assert.equal(target.disabled, true);
+  await context.act('confirm-workspace', target, {});
+  assert.deepEqual(calls, ['two']);
+  waiting.resolve(); await pending;
+  assert.equal(target.disabled, false);
 });
 
 const diagnostics = () => ({ schemaVersion: 1, data: { status: 'warning', checks: [{ id: 'github', label: 'GitHub 登录', status: 'warning', message: '尚未登录', action: '请执行 gh auth login' }], discovery: { status: 'partial', warnings: ['子仓库发现达到本次范围上限'] }, sampledAt: '2026-11-04' } });

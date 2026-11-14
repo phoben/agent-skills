@@ -4,11 +4,94 @@ import { readFile } from 'node:fs/promises';
 import { createContext, Script } from 'node:vm';
 import { createColumnLayout, constrainWidths } from '../ui/layout.mjs';
 import { createLatestSelection } from '../ui/selection.mjs';
+import { issueForm, issuePropertyChoices } from '../ui/ui.mjs';
 
 const deferred = () => { let resolve, reject; const promise = new Promise((a, b) => { resolve = a; reject = b; }); return { resolve, reject, promise }; };
 const tick = () => new Promise(resolve => setImmediate(resolve));
 const source = await readFile(new URL('../ui/app.mjs', import.meta.url), 'utf8');
 const section = (start, end) => source.slice(source.indexOf(start), source.indexOf(end, source.indexOf(start)));
+
+function editorPage({ hasManage = true, savedDraft = null } = {}) {
+  const state = { repo: 'team/alpha', selected: 7, saving: false };
+  const baseline = { title: '原始标题', body: '原始正文', number: 7, labels: ['bug'], assignee: '现有负责人', milestone: '当前里程碑' };
+  const document = { activeElement: null }, nodes = new Map(), bodies = [];
+  const element = (key, values = {}) => {
+    const value = { focus() { document.activeElement = this; }, ...values };
+    nodes.set(key, value); return value;
+  };
+  const title = element('#issue-title'), body = element('#issue-body', { value: '原始正文' });
+  const property = element('#issue-properties', { disabled: true });
+  const form = element('#issue-form'), notice = element('#issue-options-status');
+  const status = element('span'), retry = element('button', { hidden: true });
+  for (const key of ['.checkboxes', '#issue-assignee', '#issue-milestone']) element(key);
+  let wait = deferred(), requests = 0, fields = { labels: [], assignees: [], milestones: [] };
+  const store = {
+    identity: 42, draft: () => savedDraft,
+    async loadOptions() { requests++; fields = await wait.promise; },
+  };
+  const context = createContext({
+    state, document, store, current: () => baseline, preserveBefore: callback => callback(),
+    structuredClone, renderRows() {}, $: key => nodes.get(key), permission: () => hasManage,
+    issuePropertyChoices, editorOptions: () => fields,
+    renderDetail() {
+      bodies.push(issueForm(state.editor, fields, { manage: hasManage, optionsReady: false }));
+      if (hasManage) void context.loadOptions();
+    },
+  });
+  new Script(`let detailGeneration = 1;
+    ${section('function editIssue(', 'function showFormError(')}
+    globalThis.edit = editIssue; globalThis.loadOptions = loadEditorOptions;`).runInContext(context);
+  return { context, state, document, nodes, form, title, body, property, notice, status, retry, bodies,
+    get requests() { return requests; }, get wait() { return wait; }, startRequest() { wait = deferred(); } };
+}
+
+test('候选请求未决时已显示草稿并允许输入，结果只更新属性控件', async () => {
+  const draft = { title: '草稿标题', body: '草稿正文', number: 7, labels: ['bug'], assignee: '现有负责人', milestone: '当前里程碑' };
+  const p = editorPage({ savedDraft: draft });
+  p.context.edit();
+  assert.equal(p.requests, 1);
+  assert.match(p.bodies[0], /草稿标题/);
+  assert.match(p.bodies[0], /<textarea id="issue-body" name="body" rows="12">草稿正文/);
+  assert.match(p.bodies[0], /<fieldset id="issue-properties" disabled>/);
+  assert.match(p.bodies[0], /现有负责人.*<\/option>/);
+  assert.equal(p.document.activeElement, p.title);
+  p.body.value = '请求在途时输入的新正文'; p.body.selectionStart = 4; p.body.focus();
+  p.state.editor = { ...p.state.editor, body: p.body.value };
+  p.wait.resolve({ labels: ['前端', 'bug'], assignees: ['另一位成员'], milestones: ['将来'] });
+  await tick();
+  assert.match(p.nodes.get('.checkboxes').innerHTML, /value="bug" checked/);
+  assert.match(p.nodes.get('.checkboxes').innerHTML, /前端/);
+  assert.match(p.nodes.get('#issue-assignee').innerHTML, /value="现有负责人" selected/);
+  assert.equal(p.notice.hidden, true);
+  assert.equal(p.property.disabled, false);
+  assert.equal(p.nodes.get('#issue-form'), p.form);
+  assert.equal(p.body.value, '请求在途时输入的新正文');
+  assert.equal(p.body.selectionStart, 4);
+  assert.equal(p.document.activeElement, p.body);
+});
+
+test('候选读取失败仅影响属性，切换表单后丢弃迟到重试', async () => {
+  const p = editorPage();
+  p.context.edit();
+  p.wait.reject(new Error('模拟网络故障')); await tick();
+  assert.match(p.status.textContent, /仍可编辑标题和正文/);
+  assert.equal(p.retry.hidden, false);
+  assert.equal(p.property.disabled, true);
+  p.startRequest();
+  const pending = p.context.loadOptions();
+  p.state.selected = 8; p.nodes.set('#issue-form', {});
+  p.wait.resolve({ labels: ['旧结果'], assignees: [], milestones: [] }); await pending;
+  assert.equal(p.nodes.get('.checkboxes').innerHTML, undefined);
+  assert.equal(p.property.disabled, true);
+});
+
+test('仅有标题正文编辑权限时可立即进入表单且无需读取属性候选', () => {
+  const p = editorPage({ hasManage: false });
+  p.context.edit();
+  assert.equal(p.requests, 0);
+  assert.match(p.bodies[0], /需仓库管理权限/);
+  assert.doesNotMatch(p.bodies[0], /正在读取标签/);
+});
 
 test('后台目录归一完成会本机重存当前选仓，且不等待保存才更新页面', async () => {
   const saves = [], state = { repo: 'team/second' }, never = new Promise(() => {});
