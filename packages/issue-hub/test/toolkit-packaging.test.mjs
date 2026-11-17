@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, access } from 'node:fs/promises';
+import { readFile, access, readdir } from 'node:fs/promises';
 import { VERSION } from '../src/version.mjs';
 
 const root = new URL('../../../', import.meta.url);
@@ -23,6 +23,20 @@ test('Issue源码与两服务构建版本归属于YG双清单，旧独立插件�
   assert.equal(manifest.version, compatibility.version);
   assert.equal(VERSION, manifest.version);
   await assert.rejects(access(new URL('plugins/issue-hub/plugin.json', root)), { code: 'ENOENT' });
+});
+
+test('Issue管理只分发初始化与分诊两个技能入口，保留可发现元数据', async () => {
+  const skills = new URL('plugins/yg-toolkit/skills/', root);
+  const entries = await readdir(skills, { withFileTypes: true });
+  const names = entries.filter(entry => entry.isDirectory() && entry.name.startsWith('issue-')).map(entry => entry.name).sort();
+  assert.deepEqual(names, ['issue-init', 'issue-triage']);
+  for (const name of names) {
+    const source = await readFile(new URL(`${name}/SKILL.md`, skills), 'utf8');
+    assert.equal(source.match(/^name:\s*([a-z][a-z0-9-]*)\s*$/m)?.[1], name);
+    const metadata = await readFile(new URL(`${name}/agents/openai.yaml`, skills), 'utf8');
+    assert.match(metadata, /display_name:/);
+    assert.match(metadata, /default_prompt:/);
+  }
 });
 
 test('YG自包含包同时带两页面与独立许可，四份运行产物版本标记一致', async () => {

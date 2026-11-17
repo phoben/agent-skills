@@ -9,12 +9,14 @@
 | [`config-migrate`](./plugins/yg-toolkit/skills/config-migrate/SKILL.md) | 盘点并迁移 Claude、Codex、Cursor、Trae、ZCode、Kimi 等平台的工程化配置 |
 | [`user-manual`](./plugins/yg-toolkit/skills/user-manual/SKILL.md) | 基于真实仓库、权限与运行界面创建或增量维护最终用户操作手册 |
 | [`requirement-docs`](./plugins/yg-toolkit/skills/requirement-docs/SKILL.md) | 创建 BRD、PRD、TRD 和 SRS 等需求文档 |
-| [`issue-triage`](./plugins/yg-toolkit/skills/issue-triage/SKILL.md) | 读取 Issue、组织只读调研，澄清诉求并经确认后回复和分类 |
-| [`issue-extract`](./plugins/yg-toolkit/skills/issue-extract/SKILL.md) | 从已有资料提取待办，核验项目现状、筛选有效 Issue，交付草案并经用户选定后创建 |
+| [`issue-init`](./plugins/yg-toolkit/skills/issue-init/SKILL.md) | 调研并接入项目 Issue 管理规则，配合 Trellis 动态 workflow 或项目已有流程 |
+| [`issue-triage`](./plugins/yg-toolkit/skills/issue-triage/SKILL.md) | 从编号或链接开始查证、核任务阶段、按授权同步标签并推荐真实 workflow |
 | [`enterprise-ui-design`](./plugins/yg-toolkit/skills/enterprise-ui-design/SKILL.md) | 继承现有企业系统规范，设计高密度页面与复杂交互，并通过原型和独立审查验证 |
 | [`edgeone-app-builder`](./plugins/yg-toolkit/skills/edgeone-app-builder/SKILL.md) | 新建或更新 EdgeOne 应用；沿用现有项目的技术栈与界面体系，并验证部署路径和交付成品 |
 | [`datapull`](./plugins/yg-toolkit/skills/datapull/SKILL.md) | 通过 DataPull CLI 安全导出 MySQL、PostgreSQL 或 SQL Server 的 DDL，处理环境、对象范围、证书异常与结果验收 |
 | [`version-release`](./plugins/yg-toolkit/skills/version-release/SKILL.md) | 检查工作区并完成提交、推送、发布、故障恢复和公开安装验证 |
+
+Issue 管理只提供两个入口：`$issue-init` 接入项目规则，`$issue-triage` 处理明确编号或链接。旧 `$issue-extract` 独立入口已退役，其核验、来源和去重方法保留为按需参考；本次变更不卸载用户现有缓存，也不自动批量建单。
 
 ## Tokens 用量页面
 
@@ -42,7 +44,7 @@ YG Toolkit 0.3.0纳入Issue Hub。只安装一个YG插件，Tokens与Issue Hub�
             ├── enterprise-ui-design/
             ├── edgeone-app-builder/
             ├── issue-triage/
-            ├── issue-extract/
+            ├── issue-init/
             ├── requirement-docs/
             ├── user-manual/
             └── version-release/

@@ -73,4 +73,13 @@ async function accessSkills(plugin, skills) {
   const { readdir } = await import('node:fs/promises');
   const entries = await readdir(join(plugin, 'skills'), { withFileTypes: true });
   assert.ok(entries.some(entry => entry.isDirectory()), '统一YG包必须保留既有技能');
+  const issueSkills = entries.filter(entry => entry.isDirectory() && entry.name.startsWith('issue-')).map(entry => entry.name).sort();
+  assert.deepEqual(issueSkills, ['issue-init', 'issue-triage'], '包外Issue管理只保留两个可发现入口');
+  for (const name of issueSkills) {
+    const source = await readFile(join(plugin, 'skills', name, 'SKILL.md'), 'utf8');
+    assert.equal(source.match(/^name:\s*([a-z][a-z0-9-]*)\s*$/m)?.[1], name);
+    const metadata = await readFile(join(plugin, 'skills', name, 'agents', 'openai.yaml'), 'utf8');
+    assert.match(metadata, /display_name:/);
+    assert.match(metadata, /default_prompt:/);
+  }
 }

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Issue Init"
+  short_description: "调研并接入项目 Issue 管理规则和动态 workflow 推荐"
+  default_prompt: "使用 $issue-init 调研当前项目的流程与习惯，建立可审核的 Issue 管理和工作流配合方案。"

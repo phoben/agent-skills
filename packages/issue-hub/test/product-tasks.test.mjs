@@ -283,6 +283,26 @@ test('新建任务只读取目标 Issue 摘要', async () => {
   assert.match(new URL(f.state.opened[0]).searchParams.get('prompt'), /最新正文、全部分页评论/);
 });
 
+test('Issue交接草稿先分诊和推荐，不越过建任务或实施边界', async () => {
+  const f = fixture();
+  await f.tasks.execute('open', f.payload());
+  const uri = new URL(f.state.opened[0]);
+  const prompt = uri.searchParams.get('prompt');
+  assert.equal(uri.searchParams.get('send'), null);
+  assert.match(prompt, /issue-triage/);
+  assert.match(prompt, /先核对当前会话的 Trellis Task 与此 Issue 的来源关联/);
+  assert.match(prompt, /首个一级标题及导语、首个二级章节/);
+  assert.match(prompt, /实际证据.*同步建议/);
+  assert.match(prompt, /可选清单和推荐.*前置处理结束/);
+  assert.match(prompt, /不先要求创建 Task/);
+  assert.match(prompt, /不创建、绑定、start 或实施任务/);
+  assert.match(prompt, /独立 Issue.*worktree.*真实子项.*批准/);
+  assert.match(prompt, /不抢切当前任务或分支/);
+  assert.match(prompt, /未经用户另行授权，不提交、推送代码，不修改 GitHub Issue 状态、标签或评论/);
+  assert.doesNotMatch(prompt, /再实施改动并运行相关验证/);
+  assert.equal(f.state.opened.length, 1);
+});
+
 const taskScope = identity => `github.com:gh-a:codex:${createHash('sha256').update(identity).digest('hex')}`;
 
 test('精确legacy作用域迁移幂等，prepared和requested恢复后都不再次打开草稿', async () => {
