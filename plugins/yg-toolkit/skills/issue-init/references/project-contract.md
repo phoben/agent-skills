@@ -2,6 +2,8 @@
 
 合同位置建议为 `.github/issue-management.json`。值由用户场景、真实项目和现有平台定义决定；下面是结构约定，不要求每个项目照建所有标签。
 
+首次接入无需先有合同或 Issue。先按 [环境补齐与完成标准](environment-readiness.md) 调查并确定方案，再生成合同；安装、登录、项目初始化和远端配置由主会话按已批准清单执行，本地接入工具不代替这些步骤。
+
 - `schema_version: 1`、`provider: "github"`。
 - `repository: {host, full_name}`：明确主机及 owner/repo，不写凭据。
 - `workflow: {discovery: "runtime", summary: "first-h1-and-h2"}`：只保存发现方法，不保存 workflow 名单或 Type→ID 表。

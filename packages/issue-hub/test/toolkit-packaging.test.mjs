@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile, access, readdir } from 'node:fs/promises';
+import { readFile, access, readdir, cp, mkdtemp, mkdir, rm } from 'node:fs/promises';
+import { spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { join, resolve, sep } from 'node:path';
 import { VERSION } from '../src/version.mjs';
 
 const root = new URL('../../../', import.meta.url);
@@ -37,6 +40,36 @@ test('Issue管理只分发初始化与分诊两个技能入口，保留可发现
     assert.match(metadata, /display_name:/);
     assert.match(metadata, /default_prompt:/);
   }
+});
+
+test('包外两个技能可对空白项目运行环境诊断，无全局依赖或项目写入', async t => {
+  const temporary = await mkdtemp(join(tmpdir(), 'yg-issue-doctor-package-'));
+  t.after(async () => {
+    assert.ok(resolve(temporary).startsWith(`${resolve(tmpdir())}${sep}yg-issue-doctor-package-`));
+    await rm(temporary, { recursive: true, force: true });
+  });
+  const skills = join(temporary, 'plugin', 'skills');
+  await mkdir(skills, { recursive: true });
+  for (const name of ['issue-init', 'issue-triage']) {
+    await cp(new URL(`plugins/yg-toolkit/skills/${name}/`, root), join(skills, name), { recursive: true });
+  }
+  const project = join(temporary, 'blank-project');
+  const emptyPath = join(temporary, 'no-programs');
+  await mkdir(project);
+  await mkdir(emptyPath);
+  const env = { ...process.env };
+  for (const key of Object.keys(env)) if (key.toLowerCase() === 'path') delete env[key];
+  env.PATH = emptyPath;
+  const result = spawnSync(process.execPath,
+    [join(skills, 'issue-triage', 'scripts', 'issue-tools.mjs'), 'doctor', '--root', project, '--workflow', 'existing'],
+    { cwd: temporary, env, encoding: 'utf8', timeout: 20000, windowsHide: true });
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.read_only, true);
+  assert.equal(report.complete, false);
+  assert.equal(report.status, 'needs_setup');
+  assert.equal(report.readiness.github, 'not_checked');
+  assert.deepEqual(await readdir(project), []);
 });
 
 test('YG自包含包同时带两页面与独立许可，四份运行产物版本标记一致', async () => {

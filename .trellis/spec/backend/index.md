@@ -10,6 +10,7 @@
 
 - 修改`packages/token-usage/src/`、MCP或插件清单时，先读[Tokens服务规范](./token-usage.md)。
 - 修改 `packages/issue-hub/` 或YG内Issue分发时，先读 [Issue Hub 宿主验证契约](./issue-hub.md)，并区分P0证据、独立插件历史及当前整合验收。
+- 修改 Issue 初始化诊断、接入工具或相关技能时，先读 [环境补齐与完成标准](../../../plugins/yg-toolkit/skills/issue-init/references/environment-readiness.md)；诊断只读且不证明完整接入，验证空白／现有流程／残缺 Trellis、原辅助工具回归及包外调用。
 - YG Toolkit整合后的manifest、MCP、构建或升版变更同时读取Tokens与Issue Hub规范；统一构建两模块、两边回归及verify:toolkit，不能只检查一套服务。
 - 跨层改动同时读取任务PRD、设计与接口契约。下列通用模板尚未填充，不视为已验证的项目约定。
 

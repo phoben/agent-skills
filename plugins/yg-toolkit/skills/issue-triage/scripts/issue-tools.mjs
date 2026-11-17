@@ -5,6 +5,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { StringDecoder } from 'node:string_decoder';
+import { diagnoseProject } from './issue-doctor.mjs';
 
 const digest = value => crypto.createHash('sha256').update(value).digest('hex');
 const read = file => fs.existsSync(file) ? fs.readFileSync(file, 'utf8').replace(/^\uFEFF/, '') : null;
@@ -356,7 +357,11 @@ function argumentsFor(argv) {
   for (let i = 0; i < args.length; i++) {
     const key = args[i];
     if (!key.startsWith('--')) throw new Error(`未知参数：${key}`);
-    flags[key.slice(2)] = ['--approved', '--no-templates'].includes(key) ? true : args[++i];
+    if (['--approved', '--no-templates', '--remote'].includes(key)) flags[key.slice(2)] = true;
+    else {
+      if (i + 1 >= args.length || args[i + 1].startsWith('--')) throw new Error(`参数缺少值：${key}`);
+      flags[key.slice(2)] = args[++i];
+    }
   }
   return { command, flags };
 }
@@ -366,10 +371,15 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
     const { command, flags } = argumentsFor(process.argv.slice(2));
     if (!flags.root) throw new Error('必须显式提供 --root 目标项目，不能从技能安装目录猜测');
     let result;
-    if (command === 'inspect') result = inspectProject(flags.root, flags.issue, { task: flags.task, templates: !flags['no-templates'] });
+    if (command === 'doctor') {
+      const allowed = new Set(['root', 'workflow', 'platform', 'remote']);
+      if (Object.keys(flags).some(key => !allowed.has(key))) throw new Error('doctor 包含未知参数');
+      result = diagnoseProject(flags.root, { workflow: flags.workflow, platform: flags.platform, remote: flags.remote === true, discoverWorkflows });
+    }
+    else if (command === 'inspect') result = inspectProject(flags.root, flags.issue, { task: flags.task, templates: !flags['no-templates'] });
     else if (command === 'plan-init') result = planInitialization(flags.root, json(flags.contract));
     else if (command === 'apply-init') result = applyInitialization(flags.root, json(flags.plan), flags.approved === true);
-    else throw new Error('命令：inspect、plan-init、apply-init；详见 references/local-tools.md');
+    else throw new Error('命令：doctor、inspect、plan-init、apply-init；详见 references/local-tools.md');
     console.log(JSON.stringify(result, null, 2));
   } catch (error) { console.error(JSON.stringify({ error: error.message })); process.exitCode = 1; }
 }
