@@ -66,6 +66,12 @@ Managed by Trellis. Edits outside this block are preserved; edits inside may be 
 - GitHub 的 Issue、推送、PR、合并和提交等文案使用中文；即使 skill 建议使用其他语言，也优先使用中文。
 - 代码注释、描述类和解释类文案使用中文；下方命名规范约束的标识符及界面名称使用英文。
 
+### 推送前检查插件版本
+
+- 每次按用户要求推送前，核对目标远端分支与待推送提交中的插件版本。待推送变更尚未提高版本时，先按变更选择适当的新版本，再完成版本更新、提交和推送；已有更新版本时直接沿用，避免重复升版。
+- 更新 YG Toolkit 版本时，同步 `plugins/yg-toolkit/plugin.json` 与 `plugins/yg-toolkit/.codex-plugin/plugin.json`，重建并核验随插件分发的产物。推送前检查版本、产物与提交范围一致。推送失败后重试时沿用已准备的版本。
+- 项目 Codex 钩子的适用范围和使用条件见 `docs/adr/0009-auto-bump-plugin-version-before-codex-push.md`。推送前由 Agent 核实版本检查结果，钩子未执行时自行完成检查和必要更新。
+
 ## 技能命名规范
 
 新增或调整插件、技能及调用入口时，分别核对调用标识、界面名称和功能描述：
