@@ -1,0 +1,4 @@
+interface:
+  display_name: "Orca Config"
+  short_description: "解释和检查 Orca 配置，说明工作区脚本、共享目录及环境配方"
+  default_prompt: "使用 $orca-yaml 解释或检查当前项目的 Orca 配置，并说明适用版本和注意事项。"
