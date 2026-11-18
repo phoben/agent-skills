@@ -1,0 +1,4 @@
+interface:
+  display_name: "Trellis Review"
+  short_description: "复盘 Trellis 任务的流程、技能、规范与模型表现，提出可验证的改进"
+  default_prompt: "使用 $trellis-retrospective 复盘我指定的 Trellis 任务，给出证据和改进建议。"
