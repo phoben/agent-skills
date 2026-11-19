@@ -42,7 +42,7 @@ test('Issue管理只分发初始化与分诊两个技能入口，保留可发现
   }
 });
 
-test('包外两个技能可对空白项目运行环境诊断，无全局依赖或项目写入', async t => {
+test('包外 Issue 技能及其 Trellis 依赖可对空白项目运行环境诊断', async t => {
   const temporary = await mkdtemp(join(tmpdir(), 'yg-issue-doctor-package-'));
   t.after(async () => {
     assert.ok(resolve(temporary).startsWith(`${resolve(tmpdir())}${sep}yg-issue-doctor-package-`));
@@ -50,7 +50,7 @@ test('包外两个技能可对空白项目运行环境诊断，无全局依赖�
   });
   const skills = join(temporary, 'plugin', 'skills');
   await mkdir(skills, { recursive: true });
-  for (const name of ['issue-init', 'issue-triage']) {
+  for (const name of ['issue-init', 'issue-triage', 'trellis-setup']) {
     await cp(new URL(`plugins/yg-toolkit/skills/${name}/`, root), join(skills, name), { recursive: true });
   }
   const project = join(temporary, 'blank-project');
