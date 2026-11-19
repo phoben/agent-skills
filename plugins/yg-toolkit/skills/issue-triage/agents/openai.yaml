@@ -1,4 +1,4 @@
 interface:
   display_name: "Issue Triage"
-  short_description: "前置核实 Issue、关联任务及阶段，按授权同步标签并动态推荐工作流"
-  default_prompt: "使用 $issue-triage 处理指定 Issue，先核实已有任务、阶段与标签，再从实时 workflow 中推荐继续入口。"
+  short_description: "核实具体 Issue 和关联任务，推荐可用流程并交接获批的下一步"
+  default_prompt: "使用 $issue-triage 核实指定 Issue 的事实、已有任务与阶段，再推荐实际可用的流程。"

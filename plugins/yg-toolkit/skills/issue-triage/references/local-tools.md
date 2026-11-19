@@ -11,6 +11,8 @@ node <本技能>/scripts/issue-tools.mjs plan-init --root <目标项目> --contr
 node <本技能>/scripts/issue-tools.mjs apply-init --root <目标项目> --plan <已审核plan文件> --approved
 ```
 
+单独盘点 Trellis 流程时使用 [trellis-setup 的发现工具](../../trellis-setup/references/workflow-design.md#只读发现)。下面的 Issue 工具通过同一个实现读取候选和原生选择，原命令可继续使用。
+
 `doctor` 用于 issue-init 的环境盘点，不需要 Issue、合同、Git 或 Trellis。`--workflow auto|existing|trellis` 决定检查范围，`--platform codex|claude` 指当前平台；默认不联网，`--remote` 仅用已有 gh 做只读检查。有效诊断即使有缺项也返回退出码 0，检查 `status`、`checks` 和 `readiness`，不能把命令成功当完整接入。它始终返回 `complete:false`，远端未核实项和新会话行为由主会话补证。详细处理见 [环境补齐与完成标准](../../issue-init/references/environment-readiness.md)。
 
 PowerShell 引用含 # 的参数。plan 命令仅输出 JSON，使用当前 shell 的 UTF-8 文件方式保存到已允许的位置；不要把 shell 显示日志当成有效 plan。`--approved` 只记录调用者已取得具体差异批准，不能把命令里的标志当作用户自动授权。
