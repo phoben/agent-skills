@@ -1,6 +1,6 @@
 # Harness 分流
 
-先完整读取 `.trellis/spec/config/framework-upstream-sync-guidelines.md`；它是长期分类合同，本文件只规定本次同步如何执行。
+先读取技能内的 [框架同步规范参考](framework-upstream-sync-guidelines.md)，并核对目标项目实际生效的规范。该参考保留 aoy_erp 的原始规则和示例，项目名称、技术栈及专属约束以目标项目事实为准。本文件规定本次同步如何执行。
 
 ## 1. 建立 Harness 清单
 
